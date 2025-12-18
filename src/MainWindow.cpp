@@ -1,9 +1,13 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include "InstallPathWidget.h"
+#include "FoxholeDetector.h"
+#include <QSettings>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , m_installPathWidget(new InstallPathWidget(this))
 {
     ui->setupUi(this);
 
@@ -15,6 +19,8 @@ MainWindow::MainWindow(QWidget *parent)
     setAttribute(Qt::WA_TranslucentBackground);
 
     setupTitleBar();
+    setupInstallPath();
+    loadSettings();
 
     // Apply window styling
     centralWidget()->setStyleSheet(R"(
@@ -27,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
+    saveSettings();
     delete ui;
 }
 
@@ -46,4 +53,55 @@ void MainWindow::onMinimizeClicked() {
 
 void MainWindow::onCloseClicked() {
     close();
+}
+
+void MainWindow::setupInstallPath() {
+    // Add install path widget to leftBox
+    ui->leftBox->addWidget(m_installPathWidget);
+
+    // Connect signal
+    connect(m_installPathWidget, &InstallPathWidget::validPathSelected,
+            this, &MainWindow::onInstallPathChanged);
+}
+
+void MainWindow::loadSettings() {
+    QSettings settings("TrenchKit", "FoxholeModManager");
+
+    // Try to load saved installation path
+    QString savedPath = settings.value("foxholeInstallPath").toString();
+
+    if (!savedPath.isEmpty() && FoxholeDetector::isValidInstallPath(savedPath)) {
+        // Use saved path if it's still valid
+        m_installPathWidget->setInstallPath(savedPath);
+    } else {
+        // Try to auto-detect
+        QString detectedPath = FoxholeDetector::detectInstallPath();
+        if (!detectedPath.isEmpty()) {
+            m_installPathWidget->setInstallPath(detectedPath);
+        }
+    }
+
+    // Restore window geometry
+    if (settings.contains("windowGeometry")) {
+        restoreGeometry(settings.value("windowGeometry").toByteArray());
+    } else {
+        // Default size
+        resize(1000, 700);
+    }
+}
+
+void MainWindow::saveSettings() {
+    QSettings settings("TrenchKit", "FoxholeModManager");
+
+    // Save installation path
+    settings.setValue("foxholeInstallPath", m_installPathWidget->installPath());
+
+    // Save window geometry
+    settings.setValue("windowGeometry", saveGeometry());
+}
+
+void MainWindow::onInstallPathChanged(const QString &path) {
+    // Save immediately when a valid path is selected
+    QSettings settings("TrenchKit", "FoxholeModManager");
+    settings.setValue("foxholeInstallPath", path);
 }

@@ -1,0 +1,47 @@
+#ifndef INSTALLPATHWIDGET_H
+#define INSTALLPATHWIDGET_H
+
+#include <QWidget>
+#include <QString>
+
+class QLabel;
+class QLineEdit;
+class QPushButton;
+class QVBoxLayout;
+
+class InstallPathWidget : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit InstallPathWidget(QWidget *parent = nullptr);
+    ~InstallPathWidget() override = default;
+
+    QString installPath() const;
+    void setInstallPath(const QString &path);
+    bool isValidPath() const;
+
+signals:
+    void pathChanged(const QString &path);
+    void validPathSelected(const QString &path);
+
+private slots:
+    void onBrowseClicked();
+    void onPathEdited(const QString &text);
+
+private:
+    void setupUi();
+    void setupConnections();
+    void validatePath(const QString &path);
+    bool checkFoxholeInstallation(const QString &path) const;
+
+    QLabel *m_titleLabel;
+    QLineEdit *m_pathLineEdit;
+    QPushButton *m_browseButton;
+    QLabel *m_statusLabel;
+    QVBoxLayout *m_layout;
+
+    QString m_currentPath;
+    bool m_isValid = false;
+};
+
+#endif // INSTALLPATHWIDGET_H

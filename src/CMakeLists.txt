@@ -5,6 +5,10 @@ qt_add_executable(TrenchKit
   MainWindow.ui
   TitleBar.h
   TitleBar.cpp
+  InstallPathWidget.h
+  InstallPathWidget.cpp
+  FoxholeDetector.h
+  FoxholeDetector.cpp
   resources.qrc
 )
 
