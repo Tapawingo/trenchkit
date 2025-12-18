@@ -19,35 +19,39 @@ TitleBar::TitleBar(QWidget *parent)
 }
 
 void TitleBar::setupUi() {
-    setFixedHeight(32);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     setObjectName("titleBar");
 
-    // Icon label
-    m_iconLabel->setFixedSize(16, 16);
-    m_iconLabel->setScaledContents(true);
+    QPixmap toolboxPixmap(":/logo_toolbox.png");
+    int toolboxHeight = 38;
+    int toolboxWidth = toolboxPixmap.width() * toolboxHeight / toolboxPixmap.height();
+    m_iconLabel->setPixmap(toolboxPixmap.scaled(toolboxWidth, toolboxHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    m_iconLabel->setFixedSize(toolboxWidth, toolboxHeight);
+    m_iconLabel->setAlignment(Qt::AlignCenter);
     m_iconLabel->setObjectName("titleBarIcon");
 
-    // Title label
+    QPixmap titlePixmap(":/logo_title.png");
+    int titleHeight = 38;
+    int titleWidth = titlePixmap.width() * titleHeight / titlePixmap.height();
+    m_titleLabel->setPixmap(titlePixmap.scaled(titleWidth, titleHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    m_titleLabel->setFixedSize(titleWidth, titleHeight);
+    m_titleLabel->setAlignment(Qt::AlignCenter);
     m_titleLabel->setObjectName("titleBarTitle");
-    m_titleLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-    // Window control buttons
-    m_minimizeButton->setFixedSize(32, 32);
     m_minimizeButton->setText("−");
+    m_minimizeButton->setFixedSize(64, 64);
     m_minimizeButton->setObjectName("minimizeButton");
     m_minimizeButton->setFocusPolicy(Qt::NoFocus);
 
-    m_closeButton->setFixedSize(32, 32);
     m_closeButton->setText("×");
+    m_closeButton->setFixedSize(64, 64);
     m_closeButton->setObjectName("closeButton");
     m_closeButton->setFocusPolicy(Qt::NoFocus);
 
-    // Layout
-    m_layout->setContentsMargins(8, 0, 0, 0);
+    m_layout->setContentsMargins(12, 0, 0, 0);
     m_layout->setSpacing(0);
+    m_layout->setAlignment(Qt::AlignVCenter);
     m_layout->addWidget(m_iconLabel);
-    m_layout->addSpacing(8);
+    m_layout->addSpacing(12);
     m_layout->addWidget(m_titleLabel);
     m_layout->addStretch();
     m_layout->addWidget(m_minimizeButton);
@@ -62,16 +66,11 @@ void TitleBar::setupUi() {
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
         }
-        #titleBarTitle {
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 500;
-        }
         #minimizeButton, #closeButton {
             background-color: transparent;
             color: #ffffff;
             border: none;
-            font-size: 16px;
+            font-size: 24px;
             font-weight: 300;
         }
         #minimizeButton:hover {
@@ -89,12 +88,11 @@ void TitleBar::setupConnections() {
 }
 
 void TitleBar::setTitle(const QString &title) {
-    m_titleLabel->setText(title);
+    Q_UNUSED(title);
 }
 
 void TitleBar::setIcon(const QIcon &icon) {
-    QPixmap pixmap = icon.pixmap(16, 16);
-    m_iconLabel->setPixmap(pixmap);
+    Q_UNUSED(icon);
 }
 
 void TitleBar::mousePressEvent(QMouseEvent *event) {

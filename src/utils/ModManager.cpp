@@ -320,9 +320,18 @@ void ModManager::sortModsByPriority() {
 }
 
 QString ModManager::generateNumberedFileName(int priority, const QString &originalFileName) const {
-    // Generate a 3-digit prefix (e.g., "001_", "002_", etc.)
-    QString prefix = QString("%1_").arg(priority, 3, 10, QChar('0'));
-    return prefix + originalFileName;
+    QString number = QString("%1").arg(priority, 3, 10, QChar('0'));
+
+    if (originalFileName.startsWith("War-WindowsNoEditor", Qt::CaseInsensitive)) {
+        QString remaining = originalFileName.mid(19);
+        if (remaining.startsWith("_") || remaining.startsWith("-")) {
+            return "War-WindowsNoEditor_" + number + remaining;
+        } else {
+            return "War-WindowsNoEditor_" + number + "_" + remaining;
+        }
+    } else {
+        return number + "_" + originalFileName;
+    }
 }
 
 void ModManager::updateNumberedFileNames() {
@@ -389,11 +398,16 @@ void ModManager::detectUnregisteredMods() {
         bool isRegistered = false;
         QString originalFileName = pakFile;
 
-        // Strip numeric prefix (e.g., "001_modname.pak" -> "modname.pak")
-        QRegularExpression numPrefixRegex(R"(^\d{3}_(.+)$)");
-        QRegularExpressionMatch match = numPrefixRegex.match(pakFile);
-        if (match.hasMatch()) {
-            originalFileName = match.captured(1);
+        QRegularExpression warPrefixRegex(R"(^War-WindowsNoEditor_\d{3}_(.+)$)", QRegularExpression::CaseInsensitiveOption);
+        QRegularExpressionMatch warMatch = warPrefixRegex.match(pakFile);
+        if (warMatch.hasMatch()) {
+            originalFileName = "War-WindowsNoEditor_" + warMatch.captured(1);
+        } else {
+            QRegularExpression numPrefixRegex(R"(^\d{3}_(.+)$)");
+            QRegularExpressionMatch numMatch = numPrefixRegex.match(pakFile);
+            if (numMatch.hasMatch()) {
+                originalFileName = numMatch.captured(1);
+            }
         }
 
         for (const ModInfo &mod : m_mods) {

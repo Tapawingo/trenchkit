@@ -23,10 +23,6 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
 
-    setupTitleBar();
-    setupInstallPath();
-    setupModList();
-
     centralWidget()->setStyleSheet(R"(
         QWidget#centralwidget {
             background-color: #1e1e1e;
@@ -35,12 +31,14 @@ MainWindow::MainWindow(QWidget *parent)
         }
     )");
 
-    QSettings settings("TrenchKit", "FoxholeModManager");
-    if (settings.contains("windowGeometry")) {
-        restoreGeometry(settings.value("windowGeometry").toByteArray());
-    } else {
-        resize(1000, 700);
-    }
+    setupTitleBar();
+    setupInstallPath();
+    setupModList();
+
+    QSize windowSize(1000, 700);
+    setMinimumSize(windowSize);
+    setMaximumSize(windowSize);
+    resize(windowSize);
 }
 
 MainWindow::~MainWindow() {
@@ -122,7 +120,6 @@ void MainWindow::loadSettings() {
 void MainWindow::saveSettings() {
     QSettings settings("TrenchKit", "FoxholeModManager");
     settings.setValue("foxholeInstallPath", m_installPathWidget->installPath());
-    settings.setValue("windowGeometry", saveGeometry());
 }
 
 void MainWindow::onInstallPathChanged(const QString &path) {
