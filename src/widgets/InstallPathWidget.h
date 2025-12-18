@@ -3,11 +3,13 @@
 
 #include <QWidget>
 #include <QString>
+#include <QFutureWatcher>
 
 class QLabel;
 class QLineEdit;
 class QPushButton;
 class QVBoxLayout;
+class QTimer;
 
 class InstallPathWidget : public QWidget {
     Q_OBJECT
@@ -19,20 +21,25 @@ public:
     QString installPath() const;
     void setInstallPath(const QString &path);
     bool isValidPath() const;
+    void startAutoDetection();
 
 signals:
     void pathChanged(const QString &path);
     void validPathSelected(const QString &path);
+    void detectionFinished(const QString &path);
 
 private slots:
     void onBrowseClicked();
     void onPathEdited(const QString &text);
+    void onDetectionComplete();
+    void updateLoadingAnimation();
 
 private:
     void setupUi();
     void setupConnections();
     void validatePath(const QString &path);
     bool checkFoxholeInstallation(const QString &path) const;
+    void setLoadingState(bool loading);
 
     QLabel *m_titleLabel;
     QLineEdit *m_pathLineEdit;
@@ -42,6 +49,10 @@ private:
 
     QString m_currentPath;
     bool m_isValid = false;
+
+    QFutureWatcher<QString> *m_detectionWatcher;
+    QTimer *m_loadingTimer;
+    int m_loadingDots = 0;
 };
 
 #endif // INSTALLPATHWIDGET_H

@@ -1,8 +1,12 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
-#include "InstallPathWidget.h"
-#include "FoxholeDetector.h"
+#include "widgets/InstallPathWidget.h"
+#include "utils/FoxholeDetector.h"
 #include <QSettings>
+#include <QShowEvent>
+#include <QTimer>
+#include <QtConcurrent>
+#include <QFutureWatcher>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -20,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     setupTitleBar();
     setupInstallPath();
-    loadSettings();
 
     // Apply window styling
     centralWidget()->setStyleSheet(R"(
@@ -30,11 +33,30 @@ MainWindow::MainWindow(QWidget *parent)
             border-bottom-right-radius: 8px;
         }
     )");
+
+    // Restore window geometry from settings immediately (lightweight)
+    QSettings settings("TrenchKit", "FoxholeModManager");
+    if (settings.contains("windowGeometry")) {
+        restoreGeometry(settings.value("windowGeometry").toByteArray());
+    } else {
+        resize(1000, 700);
+    }
 }
 
 MainWindow::~MainWindow() {
     saveSettings();
     delete ui;
+}
+
+void MainWindow::showEvent(QShowEvent *event) {
+    QMainWindow::showEvent(event);
+
+    // Only load settings on first show to avoid blocking window appearance
+    if (m_firstShow) {
+        m_firstShow = false;
+        // Use QTimer::singleShot to defer loading until event loop starts
+        QTimer::singleShot(0, this, &MainWindow::loadSettings);
+    }
 }
 
 void MainWindow::setupTitleBar() {
@@ -70,23 +92,30 @@ void MainWindow::loadSettings() {
     // Try to load saved installation path
     QString savedPath = settings.value("foxholeInstallPath").toString();
 
-    if (!savedPath.isEmpty() && FoxholeDetector::isValidInstallPath(savedPath)) {
-        // Use saved path if it's still valid
-        m_installPathWidget->setInstallPath(savedPath);
-    } else {
-        // Try to auto-detect
-        QString detectedPath = FoxholeDetector::detectInstallPath();
-        if (!detectedPath.isEmpty()) {
-            m_installPathWidget->setInstallPath(detectedPath);
-        }
-    }
+    if (!savedPath.isEmpty()) {
+        // Validate the saved path asynchronously
+        QFuture<bool> validationFuture = QtConcurrent::run([savedPath]() {
+            return FoxholeDetector::isValidInstallPath(savedPath);
+        });
 
-    // Restore window geometry
-    if (settings.contains("windowGeometry")) {
-        restoreGeometry(settings.value("windowGeometry").toByteArray());
+        // Use QFutureWatcher for the validation result
+        auto *watcher = new QFutureWatcher<bool>(this);
+        connect(watcher, &QFutureWatcher<bool>::finished, this, [this, watcher, savedPath]() {
+            bool isValid = watcher->result();
+            watcher->deleteLater();
+
+            if (isValid) {
+                // Use saved path if it's still valid
+                m_installPathWidget->setInstallPath(savedPath);
+            } else {
+                // Invalid saved path, try to auto-detect
+                m_installPathWidget->startAutoDetection();
+            }
+        });
+        watcher->setFuture(validationFuture);
     } else {
-        // Default size
-        resize(1000, 700);
+        // No saved path, try to auto-detect asynchronously
+        m_installPathWidget->startAutoDetection();
     }
 }
 

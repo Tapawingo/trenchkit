@@ -3,12 +3,17 @@ qt_add_executable(TrenchKit
   MainWindow.h
   MainWindow.cpp
   MainWindow.ui
-  TitleBar.h
-  TitleBar.cpp
-  InstallPathWidget.h
-  InstallPathWidget.cpp
-  FoxholeDetector.h
-  FoxholeDetector.cpp
+
+  # Widgets
+  widgets/TitleBar.h
+  widgets/TitleBar.cpp
+  widgets/InstallPathWidget.h
+  widgets/InstallPathWidget.cpp
+
+  # Utilities
+  utils/FoxholeDetector.h
+  utils/FoxholeDetector.cpp
+
   resources.qrc
 )
 
@@ -16,6 +21,7 @@ target_link_libraries(TrenchKit
   PRIVATE
     Qt6::Widgets
     Qt6::Network
+    Qt6::Concurrent
 )
 
 target_include_directories(TrenchKit PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -29,6 +35,7 @@ if(WIN32)
             "${Qt6_DIR}/../../../bin/Qt6Gui.dll"
             "${Qt6_DIR}/../../../bin/Qt6Widgets.dll"
             "${Qt6_DIR}/../../../bin/Qt6Network.dll"
+            "${Qt6_DIR}/../../../bin/Qt6Concurrent.dll"
             $<TARGET_FILE_DIR:TrenchKit>
         COMMENT "Copying Qt DLLs to output directory"
     )

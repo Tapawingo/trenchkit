@@ -1,4 +1,5 @@
 #include "InstallPathWidget.h"
+#include "../utils/FoxholeDetector.h"
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -7,6 +8,8 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QFile>
+#include <QTimer>
+#include <QtConcurrent>
 
 InstallPathWidget::InstallPathWidget(QWidget *parent)
     : QWidget(parent)
@@ -15,6 +18,8 @@ InstallPathWidget::InstallPathWidget(QWidget *parent)
     , m_browseButton(new QPushButton(this))
     , m_statusLabel(new QLabel(this))
     , m_layout(new QVBoxLayout(this))
+    , m_detectionWatcher(new QFutureWatcher<QString>(this))
+    , m_loadingTimer(new QTimer(this))
 {
     setupUi();
     setupConnections();
@@ -95,6 +100,8 @@ void InstallPathWidget::setupUi() {
 void InstallPathWidget::setupConnections() {
     connect(m_browseButton, &QPushButton::clicked, this, &InstallPathWidget::onBrowseClicked);
     connect(m_pathLineEdit, &QLineEdit::textChanged, this, &InstallPathWidget::onPathEdited);
+    connect(m_detectionWatcher, &QFutureWatcher<QString>::finished, this, &InstallPathWidget::onDetectionComplete);
+    connect(m_loadingTimer, &QTimer::timeout, this, &InstallPathWidget::updateLoadingAnimation);
 }
 
 QString InstallPathWidget::installPath() const {
@@ -156,20 +163,79 @@ bool InstallPathWidget::checkFoxholeInstallation(const QString &path) const {
         return false;
     }
 
-    // Check for Foxhole.exe
-    if (QFile::exists(dir.filePath("Foxhole.exe"))) {
-        return true;
-    }
+    // List of possible Foxhole executables
+    QStringList possibleExes = {
+        "Foxhole.exe",
+        "FoxholeClient.exe",
+        "FoxholeClient-Win64-Shipping.exe"
+    };
 
-    // Check for common Foxhole installation indicators
-    // Foxhole might be in War/Binaries/Win64/
-    QDir warDir = dir;
-    if (warDir.cd("War") && warDir.cd("Binaries") && warDir.cd("Win64")) {
-        if (QFile::exists(warDir.filePath("Foxhole.exe")) ||
-            QFile::exists(warDir.filePath("FoxholeClient-Win64-Shipping.exe"))) {
+    // Check for executable in root directory
+    for (const QString &exe : possibleExes) {
+        if (QFile::exists(dir.filePath(exe))) {
             return true;
         }
     }
 
+    // Check for Foxhole executable in War/Binaries/Win64/
+    QDir warDir = dir;
+    if (warDir.cd("War") && warDir.cd("Binaries") && warDir.cd("Win64")) {
+        for (const QString &exe : possibleExes) {
+            if (QFile::exists(warDir.filePath(exe))) {
+                return true;
+            }
+        }
+    }
+
+    // Check for other Foxhole-specific directories
+    if (QDir(dir.filePath("War/Content/Paks")).exists() ||
+        QDir(dir.filePath("War/Content/Movies")).exists()) {
+        return true;
+    }
+
     return false;
+}
+
+void InstallPathWidget::startAutoDetection() {
+    setLoadingState(true);
+
+    // Run detection in background thread
+    QFuture<QString> future = QtConcurrent::run([]() {
+        return FoxholeDetector::detectInstallPath();
+    });
+
+    m_detectionWatcher->setFuture(future);
+}
+
+void InstallPathWidget::onDetectionComplete() {
+    QString detectedPath = m_detectionWatcher->result();
+
+    setLoadingState(false);
+
+    if (!detectedPath.isEmpty()) {
+        setInstallPath(detectedPath);
+    }
+
+    emit detectionFinished(detectedPath);
+}
+
+void InstallPathWidget::updateLoadingAnimation() {
+    m_loadingDots = (m_loadingDots + 1) % 4;
+    QString dots(m_loadingDots, '.');
+    m_statusLabel->setText("Detecting Foxhole installation" + dots);
+}
+
+void InstallPathWidget::setLoadingState(bool loading) {
+    if (loading) {
+        m_loadingDots = 0;
+        m_statusLabel->setText("Detecting Foxhole installation.");
+        m_statusLabel->setStyleSheet("color: #cccccc;");
+        m_pathLineEdit->setEnabled(false);
+        m_browseButton->setEnabled(false);
+        m_loadingTimer->start(500); // Update every 500ms
+    } else {
+        m_loadingTimer->stop();
+        m_pathLineEdit->setEnabled(true);
+        m_browseButton->setEnabled(true);
+    }
 }

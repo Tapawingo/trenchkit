@@ -18,6 +18,9 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void showEvent(QShowEvent *event) override;
+
 private slots:
     void onMinimizeClicked();
     void onCloseClicked();
@@ -31,6 +34,7 @@ private:
 
     Ui::MainWindow *ui;
     InstallPathWidget *m_installPathWidget;
+    bool m_firstShow = true;
 };
 
 #endif // MAINWINDOW_H
