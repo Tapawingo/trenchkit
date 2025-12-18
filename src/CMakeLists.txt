@@ -9,10 +9,18 @@ qt_add_executable(TrenchKit
   widgets/TitleBar.cpp
   widgets/InstallPathWidget.h
   widgets/InstallPathWidget.cpp
+  widgets/ModListWidget.h
+  widgets/ModListWidget.cpp
+  widgets/ModRowWidget.h
+  widgets/ModRowWidget.cpp
 
   # Utilities
   utils/FoxholeDetector.h
   utils/FoxholeDetector.cpp
+  utils/ModInfo.h
+  utils/ModInfo.cpp
+  utils/ModManager.h
+  utils/ModManager.cpp
 
   resources.qrc
 )

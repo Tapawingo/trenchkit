@@ -1,6 +1,6 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource>
-        <file alias="icon.png">../extras/logo/logo_transparent.png</file>
+        <file alias="icon.png">../extras/logo/logo_toolbox_transparent.png</file>
     </qresource>
 </RCC>

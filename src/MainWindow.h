@@ -10,6 +10,8 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class InstallPathWidget;
+class ModListWidget;
+class ModManager;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -29,11 +31,14 @@ private slots:
 private:
     void setupTitleBar();
     void setupInstallPath();
+    void setupModList();
     void loadSettings();
     void saveSettings();
 
     Ui::MainWindow *ui;
     InstallPathWidget *m_installPathWidget;
+    ModListWidget *m_modListWidget;
+    ModManager *m_modManager;
     bool m_firstShow = true;
 };
 
