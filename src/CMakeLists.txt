@@ -23,6 +23,7 @@ qt_add_executable(TrenchKit
   utils/ModManager.cpp
 
   resources.qrc
+  app.rc
 )
 
 target_link_libraries(TrenchKit
