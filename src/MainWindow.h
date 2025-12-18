@@ -16,7 +16,13 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void onMinimizeClicked();
+    void onCloseClicked();
+
 private:
+    void setupTitleBar();
+
     Ui::MainWindow *ui;
 };
 
