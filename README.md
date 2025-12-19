@@ -1,20 +1,42 @@
-# Foxhole Mod Manager (Qt)
+<p align="center">
+    <img src="extras/banner/banner_transparent.png" width="780">
+</p>
 
-A small mod manager for **Foxhole** built with **C++**, **Qt**, and **CMake**.
+<p align="center">
+    <a href="https://github.com/Tapawingo/TrenchKit/releases">
+        <img src="https://img.shields.io/github/v/release/Tapawingo/TrenchKit?style=flat-square" alt="Releases">
+    </a>
+    <a>
+    <img src="https://img.shields.io/github/repo-size/Tapawingo/TrenchKit?style=flat-square" alt="repo Size">
+    </a>
+    <a href="https://github.com/Tapawingo/TrenchKit/issues" alt="Issue Tracker">
+        <img src="https://img.shields.io/github/issues-raw/Tapawingo/TrenchKit?style=flat-square">
+    </a>
+    <a href="https://github.com/Tapawingo/TrenchKit/blob/master/LICENSE.md">
+        <img src="https://img.shields.io/github/license/Tapawingo/TrenchKit?style=flat-square" alt="License">
+    </a>
+</p>
 
-> Not affiliated with Siege Camp / Foxhole. This is a community tool.
+<p align="center">
+    <strong>A small mod manager for Foxhole built with C++, Qt6.10, and CMake.</strong><br/>
+    <sup>Not affiliated with Siege Camp / Foxhole. This is a community tool.</sup>
+</p>
+
 
 ## Goals
 - Make enabling/disabling mods simple
-- Keep changes transparent (show what files get copied/overwritten)
-- Be safe by default (backups, restore, validation)
+- Streamline mod installation and updates (using nexusmod's API)
+- Keep changes transparent
+- Be safe by default (backups, restore)
 
 ## Planned features (initial)
-- Detect Foxhole install path (manual + remembered)
+- Detect Foxhole install path
 - List installed mods from a mods folder
-- Enable/disable mods (copy or link strategy)
+- Enable/disable mods
 - Profiles / presets
-- Logs + “dry run” preview
+- Play with/without mods
+- Install from nexus
+- Update from nexus
 
 ## Requirements
 - A C++20 compiler toolchain
@@ -92,13 +114,10 @@ If you want to run the app outside your build environment, you may need to deplo
 On some platforms this is handled automatically by your packaging system; on others you’ll use Qt’s deployment tools.
 
 ## License
-- This project: MIT (add a `LICENSE` file)
-- Qt: LGPL / GPL / Commercial depending on the Qt modules and how you link/distribute
-
-If you distribute binaries, ensure you follow the license obligations for Qt and any other third-party dependencies.
+**TrenchKit** is licensed under the MIT License ([MIT](LICENSE.md))
 
 ## Contributing
-See `CONTRIBUTING.md`.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Acknowledgements
 Foxhole is a trademark of its respective owners.
