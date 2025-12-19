@@ -12,6 +12,7 @@ QT_END_NAMESPACE
 
 class InstallPathWidget;
 class ModListWidget;
+class RightPanelWidget;
 class ModManager;
 
 class MainWindow : public QMainWindow {
@@ -35,12 +36,14 @@ private:
     void setupTitleBar();
     void setupInstallPath();
     void setupModList();
+    void setupRightPanel();
     void loadSettings();
     void saveSettings();
 
     Ui::MainWindow *ui;
     InstallPathWidget *m_installPathWidget;
     ModListWidget *m_modListWidget;
+    RightPanelWidget *m_rightPanelWidget;
     ModManager *m_modManager;
     QFutureWatcher<bool> *m_modLoadWatcher;
     QFutureWatcher<void> *m_unregisteredModsWatcher;

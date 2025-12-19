@@ -15,6 +15,8 @@ qt_add_executable(TrenchKit
   widgets/DraggableModList.cpp
   widgets/ModRowWidget.h
   widgets/ModRowWidget.cpp
+  widgets/RightPanelWidget.h
+  widgets/RightPanelWidget.cpp
 
   # Utilities
   utils/FoxholeDetector.h

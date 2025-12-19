@@ -2,8 +2,10 @@
 #include "ui_MainWindow.h"
 #include "widgets/InstallPathWidget.h"
 #include "widgets/ModListWidget.h"
+#include "widgets/RightPanelWidget.h"
 #include "utils/FoxholeDetector.h"
 #include "utils/ModManager.h"
+#include <QMessageBox>
 #include <QSettings>
 #include <QShowEvent>
 #include <QTimer>
@@ -15,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , m_installPathWidget(new InstallPathWidget(this))
     , m_modListWidget(new ModListWidget(this))
+    , m_rightPanelWidget(new RightPanelWidget(this))
     , m_modManager(new ModManager(this))
     , m_modLoadWatcher(new QFutureWatcher<bool>(this))
     , m_unregisteredModsWatcher(new QFutureWatcher<void>(this))
@@ -36,6 +39,11 @@ MainWindow::MainWindow(QWidget *parent)
     setupTitleBar();
     setupInstallPath();
     setupModList();
+    setupRightPanel();
+
+    ui->hbox->setStretch(0, 1);
+    ui->hbox->setStretch(1, 2);
+    ui->hbox->setStretch(2, 1);
 
     connect(m_modLoadWatcher, &QFutureWatcher<bool>::finished,
             this, &MainWindow::onModsLoadComplete);
@@ -87,6 +95,31 @@ void MainWindow::setupInstallPath() {
 void MainWindow::setupModList() {
     ui->middleBox->addWidget(m_modListWidget);
     m_modListWidget->setModManager(m_modManager);
+}
+
+void MainWindow::setupRightPanel() {
+    ui->rightBox->addWidget(m_rightPanelWidget);
+    m_rightPanelWidget->setModManager(m_modManager);
+
+    connect(m_modListWidget, &ModListWidget::modSelectionChanged,
+            m_rightPanelWidget, &RightPanelWidget::onModSelectionChanged);
+
+    connect(m_rightPanelWidget, &RightPanelWidget::addModRequested,
+            m_modListWidget, &ModListWidget::onAddModClicked);
+    connect(m_rightPanelWidget, &RightPanelWidget::removeModRequested,
+            m_modListWidget, &ModListWidget::onRemoveModClicked);
+    connect(m_rightPanelWidget, &RightPanelWidget::moveUpRequested,
+            m_modListWidget, &ModListWidget::onMoveUpClicked);
+    connect(m_rightPanelWidget, &RightPanelWidget::moveDownRequested,
+            m_modListWidget, &ModListWidget::onMoveDownClicked);
+
+    connect(m_installPathWidget, &InstallPathWidget::validPathSelected,
+            m_rightPanelWidget, &RightPanelWidget::setFoxholeInstallPath);
+
+    connect(m_rightPanelWidget, &RightPanelWidget::errorOccurred,
+            this, [](const QString &error) {
+        QMessageBox::warning(nullptr, "Error", error);
+    });
 }
 
 void MainWindow::loadSettings() {

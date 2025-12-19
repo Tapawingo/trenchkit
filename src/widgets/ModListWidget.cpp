@@ -77,76 +77,15 @@ void ModListWidget::setupUi() {
 
     layout->addWidget(m_modList);
 
-    auto *buttonLayout = new QHBoxLayout();
-    buttonLayout->setContentsMargins(0, 0, 0, 0);
-    buttonLayout->setSpacing(8);
-
-    m_addButton = new QPushButton("Add Mod", this);
-    m_removeButton = new QPushButton("Remove Mod", this);
-    m_moveUpButton = new QPushButton("Move Up", this);
-    m_moveDownButton = new QPushButton("Move Down", this);
-
-    QString buttonStyle = R"(
-        QPushButton {
-            background-color: #0e639c;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        QPushButton:hover {
-            background-color: #1177bb;
-        }
-        QPushButton:pressed {
-            background-color: #0d5689;
-        }
-        QPushButton:disabled {
-            background-color: #3d3d3d;
-            color: #888888;
-        }
-    )";
-
-    m_addButton->setStyleSheet(buttonStyle);
-    m_removeButton->setStyleSheet(buttonStyle);
-    m_moveUpButton->setStyleSheet(buttonStyle);
-    m_moveDownButton->setStyleSheet(buttonStyle);
-
-    buttonLayout->addWidget(m_addButton);
-    buttonLayout->addWidget(m_removeButton);
-    buttonLayout->addStretch();
-    buttonLayout->addWidget(m_moveUpButton);
-    buttonLayout->addWidget(m_moveDownButton);
-
-    layout->addLayout(buttonLayout);
-
-    connect(m_addButton, &QPushButton::clicked,
-            this, &ModListWidget::onAddModClicked);
-    connect(m_removeButton, &QPushButton::clicked,
-            this, &ModListWidget::onRemoveModClicked);
-    connect(m_moveUpButton, &QPushButton::clicked,
-            this, &ModListWidget::onMoveUpClicked);
-    connect(m_moveDownButton, &QPushButton::clicked,
-            this, &ModListWidget::onMoveDownClicked);
     connect(m_modList, &DraggableModList::itemsReordered,
             this, &ModListWidget::onItemsReordered);
-
-    m_removeButton->setEnabled(false);
-    m_moveUpButton->setEnabled(false);
-    m_moveDownButton->setEnabled(false);
 
     connect(m_modList, &QListWidget::itemSelectionChanged,
             this, [this]() {
         int selectedRow = getSelectedRow();
-        bool hasSelection = selectedRow >= 0;
-        bool isFirstRow = selectedRow == 0;
-        bool isLastRow = selectedRow == m_modList->count() - 1;
+        int totalMods = m_modList->count();
 
-        m_removeButton->setEnabled(hasSelection);
-        m_moveUpButton->setEnabled(hasSelection && !isFirstRow);
-        m_moveDownButton->setEnabled(hasSelection && !isLastRow);
-
-        for (int i = 0; i < m_modList->count(); ++i) {
+        for (int i = 0; i < totalMods; ++i) {
             QListWidgetItem *item = m_modList->item(i);
             if (item) {
                 auto *rowWidget = qobject_cast<ModRowWidget*>(m_modList->itemWidget(item));
@@ -156,12 +95,7 @@ void ModListWidget::setupUi() {
             }
         }
 
-        if (hasSelection) {
-            QString modId = getSelectedModId();
-            if (!modId.isEmpty()) {
-                emit modSelectionChanged(modId);
-            }
-        }
+        emit modSelectionChanged(selectedRow, totalMods);
     });
 }
 
@@ -358,17 +292,10 @@ void ModListWidget::setLoadingState(bool loading, const QString &message) {
         m_loadingLabel->show();
         m_loadingLabel->raise();
 
-        m_addButton->setEnabled(false);
-        m_removeButton->setEnabled(false);
-        m_moveUpButton->setEnabled(false);
-        m_moveDownButton->setEnabled(false);
-
         m_loadingTimer->start(500);
     } else {
         m_loadingTimer->stop();
         m_loadingLabel->hide();
-
-        m_addButton->setEnabled(true);
     }
 }
 
