@@ -36,21 +36,6 @@
 - Ninja
 - Qt 6.2+ (Widgets)
 
-## Project layout
-```text
-.
-├─ CMakeLists.txt
-├─ src/
-│  ├─ CMakeLists.txt
-│  ├─ main.cpp
-│  ├─ MainWindow.h
-│  ├─ MainWindow.cpp
-│  ├─ MainWindow.ui
-│  └─ resources.qrc
-├─ README.md
-└─ CONTRIBUTING.md
-```
-
 ## Build (Ninja)
 
 ### 1) Install dependencies
