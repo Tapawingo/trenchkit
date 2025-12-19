@@ -1,10 +1,12 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "widgets/InstallPathWidget.h"
+#include "widgets/ProfileManagerWidget.h"
 #include "widgets/ModListWidget.h"
 #include "widgets/RightPanelWidget.h"
 #include "utils/FoxholeDetector.h"
 #include "utils/ModManager.h"
+#include "utils/ProfileManager.h"
 #include <QMessageBox>
 #include <QSettings>
 #include <QShowEvent>
@@ -16,9 +18,11 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_installPathWidget(new InstallPathWidget(this))
+    , m_profileManagerWidget(new ProfileManagerWidget(this))
     , m_modListWidget(new ModListWidget(this))
     , m_rightPanelWidget(new RightPanelWidget(this))
     , m_modManager(new ModManager(this))
+    , m_profileManager(new ProfileManager(this))
     , m_modLoadWatcher(new QFutureWatcher<bool>(this))
     , m_unregisteredModsWatcher(new QFutureWatcher<void>(this))
 {
@@ -38,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     setupTitleBar();
     setupInstallPath();
+    setupProfileManager();
     setupModList();
     setupRightPanel();
 
@@ -92,6 +97,20 @@ void MainWindow::setupInstallPath() {
             this, &MainWindow::onInstallPathChanged);
 }
 
+void MainWindow::setupProfileManager() {
+    m_profileManager->setModManager(m_modManager);
+    m_profileManagerWidget->setProfileManager(m_profileManager);
+    ui->leftBox->addWidget(m_profileManagerWidget);
+
+    connect(m_profileManagerWidget, &ProfileManagerWidget::profileLoadRequested,
+            m_modListWidget, &ModListWidget::refreshModList);
+
+    connect(m_profileManager, &ProfileManager::errorOccurred,
+            this, [](const QString &error) {
+        QMessageBox::warning(nullptr, "Profile Error", error);
+    });
+}
+
 void MainWindow::setupModList() {
     ui->middleBox->addWidget(m_modListWidget);
     m_modListWidget->setModManager(m_modManager);
@@ -131,6 +150,21 @@ void MainWindow::loadSettings() {
         return m_modManager->loadMods();
     });
     m_modLoadWatcher->setFuture(modLoadFuture);
+
+    QFuture<bool> profileLoadFuture = QtConcurrent::run([this]() {
+        return m_profileManager->loadProfiles();
+    });
+
+    auto *profileWatcher = new QFutureWatcher<bool>(this);
+    connect(profileWatcher, &QFutureWatcher<bool>::finished, this, [this, profileWatcher]() {
+        bool success = profileWatcher->result();
+        profileWatcher->deleteLater();
+
+        if (success) {
+            m_profileManagerWidget->refreshProfileList();
+        }
+    });
+    profileWatcher->setFuture(profileLoadFuture);
 
     QString savedPath = settings.value("foxholeInstallPath").toString();
 

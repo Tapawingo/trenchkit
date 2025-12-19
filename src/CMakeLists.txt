@@ -19,6 +19,8 @@ qt_add_executable(TrenchKit
   widgets/RightPanelWidget.cpp
   widgets/ModMetadataDialog.h
   widgets/ModMetadataDialog.cpp
+  widgets/ProfileManagerWidget.h
+  widgets/ProfileManagerWidget.cpp
 
   # Utilities
   utils/FoxholeDetector.h
@@ -27,6 +29,10 @@ qt_add_executable(TrenchKit
   utils/ModInfo.cpp
   utils/ModManager.h
   utils/ModManager.cpp
+  utils/ProfileInfo.h
+  utils/ProfileInfo.cpp
+  utils/ProfileManager.h
+  utils/ProfileManager.cpp
 
   resources.qrc
   app.rc

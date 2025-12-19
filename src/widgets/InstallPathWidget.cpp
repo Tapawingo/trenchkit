@@ -64,7 +64,6 @@ void InstallPathWidget::setupUi() {
     frameLayout->addLayout(pathLayout);
     frameLayout->addWidget(m_statusLabel);
     m_layout->addWidget(frame);
-    m_layout->addStretch();
 
     setLayout(m_layout);
 
