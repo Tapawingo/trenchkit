@@ -472,7 +472,7 @@ void RightPanelWidget::onLaunchWithoutMods() {
             this,
             "Launch without mods",
             QString("This will temporarily disable %1 enabled mod(s).\n\n"
-                    "You will need to manually re-enable them after playing.\n\n"
+                    "They will be automatically restored when the game closes.\n\n"
                     "Continue?").arg(enabledModIds.count()),
             QMessageBox::Yes | QMessageBox::No
         );
@@ -481,17 +481,50 @@ void RightPanelWidget::onLaunchWithoutMods() {
             return;
         }
 
+        m_modsToRestore = enabledModIds;
+
         for (const QString &modId : enabledModIds) {
             m_modManager->disableMod(modId);
         }
     }
 
-    if (!QProcess::startDetached(exePath, QStringList(), m_foxholeInstallPath)) {
+    if (m_gameProcess) {
+        m_gameProcess->deleteLater();
+    }
+
+    m_gameProcess = new QProcess(this);
+    m_gameProcess->setWorkingDirectory(m_foxholeInstallPath);
+    m_gameProcess->setProgram(exePath);
+
+    connect(m_gameProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, &RightPanelWidget::onGameProcessFinished);
+
+    m_gameProcess->start();
+
+    if (!m_gameProcess->waitForStarted(5000)) {
         emit errorOccurred("Failed to launch Foxhole");
 
-        for (const QString &modId : enabledModIds) {
+        for (const QString &modId : m_modsToRestore) {
             m_modManager->enableMod(modId);
         }
+        m_modsToRestore.clear();
+    }
+}
+
+void RightPanelWidget::onGameProcessFinished(int exitCode, QProcess::ExitStatus exitStatus) {
+    Q_UNUSED(exitCode);
+    Q_UNUSED(exitStatus);
+
+    if (!m_modsToRestore.isEmpty() && m_modManager) {
+        for (const QString &modId : m_modsToRestore) {
+            m_modManager->enableMod(modId);
+        }
+
+        QMessageBox::information(this, "Mods Restored",
+            QString("Restored %1 mod(s) that were disabled for vanilla gameplay.")
+            .arg(m_modsToRestore.count()));
+
+        m_modsToRestore.clear();
     }
 }
 

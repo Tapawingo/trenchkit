@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QString>
+#include <QProcess>
 
 class QPushButton;
 class QToolButton;
@@ -40,6 +41,7 @@ private slots:
     void onRestoreBackupClicked();
     void onLaunchWithMods();
     void onLaunchWithoutMods();
+    void onGameProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 private:
     void setupUi();
@@ -55,6 +57,9 @@ private:
     QString m_foxholeInstallPath;
     int m_selectedRow = -1;
     int m_totalMods = 0;
+
+    QProcess *m_gameProcess = nullptr;
+    QStringList m_modsToRestore;
 
     QPushButton *m_addButton;
     QPushButton *m_removeButton;
