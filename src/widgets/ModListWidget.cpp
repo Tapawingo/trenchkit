@@ -1,7 +1,9 @@
 #include "ModListWidget.h"
 #include "ModRowWidget.h"
+#include "ModMetadataDialog.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QHBoxLayout>
 #include <QListWidgetItem>
 #include <QLabel>
@@ -50,6 +52,17 @@ void ModListWidget::setupUi() {
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(8);
+
+    auto *titleLabel = new QLabel("Installed Mods", this);
+    titleLabel->setStyleSheet(R"(
+        QLabel {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+    )");
+    layout->addWidget(titleLabel);
 
     m_modList = new DraggableModList(this);
     m_modList->setSpacing(4);
@@ -115,6 +128,12 @@ void ModListWidget::refreshModList() {
         auto *modRow = new ModRowWidget(mod, this);
         connect(modRow, &ModRowWidget::enabledChanged,
                 this, &ModListWidget::onModEnabledChanged);
+        connect(modRow, &ModRowWidget::renameRequested,
+                this, &ModListWidget::onRenameRequested);
+        connect(modRow, &ModRowWidget::editMetaRequested,
+                this, &ModListWidget::onEditMetaRequested);
+        connect(modRow, &ModRowWidget::removeRequested,
+                this, &ModListWidget::onRemoveRequested);
 
         auto *item = new QListWidgetItem(m_modList);
         item->setSizeHint(modRow->sizeHint());
@@ -330,4 +349,67 @@ void ModListWidget::onItemsReordered() {
     m_modManager->batchSetModPriorities(newPriorities);
 
     m_updating = false;
+}
+
+void ModListWidget::onRenameRequested(const QString &modId) {
+    if (!m_modManager) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    bool ok;
+    QString newName = QInputDialog::getText(
+        this,
+        "Rename Mod",
+        "Enter new name:",
+        QLineEdit::Normal,
+        mod.name,
+        &ok
+    );
+
+    if (ok && !newName.isEmpty() && newName != mod.name) {
+        mod.name = newName;
+        m_modManager->updateModMetadata(mod);
+    }
+}
+
+void ModListWidget::onEditMetaRequested(const QString &modId) {
+    if (!m_modManager) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    ModMetadataDialog dialog(mod, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        ModInfo updatedMod = dialog.getModInfo();
+        m_modManager->updateModMetadata(updatedMod);
+    }
+}
+
+void ModListWidget::onRemoveRequested(const QString &modId) {
+    if (!m_modManager) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    auto reply = QMessageBox::question(
+        this,
+        "Remove Mod",
+        QString("Are you sure you want to remove '%1'?").arg(mod.name),
+        QMessageBox::Yes | QMessageBox::No
+    );
+
+    if (reply == QMessageBox::Yes) {
+        if (!m_modManager->removeMod(modId)) {
+            QMessageBox::warning(this, "Error", "Failed to remove mod");
+        }
+    }
 }

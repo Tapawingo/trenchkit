@@ -1,7 +1,8 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource>
-        <file alias="logo_toolbox.png">../extras/logo/logo_toolbox_transparent.png</file>
+        <file alias="logo_toolbox.png">../extras/logo/logo_toolbox_fit_transparent.png</file>
         <file alias="logo_title.png">../extras/logo/logo_title_transparent.png</file>
+        <file alias="icon_edit.png">../extras/icons/icon_edit.png</file>
     </qresource>
 </RCC>

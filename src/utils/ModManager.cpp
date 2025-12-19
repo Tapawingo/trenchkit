@@ -201,6 +201,47 @@ bool ModManager::batchSetModPriorities(const QMap<QString, int> &priorityMap) {
     return anyChanged;
 }
 
+bool ModManager::updateModMetadata(const ModInfo &updatedMod) {
+    auto it = std::find_if(m_mods.begin(), m_mods.end(),
+                           [&updatedMod](const ModInfo &mod) { return mod.id == updatedMod.id; });
+
+    if (it == m_mods.end()) {
+        emit errorOccurred("Mod not found: " + updatedMod.id);
+        return false;
+    }
+
+    QString oldFileName = it->fileName;
+    bool fileNameChanged = (oldFileName != updatedMod.fileName);
+
+    it->name = updatedMod.name;
+    it->description = updatedMod.description;
+    it->nexusModId = updatedMod.nexusModId;
+    it->version = updatedMod.version;
+    it->author = updatedMod.author;
+    it->installDate = updatedMod.installDate;
+    it->fileName = updatedMod.fileName;
+
+    if (fileNameChanged) {
+        QString oldPath = m_modsStoragePath + "/" + oldFileName;
+        QString newPath = m_modsStoragePath + "/" + updatedMod.fileName;
+
+        if (QFile::exists(oldPath) && oldPath != newPath) {
+            QFile::rename(oldPath, newPath);
+        }
+
+        if (it->enabled) {
+            it->numberedFileName = generateNumberedFileName(it->priority, updatedMod.fileName);
+            renumberEnabledMods();
+        }
+    }
+
+    saveMods();
+    emit modsChanged();
+
+    qDebug() << "Updated mod metadata:" << updatedMod.name;
+    return true;
+}
+
 QList<ModInfo> ModManager::getMods() const {
     return m_mods;
 }

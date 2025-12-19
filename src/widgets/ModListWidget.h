@@ -34,6 +34,9 @@ private slots:
     void onModEnabledChanged(const QString &modId, bool enabled);
     void onItemsReordered();
     void updateLoadingAnimation();
+    void onRenameRequested(const QString &modId);
+    void onEditMetaRequested(const QString &modId);
+    void onRemoveRequested(const QString &modId);
 
 private:
     void setupUi();

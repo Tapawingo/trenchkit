@@ -2,6 +2,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QStyle>
+#include <QMenu>
+#include <QContextMenuEvent>
 
 ModRowWidget::ModRowWidget(const ModInfo &mod, QWidget *parent)
     : QWidget(parent)
@@ -93,4 +95,23 @@ void ModRowWidget::updateStyling() {
     setProperty("selected", m_selected);
     style()->unpolish(this);
     style()->polish(this);
+}
+
+void ModRowWidget::contextMenuEvent(QContextMenuEvent *event) {
+    QMenu menu(this);
+
+    QAction *renameAction = menu.addAction("Rename");
+    QAction *editMetaAction = menu.addAction("Edit Metadata");
+    menu.addSeparator();
+    QAction *removeAction = menu.addAction("Remove");
+
+    QAction *selectedAction = menu.exec(event->globalPos());
+
+    if (selectedAction == renameAction) {
+        emit renameRequested(m_modId);
+    } else if (selectedAction == editMetaAction) {
+        emit editMetaRequested(m_modId);
+    } else if (selectedAction == removeAction) {
+        emit removeRequested(m_modId);
+    }
 }

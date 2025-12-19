@@ -25,6 +25,7 @@ public:
     bool disableMod(const QString &modId);
     bool setModPriority(const QString &modId, int priority);
     bool batchSetModPriorities(const QMap<QString, int> &priorityMap);
+    bool updateModMetadata(const ModInfo &updatedMod);
 
     // Getters
     QList<ModInfo> getMods() const;

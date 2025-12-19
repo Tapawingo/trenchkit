@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QTimer>
 #include <QtConcurrent>
+#include <QFrame>
 
 InstallPathWidget::InstallPathWidget(QWidget *parent)
     : QWidget(parent)
@@ -26,6 +27,11 @@ InstallPathWidget::InstallPathWidget(QWidget *parent)
 }
 
 void InstallPathWidget::setupUi() {
+    QFrame *frame = new QFrame(this);
+    frame->setFrameShape(QFrame::StyledPanel);
+    QVBoxLayout *frameLayout = new QVBoxLayout(frame);
+
+
     // Title
     m_titleLabel->setText("Foxhole Installation");
     m_titleLabel->setObjectName("installPathTitle");
@@ -35,9 +41,12 @@ void InstallPathWidget::setupUi() {
     m_pathLineEdit->setObjectName("installPathInput");
 
     // Browse button
-    m_browseButton->setText("Browse...");
+    QIcon browseIcon(":/icon_edit.png");
     m_browseButton->setObjectName("installPathBrowse");
-    m_browseButton->setFixedWidth(80);
+    m_browseButton->setText("");
+    m_browseButton->setIcon(browseIcon);
+    m_browseButton->setFixedSize(32, 32);
+    m_browseButton->setIconSize(QSize(16, 16));
 
     // Status label
     m_statusLabel->setText("");
@@ -51,9 +60,10 @@ void InstallPathWidget::setupUi() {
 
     m_layout->setContentsMargins(8, 8, 8, 8);
     m_layout->setSpacing(8);
-    m_layout->addWidget(m_titleLabel);
-    m_layout->addLayout(pathLayout);
-    m_layout->addWidget(m_statusLabel);
+    frameLayout->addWidget(m_titleLabel);
+    frameLayout->addLayout(pathLayout);
+    frameLayout->addWidget(m_statusLabel);
+    m_layout->addWidget(frame);
     m_layout->addStretch();
 
     setLayout(m_layout);

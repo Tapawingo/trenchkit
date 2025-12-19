@@ -87,35 +87,52 @@ void RightPanelWidget::setupActionsSection() {
 
     auto *layout = qobject_cast<QVBoxLayout*>(this->layout());
 
+    QFrame *frame = new QFrame(this);
+    frame->setFrameShape(QFrame::StyledPanel);
+
+    layout->addWidget(frame);
+    QVBoxLayout *frameLayout = new QVBoxLayout(frame);
+
+    auto *titleLabel = new QLabel("ACTIONS", this);
+    titleLabel->setStyleSheet(R"(
+        QLabel {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+    )");
+    frameLayout->addWidget(titleLabel);
+
     m_addButton = new QPushButton("Add Mod", this);
     m_addButton->setStyleSheet(buttonStyle);
     connect(m_addButton, &QPushButton::clicked, this, &RightPanelWidget::onAddModClicked);
-    layout->addWidget(m_addButton);
+    frameLayout->addWidget(m_addButton);
 
     m_removeButton = new QPushButton("Remove Mod", this);
     m_removeButton->setStyleSheet(buttonStyle);
     m_removeButton->setEnabled(false);
     connect(m_removeButton, &QPushButton::clicked, this, &RightPanelWidget::onRemoveModClicked);
-    layout->addWidget(m_removeButton);
+    frameLayout->addWidget(m_removeButton);
 
     m_moveUpButton = new QPushButton("Move Up", this);
     m_moveUpButton->setStyleSheet(buttonStyle);
     m_moveUpButton->setEnabled(false);
     connect(m_moveUpButton, &QPushButton::clicked, this, &RightPanelWidget::onMoveUpClicked);
-    layout->addWidget(m_moveUpButton);
+    frameLayout->addWidget(m_moveUpButton);
 
     m_moveDownButton = new QPushButton("Move Down", this);
     m_moveDownButton->setStyleSheet(buttonStyle);
     m_moveDownButton->setEnabled(false);
     connect(m_moveDownButton, &QPushButton::clicked, this, &RightPanelWidget::onMoveDownClicked);
-    layout->addWidget(m_moveDownButton);
+    frameLayout->addWidget(m_moveDownButton);
 
-    layout->addWidget(createSeparator());
+    frameLayout->addWidget(createSeparator());
 
     m_exploreFolderButton = new QPushButton("Explore Mod Folder", this);
     m_exploreFolderButton->setStyleSheet(buttonStyle);
     connect(m_exploreFolderButton, &QPushButton::clicked, this, &RightPanelWidget::onExploreFolderClicked);
-    layout->addWidget(m_exploreFolderButton);
+    frameLayout->addWidget(m_exploreFolderButton);
 }
 
 void RightPanelWidget::setupBackupSection() {
@@ -142,9 +159,13 @@ void RightPanelWidget::setupBackupSection() {
 
     auto *layout = qobject_cast<QVBoxLayout*>(this->layout());
 
-    layout->addWidget(createSeparator());
+    QFrame *frame = new QFrame(this);
+    frame->setFrameShape(QFrame::StyledPanel);
 
-    auto *titleLabel = new QLabel("Backups", this);
+    layout->addWidget(frame);
+    QVBoxLayout *frameLayout = new QVBoxLayout(frame);
+
+    auto *titleLabel = new QLabel("BACKUP", this);
     titleLabel->setStyleSheet(R"(
         QLabel {
             color: #ffffff;
@@ -153,17 +174,17 @@ void RightPanelWidget::setupBackupSection() {
             margin-bottom: 4px;
         }
     )");
-    layout->addWidget(titleLabel);
+    frameLayout->addWidget(titleLabel);
 
     m_createBackupButton = new QPushButton("Create Backup", this);
     m_createBackupButton->setStyleSheet(buttonStyle);
     connect(m_createBackupButton, &QPushButton::clicked, this, &RightPanelWidget::onCreateBackupClicked);
-    layout->addWidget(m_createBackupButton);
+    frameLayout->addWidget(m_createBackupButton);
 
     m_restoreBackupButton = new QPushButton("Restore Backup", this);
     m_restoreBackupButton->setStyleSheet(buttonStyle);
     connect(m_restoreBackupButton, &QPushButton::clicked, this, &RightPanelWidget::onRestoreBackupClicked);
-    layout->addWidget(m_restoreBackupButton);
+    frameLayout->addWidget(m_restoreBackupButton);
 }
 
 void RightPanelWidget::setupLaunchSection() {
@@ -200,6 +221,7 @@ void RightPanelWidget::setupLaunchSection() {
         QToolButton::menu-indicator {
             subcontrol-position: right center;
             subcontrol-origin: padding;
+            font-size: 10px;
             left: -6px;
             width: 10px;
             height: 10px;
@@ -479,9 +501,8 @@ QString RightPanelWidget::getFoxholeExecutablePath() const {
     }
 
     QStringList possibleExes = {
+        "War-Win64-Shipping.exe",
         "Foxhole.exe",
-        "FoxholeClient.exe",
-        "FoxholeClient-Win64-Shipping.exe",
         "War.exe"
     };
 

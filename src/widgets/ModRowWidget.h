@@ -19,6 +19,12 @@ public:
 
 signals:
     void enabledChanged(const QString &modId, bool enabled);
+    void renameRequested(const QString &modId);
+    void editMetaRequested(const QString &modId);
+    void removeRequested(const QString &modId);
+
+protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
     void setupUi(const ModInfo &mod);
