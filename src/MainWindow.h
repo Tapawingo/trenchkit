@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFutureWatcher>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -27,6 +28,8 @@ private slots:
     void onMinimizeClicked();
     void onCloseClicked();
     void onInstallPathChanged(const QString &path);
+    void onModsLoadComplete();
+    void onUnregisteredModsDetectionComplete();
 
 private:
     void setupTitleBar();
@@ -39,6 +42,8 @@ private:
     InstallPathWidget *m_installPathWidget;
     ModListWidget *m_modListWidget;
     ModManager *m_modManager;
+    QFutureWatcher<bool> *m_modLoadWatcher;
+    QFutureWatcher<void> *m_unregisteredModsWatcher;
     bool m_firstShow = true;
 };
 

@@ -16,6 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_installPathWidget(new InstallPathWidget(this))
     , m_modListWidget(new ModListWidget(this))
     , m_modManager(new ModManager(this))
+    , m_modLoadWatcher(new QFutureWatcher<bool>(this))
+    , m_unregisteredModsWatcher(new QFutureWatcher<void>(this))
 {
     ui->setupUi(this);
 
@@ -34,6 +36,11 @@ MainWindow::MainWindow(QWidget *parent)
     setupTitleBar();
     setupInstallPath();
     setupModList();
+
+    connect(m_modLoadWatcher, &QFutureWatcher<bool>::finished,
+            this, &MainWindow::onModsLoadComplete);
+    connect(m_unregisteredModsWatcher, &QFutureWatcher<void>::finished,
+            this, &MainWindow::onUnregisteredModsDetectionComplete);
 
     QSize windowSize(1000, 700);
     setMinimumSize(windowSize);
@@ -85,7 +92,12 @@ void MainWindow::setupModList() {
 void MainWindow::loadSettings() {
     QSettings settings("TrenchKit", "FoxholeModManager");
 
-    m_modManager->loadMods();
+    m_modListWidget->setLoadingState(true, "Loading mods");
+
+    QFuture<bool> modLoadFuture = QtConcurrent::run([this]() {
+        return m_modManager->loadMods();
+    });
+    m_modLoadWatcher->setFuture(modLoadFuture);
 
     QString savedPath = settings.value("foxholeInstallPath").toString();
 
@@ -104,9 +116,11 @@ void MainWindow::loadSettings() {
             if (isValid) {
                 m_installPathWidget->setInstallPath(savedPath);
 
-                QTimer::singleShot(100, this, [this]() {
+                m_modListWidget->setLoadingState(true, "Detecting mods");
+                QFuture<void> detectionFuture = QtConcurrent::run([this]() {
                     m_modManager->detectUnregisteredMods();
                 });
+                m_unregisteredModsWatcher->setFuture(detectionFuture);
             } else {
                 m_installPathWidget->startAutoDetection();
             }
@@ -128,7 +142,23 @@ void MainWindow::onInstallPathChanged(const QString &path) {
 
     m_modManager->setInstallPath(path);
 
-    QTimer::singleShot(100, this, [this]() {
+    m_modListWidget->setLoadingState(true, "Detecting mods");
+    QFuture<void> detectionFuture = QtConcurrent::run([this]() {
         m_modManager->detectUnregisteredMods();
     });
+    m_unregisteredModsWatcher->setFuture(detectionFuture);
+}
+
+void MainWindow::onModsLoadComplete() {
+    bool success = m_modLoadWatcher->result();
+
+    m_modListWidget->setLoadingState(false);
+
+    if (success) {
+        m_modListWidget->refreshModList();
+    }
+}
+
+void MainWindow::onUnregisteredModsDetectionComplete() {
+    m_modListWidget->setLoadingState(false);
 }

@@ -4,11 +4,27 @@
 #include <QMessageBox>
 #include <QHBoxLayout>
 #include <QListWidgetItem>
+#include <QLabel>
+#include <QTimer>
 
 ModListWidget::ModListWidget(QWidget *parent)
     : QWidget(parent)
+    , m_loadingLabel(new QLabel(this))
+    , m_loadingTimer(new QTimer(this))
 {
     setupUi();
+
+    m_loadingLabel->setAlignment(Qt::AlignCenter);
+    m_loadingLabel->setStyleSheet(R"(
+        QLabel {
+            color: #ffffff;
+            font-size: 14px;
+            background-color: transparent;
+        }
+    )");
+    m_loadingLabel->hide();
+
+    connect(m_loadingTimer, &QTimer::timeout, this, &ModListWidget::updateLoadingAnimation);
 }
 
 void ModListWidget::setModManager(ModManager *modManager) {
@@ -324,4 +340,45 @@ QString ModListWidget::getSelectedModId() const {
 
 int ModListWidget::getSelectedRow() const {
     return m_modList->currentRow();
+}
+
+void ModListWidget::setLoadingState(bool loading, const QString &message) {
+    if (loading) {
+        m_loadingDots = 0;
+        m_loadingLabel->setText(message + ".");
+
+        QRect listGeometry = m_modList->geometry();
+        int labelWidth = 200;
+        int labelHeight = 30;
+        int x = listGeometry.x() + (listGeometry.width() - labelWidth) / 2;
+        int y = listGeometry.y() + (listGeometry.height() - labelHeight) / 2;
+        m_loadingLabel->setGeometry(x, y, labelWidth, labelHeight);
+
+        m_loadingLabel->show();
+        m_loadingLabel->raise();
+
+        m_addButton->setEnabled(false);
+        m_removeButton->setEnabled(false);
+        m_moveUpButton->setEnabled(false);
+        m_moveDownButton->setEnabled(false);
+
+        m_loadingTimer->start(500);
+    } else {
+        m_loadingTimer->stop();
+        m_loadingLabel->hide();
+
+        m_addButton->setEnabled(true);
+    }
+}
+
+void ModListWidget::updateLoadingAnimation() {
+    m_loadingDots = (m_loadingDots + 1) % 4;
+    QString baseText = m_loadingLabel->text();
+    int dotIndex = baseText.indexOf('.');
+    if (dotIndex != -1) {
+        baseText = baseText.left(dotIndex);
+    }
+
+    QString dots(m_loadingDots, '.');
+    m_loadingLabel->setText(baseText + dots);
 }

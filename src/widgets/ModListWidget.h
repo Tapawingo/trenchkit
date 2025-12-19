@@ -6,6 +6,8 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QLabel>
+#include <QTimer>
 
 class ModListWidget : public QWidget {
     Q_OBJECT
@@ -16,6 +18,7 @@ public:
 
     void setModManager(ModManager *modManager);
     void refreshModList();
+    void setLoadingState(bool loading, const QString &message = "Loading mods");
 
 signals:
     void modSelectionChanged(const QString &modId);
@@ -27,6 +30,7 @@ private slots:
     void onRemoveModClicked();
     void onMoveUpClicked();
     void onMoveDownClicked();
+    void updateLoadingAnimation();
 
 private:
     void setupUi();
@@ -40,7 +44,11 @@ private:
     QPushButton *m_moveUpButton;
     QPushButton *m_moveDownButton;
 
-    bool m_updating = false; // Prevent recursive updates
+    QLabel *m_loadingLabel;
+    QTimer *m_loadingTimer;
+    int m_loadingDots = 0;
+
+    bool m_updating = false;
 };
 
 #endif // MODLISTWIDGET_H
