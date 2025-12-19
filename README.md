@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-    <strong>A small mod manager for Foxhole built with C++, Qt6.10, and CMake.</strong><br/>
+    <strong>A small mod manager for Foxhole.</strong><br/>
     <sup>Not affiliated with Siege Camp / Foxhole. This is a community tool.</sup>
 </p>
 
