@@ -3,18 +3,10 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/Tapawingo/TrenchKit/releases">
-        <img src="https://img.shields.io/github/v/release/Tapawingo/TrenchKit?style=flat-square" alt="Releases">
-    </a>
-    <a>
-    <img src="https://img.shields.io/github/repo-size/Tapawingo/TrenchKit?style=flat-square" alt="repo Size">
-    </a>
-    <a href="https://github.com/Tapawingo/TrenchKit/issues" alt="Issue Tracker">
-        <img src="https://img.shields.io/github/issues-raw/Tapawingo/TrenchKit?style=flat-square">
-    </a>
-    <a href="https://github.com/Tapawingo/TrenchKit/blob/master/LICENSE.md">
-        <img src="https://img.shields.io/github/license/Tapawingo/TrenchKit?style=flat-square" alt="License">
-    </a>
+    <a href="https://github.com/Tapawingo/TrenchKit/releases"><img src="https://img.shields.io/github/v/release/Tapawingo/TrenchKit?style=flat-square" alt="Releases"></a>
+    <a><img src="https://img.shields.io/github/repo-size/Tapawingo/TrenchKit?style=flat-square" alt="repo Size"></a>
+    <a href="https://github.com/Tapawingo/TrenchKit/issues" alt="Issue Tracker"><img src="https://img.shields.io/github/issues-raw/Tapawingo/TrenchKit?style=flat-square"></a>
+    <a href="https://github.com/Tapawingo/TrenchKit/blob/master/LICENSE.md"><img src="https://img.shields.io/github/license/Tapawingo/TrenchKit?style=flat-square" alt="License"></a>
 </p>
 
 <p align="center">
