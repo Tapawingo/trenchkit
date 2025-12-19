@@ -11,6 +11,8 @@ qt_add_executable(TrenchKit
   widgets/InstallPathWidget.cpp
   widgets/ModListWidget.h
   widgets/ModListWidget.cpp
+  widgets/DraggableModList.h
+  widgets/DraggableModList.cpp
   widgets/ModRowWidget.h
   widgets/ModRowWidget.cpp
 

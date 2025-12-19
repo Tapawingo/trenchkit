@@ -2,8 +2,8 @@
 #define MODLISTWIDGET_H
 
 #include "../utils/ModManager.h"
+#include "DraggableModList.h"
 #include <QWidget>
-#include <QListWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -30,6 +30,7 @@ private slots:
     void onRemoveModClicked();
     void onMoveUpClicked();
     void onMoveDownClicked();
+    void onItemsReordered();
     void updateLoadingAnimation();
 
 private:
@@ -38,7 +39,7 @@ private:
     int getSelectedRow() const;
 
     ModManager *m_modManager = nullptr;
-    QListWidget *m_modList;
+    DraggableModList *m_modList;
     QPushButton *m_addButton;
     QPushButton *m_removeButton;
     QPushButton *m_moveUpButton;

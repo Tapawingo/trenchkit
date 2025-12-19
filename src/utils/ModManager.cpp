@@ -165,6 +165,42 @@ bool ModManager::setModPriority(const QString &modId, int priority) {
     return true;
 }
 
+bool ModManager::batchSetModPriorities(const QMap<QString, int> &priorityMap) {
+    if (priorityMap.isEmpty()) {
+        return false;
+    }
+
+    bool wasBlocked = blockSignals(true);
+
+    bool anyChanged = false;
+    for (auto it = priorityMap.constBegin(); it != priorityMap.constEnd(); ++it) {
+        const QString &modId = it.key();
+        int newPriority = it.value();
+
+        auto modIt = std::find_if(m_mods.begin(), m_mods.end(),
+                                   [&modId](const ModInfo &mod) { return mod.id == modId; });
+
+        if (modIt != m_mods.end() && modIt->priority != newPriority) {
+            modIt->priority = newPriority;
+            anyChanged = true;
+        }
+    }
+
+    if (anyChanged) {
+        sortModsByPriority();
+        renumberEnabledMods();
+        saveMods();
+    }
+
+    blockSignals(wasBlocked);
+
+    if (anyChanged) {
+        emit modsChanged();
+    }
+
+    return anyChanged;
+}
+
 QList<ModInfo> ModManager::getMods() const {
     return m_mods;
 }

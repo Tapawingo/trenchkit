@@ -51,8 +51,7 @@ void ModListWidget::setupUi() {
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(8);
 
-    m_modList = new QListWidget(this);
-    m_modList->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_modList = new DraggableModList(this);
     m_modList->setSpacing(4);
     m_modList->setUniformItemSizes(false);
 
@@ -129,6 +128,8 @@ void ModListWidget::setupUi() {
             this, &ModListWidget::onMoveUpClicked);
     connect(m_moveDownButton, &QPushButton::clicked,
             this, &ModListWidget::onMoveDownClicked);
+    connect(m_modList, &DraggableModList::itemsReordered,
+            this, &ModListWidget::onItemsReordered);
 
     m_removeButton->setEnabled(false);
     m_moveUpButton->setEnabled(false);
@@ -381,4 +382,25 @@ void ModListWidget::updateLoadingAnimation() {
 
     QString dots(m_loadingDots, '.');
     m_loadingLabel->setText(baseText + dots);
+}
+
+void ModListWidget::onItemsReordered() {
+    if (!m_modManager) {
+        return;
+    }
+
+    m_updating = true;
+
+    QMap<QString, int> newPriorities;
+    for (int row = 0; row < m_modList->count(); ++row) {
+        QListWidgetItem *item = m_modList->item(row);
+        if (item) {
+            QString modId = item->data(Qt::UserRole).toString();
+            newPriorities[modId] = row;
+        }
+    }
+
+    m_modManager->batchSetModPriorities(newPriorities);
+
+    m_updating = false;
 }

@@ -4,6 +4,7 @@
 #include "ModInfo.h"
 #include <QObject>
 #include <QList>
+#include <QMap>
 #include <QString>
 
 class ModManager : public QObject {
@@ -23,6 +24,7 @@ public:
     bool enableMod(const QString &modId);
     bool disableMod(const QString &modId);
     bool setModPriority(const QString &modId, int priority);
+    bool batchSetModPriorities(const QMap<QString, int> &priorityMap);
 
     // Getters
     QList<ModInfo> getMods() const;
