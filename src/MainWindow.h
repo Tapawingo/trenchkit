@@ -54,6 +54,10 @@ private:
     QFutureWatcher<bool> *m_modLoadWatcher;
     QFutureWatcher<void> *m_unregisteredModsWatcher;
     bool m_firstShow = true;
+
+    QPixmap m_backgroundTexture;
+    QPixmap m_cachedScaledTexture;
+    QSize m_lastSize;
 };
 
 #endif // MAINWINDOW_H

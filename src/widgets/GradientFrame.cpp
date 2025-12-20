@@ -11,6 +11,11 @@ GradientFrame::GradientFrame(QWidget *parent)
     setFrameShape(QFrame::StyledPanel);
 }
 
+const QPixmap& GradientFrame::getTexture() {
+    static QPixmap texture(":/tex_container.png");
+    return texture;
+}
+
 void GradientFrame::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event);
 
@@ -22,8 +27,7 @@ void GradientFrame::paintEvent(QPaintEvent *event) {
     QPainterPath backgroundPath;
     backgroundPath.addRoundedRect(rect, BORDER_RADIUS, BORDER_RADIUS);
 
-    QPixmap texture(":/tex_container.png");
-    QBrush textureBrush(texture);
+    QBrush textureBrush(getTexture());
     painter.fillPath(backgroundPath, textureBrush);
 
     QRectF borderRect = rect.adjusted(

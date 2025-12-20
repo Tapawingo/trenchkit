@@ -14,6 +14,8 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
+    static const QPixmap& getTexture();
+
     static constexpr const char* GRADIENT_LIGHT = "#141413";
     static constexpr const char* GRADIENT_DARK = "#141413";
     static constexpr const char* BACKGROUND_COLOR = "#16130e";

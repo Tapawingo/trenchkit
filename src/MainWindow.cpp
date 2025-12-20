@@ -41,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     setStyleSheet(Theme::getStyleSheet());
 
+    m_backgroundTexture = QPixmap(":/tex_main.png");
+
     setupTitleBar();
     setupInstallPath();
     setupProfileManager();
@@ -85,17 +87,22 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         QPainter painter(ui->centralwidget);
         painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
-        QPixmap texture(":/tex_main.png");
-        if (!texture.isNull()) {
+        if (!m_backgroundTexture.isNull()) {
             QRect widgetRect = ui->centralwidget->rect();
-            QPixmap scaledTexture = texture.scaled(widgetRect.size(),
-                                                   Qt::KeepAspectRatioByExpanding,
-                                                   Qt::SmoothTransformation);
 
-            int x = (widgetRect.width() - scaledTexture.width()) / 2;
-            int y = (widgetRect.height() - scaledTexture.height()) / 2;
+            if (widgetRect.size() != m_lastSize) {
+                m_cachedScaledTexture = m_backgroundTexture.scaled(
+                    widgetRect.size(),
+                    Qt::KeepAspectRatioByExpanding,
+                    Qt::SmoothTransformation
+                );
+                m_lastSize = widgetRect.size();
+            }
 
-            painter.drawPixmap(x, y, scaledTexture);
+            int x = (widgetRect.width() - m_cachedScaledTexture.width()) / 2;
+            int y = (widgetRect.height() - m_cachedScaledTexture.height()) / 2;
+
+            painter.drawPixmap(x, y, m_cachedScaledTexture);
         }
 
         return true;

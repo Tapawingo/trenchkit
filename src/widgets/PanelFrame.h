@@ -12,6 +12,9 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+
+private:
+    static const QPixmap& getTexture();
 };
 
 #endif // PANELFRAME_H

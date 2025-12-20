@@ -10,6 +10,11 @@ PanelFrame::PanelFrame(QWidget *parent)
     setFrameShape(QFrame::StyledPanel);
 }
 
+const QPixmap& PanelFrame::getTexture() {
+    static QPixmap texture(":/tex_panel.png");
+    return texture;
+}
+
 void PanelFrame::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event);
 
@@ -22,7 +27,6 @@ void PanelFrame::paintEvent(QPaintEvent *event) {
     QPainterPath backgroundPath;
     backgroundPath.addRect(contentRect);
 
-    QPixmap texture(":/tex_panel.png");
-    QBrush textureBrush(texture);
+    QBrush textureBrush(getTexture());
     painter.fillPath(backgroundPath, textureBrush);
 }
