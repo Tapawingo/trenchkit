@@ -110,6 +110,35 @@ bool ProfileManager::updateProfile(const QString &profileId) {
     return true;
 }
 
+bool ProfileManager::renameProfile(const QString &profileId, const QString &newName) {
+    if (newName.trimmed().isEmpty()) {
+        emit errorOccurred("Profile name cannot be empty");
+        return false;
+    }
+
+    auto it = std::find_if(m_profiles.begin(), m_profiles.end(),
+                          [&profileId](const ProfileInfo &p) { return p.id == profileId; });
+
+    if (it == m_profiles.end()) {
+        emit errorOccurred("Profile not found");
+        return false;
+    }
+
+    for (const ProfileInfo &profile : m_profiles) {
+        if (profile.name == newName && profile.id != profileId) {
+            emit errorOccurred("Profile with this name already exists");
+            return false;
+        }
+    }
+
+    it->name = newName;
+    saveProfiles();
+    emit profilesChanged();
+
+    qDebug() << "Renamed profile to:" << newName;
+    return true;
+}
+
 bool ProfileManager::deleteProfile(const QString &profileId) {
     auto it = std::find_if(m_profiles.begin(), m_profiles.end(),
                           [&profileId](const ProfileInfo &p) { return p.id == profileId; });

@@ -1,0 +1,66 @@
+#ifndef THEME_H
+#define THEME_H
+
+#include <QString>
+
+class Theme {
+public:
+    static QString getStyleSheet();
+
+    struct Colors {
+        static constexpr const char* BACKGROUND_PRIMARY = "#1e1e1e";
+        static constexpr const char* BACKGROUND_SECONDARY = "#2c2c2c";
+        static constexpr const char* BACKGROUND_TERTIARY = "#2d2d2d";
+        static constexpr const char* BACKGROUND_HOVER = "#3a3a3a";
+        static constexpr const char* BACKGROUND_DISABLED = "#3d3d3d";
+
+        static constexpr const char* BORDER_PRIMARY = "#404040";
+        static constexpr const char* BORDER_SECONDARY = "#3d3d3d";
+        static constexpr const char* BORDER_HOVER = "#4d4d4d";
+
+        static constexpr const char* ACCENT_BLUE = "#0e639c";
+        static constexpr const char* ACCENT_BLUE_HOVER = "#1177bb";
+        static constexpr const char* ACCENT_BLUE_PRESSED = "#0d5689";
+        static constexpr const char* ACCENT_BLUE_LIGHT = "#1a8dd8";
+        static constexpr const char* ACCENT_BLUE_DARK = "#0a4f7a";
+
+        static constexpr const char* ACCENT_GREEN = "#4ec9b0";
+        static constexpr const char* ACCENT_RED = "#e81123";
+        static constexpr const char* ACCENT_RED_LIGHT = "#f48771";
+
+        static constexpr const char* TEXT_PRIMARY = "#ffffff";
+        static constexpr const char* TEXT_SECONDARY = "#e0e0e0";
+        static constexpr const char* TEXT_TERTIARY = "#cccccc";
+        static constexpr const char* TEXT_MUTED = "#888888";
+        static constexpr const char* TEXT_DISABLED = "#808080";
+    };
+
+    struct Spacing {
+        static constexpr int CONTAINER_MARGIN = 0;
+        static constexpr int CONTAINER_SPACING = 0;
+
+        static constexpr int PANEL_MARGIN = 3;
+        static constexpr int PANEL_SPACING = 0;
+
+        static constexpr int MOD_ROW_PADDING_HORIZONTAL = 12;
+        static constexpr int MOD_ROW_PADDING_VERTICAL = 8;
+        static constexpr int MOD_ROW_INTERNAL_SPACING = 8;
+
+        static constexpr int MOD_LIST_ITEM_SPACING = 0;
+        static constexpr int MOD_LIST_TITLE_SPACING = 8;
+
+        static constexpr int PROFILE_ROW_PADDING_HORIZONTAL = 8;
+        static constexpr int PROFILE_ROW_PADDING_VERTICAL = 6;
+        static constexpr int PROFILE_ROW_INTERNAL_SPACING = 8;
+        static constexpr int PROFILE_LIST_ITEM_SPACING = 2;
+
+        static constexpr int TITLE_BAR_MARGIN_LEFT = 12;
+        static constexpr int TITLE_BAR_ICON_SPACING = 12;
+
+        static constexpr int RIGHT_PANEL_SECTION_SPACING = 12;
+
+        static constexpr int FORM_SPACING = 12;
+    };
+};
+
+#endif // THEME_H

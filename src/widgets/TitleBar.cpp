@@ -1,4 +1,5 @@
 #include "TitleBar.h"
+#include "../utils/Theme.h"
 #include <QLabel>
 #include <QPushButton>
 #include <QHBoxLayout>
@@ -47,39 +48,17 @@ void TitleBar::setupUi() {
     m_closeButton->setObjectName("closeButton");
     m_closeButton->setFocusPolicy(Qt::NoFocus);
 
-    m_layout->setContentsMargins(12, 0, 0, 0);
+    m_layout->setContentsMargins(Theme::Spacing::TITLE_BAR_MARGIN_LEFT, 0, 0, 0);
     m_layout->setSpacing(0);
     m_layout->setAlignment(Qt::AlignVCenter);
     m_layout->addWidget(m_iconLabel);
-    m_layout->addSpacing(12);
+    m_layout->addSpacing(Theme::Spacing::TITLE_BAR_ICON_SPACING);
     m_layout->addWidget(m_titleLabel);
     m_layout->addStretch();
     m_layout->addWidget(m_minimizeButton);
     m_layout->addWidget(m_closeButton);
 
     setLayout(m_layout);
-
-    // Apply basic styling
-    setStyleSheet(R"(
-        #titleBar {
-            background-color: #2c2c2c;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-        }
-        #minimizeButton, #closeButton {
-            background-color: transparent;
-            color: #ffffff;
-            border: none;
-            font-size: 24px;
-            font-weight: 300;
-        }
-        #minimizeButton:hover {
-            background-color: #404040;
-        }
-        #closeButton:hover {
-            background-color: #e81123;
-        }
-    )");
 }
 
 void TitleBar::setupConnections() {

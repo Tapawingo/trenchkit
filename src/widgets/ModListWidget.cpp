@@ -1,6 +1,8 @@
 #include "ModListWidget.h"
 #include "ModRowWidget.h"
 #include "ModMetadataDialog.h"
+#include "GradientFrame.h"
+#include "../utils/Theme.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
@@ -17,13 +19,7 @@ ModListWidget::ModListWidget(QWidget *parent)
     setupUi();
 
     m_loadingLabel->setAlignment(Qt::AlignCenter);
-    m_loadingLabel->setStyleSheet(R"(
-        QLabel {
-            color: #ffffff;
-            font-size: 14px;
-            background-color: transparent;
-        }
-    )");
+    m_loadingLabel->setObjectName("modLoadingLabel");
     m_loadingLabel->hide();
 
     connect(m_loadingTimer, &QTimer::timeout, this, &ModListWidget::updateLoadingAnimation);
@@ -49,46 +45,23 @@ void ModListWidget::setModManager(ModManager *modManager) {
 }
 
 void ModListWidget::setupUi() {
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(8);
+    GradientFrame *frame = new GradientFrame(this);
+    QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
-    auto *titleLabel = new QLabel("Installed Mods", this);
-    titleLabel->setStyleSheet(R"(
-        QLabel {
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-    )");
-    layout->addWidget(titleLabel);
+    auto *titleLabel = new QLabel("Installed Mods:", this);
+    titleLabel->setObjectName("modListTitle");
 
     m_modList = new DraggableModList(this);
-    m_modList->setSpacing(4);
+    m_modList->setSpacing(Theme::Spacing::MOD_LIST_ITEM_SPACING);
     m_modList->setUniformItemSizes(false);
 
-    m_modList->setStyleSheet(R"(
-        QListWidget {
-            background-color: #1e1e1e;
-            border: none;
-            outline: none;
-        }
-        QListWidget::item {
-            background-color: transparent;
-            border: none;
-            padding: 0px;
-        }
-        QListWidget::item:selected {
-            background-color: transparent;
-            border: none;
-        }
-        QListWidget::item:hover {
-            background-color: transparent;
-        }
-    )");
+    frameLayout->addWidget(titleLabel);
+    frameLayout->addWidget(m_modList, 1);
 
-    layout->addWidget(m_modList);
+    auto *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    layout->addWidget(frame);
 
     connect(m_modList, &DraggableModList::itemsReordered,
             this, &ModListWidget::onItemsReordered);

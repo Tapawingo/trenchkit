@@ -14,10 +14,11 @@ struct ModInfo {
     QDateTime installDate;         // When the mod was added
     bool enabled;                  // Whether mod is currently active
     int priority;                  // Load order (lower = loads first)
-    QString nexusModId;           // Optional NexusMods ID
-    QString version;              // Optional mod version
-    QString author;               // Optional mod author
-    QString description;          // Optional mod description
+    QString nexusModId;            // Optional Nexus Mod ID
+    QString nexusFileId;           // Optional Nexus File ID
+    QString version;               // Optional mod version
+    QString author;                // Optional mod author
+    QString description;           // Optional mod description
 
     // Constructor
     ModInfo()

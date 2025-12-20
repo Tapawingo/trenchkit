@@ -1,5 +1,7 @@
 #include "InstallPathWidget.h"
+#include "GradientFrame.h"
 #include "../utils/FoxholeDetector.h"
+#include "../utils/Theme.h"
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -10,7 +12,7 @@
 #include <QFile>
 #include <QTimer>
 #include <QtConcurrent>
-#include <QFrame>
+#include <QStyle>
 
 InstallPathWidget::InstallPathWidget(QWidget *parent)
     : QWidget(parent)
@@ -27,8 +29,7 @@ InstallPathWidget::InstallPathWidget(QWidget *parent)
 }
 
 void InstallPathWidget::setupUi() {
-    QFrame *frame = new QFrame(this);
-    frame->setFrameShape(QFrame::StyledPanel);
+    GradientFrame *frame = new GradientFrame(this);
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
 
@@ -58,52 +59,19 @@ void InstallPathWidget::setupUi() {
     pathLayout->addWidget(m_pathLineEdit);
     pathLayout->addWidget(m_browseButton);
 
-    m_layout->setContentsMargins(8, 8, 8, 8);
-    m_layout->setSpacing(8);
+    m_layout->setContentsMargins(
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN
+    );
+    m_layout->setSpacing(Theme::Spacing::CONTAINER_SPACING);
     frameLayout->addWidget(m_titleLabel);
     frameLayout->addLayout(pathLayout);
     frameLayout->addWidget(m_statusLabel);
     m_layout->addWidget(frame);
 
     setLayout(m_layout);
-
-    // Styling
-    setStyleSheet(R"(
-        #installPathTitle {
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        #installPathInput {
-            background-color: #2c2c2c;
-            color: #ffffff;
-            border: 1px solid #404040;
-            border-radius: 4px;
-            padding: 6px;
-        }
-        #installPathInput:focus {
-            border-color: #0078d4;
-        }
-        #installPathBrowse {
-            background-color: #0078d4;
-            color: #ffffff;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 12px;
-        }
-        #installPathBrowse:hover {
-            background-color: #106ebe;
-        }
-        #installPathBrowse:pressed {
-            background-color: #005a9e;
-        }
-        #installPathStatus {
-            color: #cccccc;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-    )");
 }
 
 void InstallPathWidget::setupConnections() {
@@ -149,14 +117,20 @@ void InstallPathWidget::validatePath(const QString &path) {
 
     if (path.isEmpty()) {
         m_statusLabel->setText("");
-        m_statusLabel->setStyleSheet("");
+        m_statusLabel->setProperty("status", "");
+        style()->unpolish(m_statusLabel);
+        style()->polish(m_statusLabel);
     } else if (m_isValid) {
         m_statusLabel->setText("✓ Valid Foxhole installation detected");
-        m_statusLabel->setStyleSheet("color: #4ec9b0;");
+        m_statusLabel->setProperty("status", "valid");
+        style()->unpolish(m_statusLabel);
+        style()->polish(m_statusLabel);
         emit validPathSelected(path);
     } else {
         m_statusLabel->setText("✗ Invalid path - Foxhole installation not found");
-        m_statusLabel->setStyleSheet("color: #f48771;");
+        m_statusLabel->setProperty("status", "invalid");
+        style()->unpolish(m_statusLabel);
+        style()->polish(m_statusLabel);
     }
 
     emit pathChanged(path);
@@ -238,10 +212,12 @@ void InstallPathWidget::setLoadingState(bool loading) {
     if (loading) {
         m_loadingDots = 0;
         m_statusLabel->setText("Detecting Foxhole installation.");
-        m_statusLabel->setStyleSheet("color: #cccccc;");
+        m_statusLabel->setProperty("status", "loading");
+        style()->unpolish(m_statusLabel);
+        style()->polish(m_statusLabel);
         m_pathLineEdit->setEnabled(false);
         m_browseButton->setEnabled(false);
-        m_loadingTimer->start(500); // Update every 500ms
+        m_loadingTimer->start(500);
     } else {
         m_loadingTimer->stop();
         m_pathLineEdit->setEnabled(true);

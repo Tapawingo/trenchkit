@@ -1,4 +1,5 @@
 #include "ModRowWidget.h"
+#include "../utils/Theme.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QStyle>
@@ -15,23 +16,22 @@ ModRowWidget::ModRowWidget(const ModInfo &mod, QWidget *parent)
 
 void ModRowWidget::setupUi(const ModInfo &mod) {
     auto *mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(12, 8, 12, 8);
-    mainLayout->setSpacing(4);
+    mainLayout->setContentsMargins(
+        Theme::Spacing::MOD_ROW_PADDING_HORIZONTAL,
+        Theme::Spacing::MOD_ROW_PADDING_VERTICAL,
+        Theme::Spacing::MOD_ROW_PADDING_HORIZONTAL,
+        Theme::Spacing::MOD_ROW_PADDING_VERTICAL
+    );
+    mainLayout->setSpacing(0);
 
     auto *topLayout = new QHBoxLayout();
-    topLayout->setSpacing(8);
+    topLayout->setSpacing(Theme::Spacing::MOD_ROW_INTERNAL_SPACING);
 
     m_enabledCheckBox = new QCheckBox(this);
     m_enabledCheckBox->setChecked(mod.enabled);
 
     m_nameLabel = new QLabel(mod.name, this);
-    m_nameLabel->setStyleSheet(R"(
-        QLabel {
-            font-size: 14px;
-            font-weight: bold;
-            color: #e0e0e0;
-        }
-    )");
+    m_nameLabel->setObjectName("modNameLabel");
 
     topLayout->addWidget(m_enabledCheckBox);
     topLayout->addWidget(m_nameLabel, 1);
@@ -40,35 +40,9 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
     m_dateLabel = new QLabel(this);
     m_dateLabel->setText("Installed: " + mod.installDate.toString("yyyy-MM-dd hh:mm"));
-    m_dateLabel->setStyleSheet(R"(
-        QLabel {
-            font-size: 11px;
-            color: #888888;
-            margin-left: 28px;
-        }
-    )");
+    m_dateLabel->setObjectName("modDateLabel");
 
     mainLayout->addWidget(m_dateLabel);
-
-    setStyleSheet(R"(
-        ModRowWidget {
-            background-color: #2d2d2d;
-            border: 1px solid #3d3d3d;
-            border-radius: 4px;
-        }
-        ModRowWidget[selected="true"] {
-            background-color: #0e639c;
-            border: 2px solid #1177bb;
-        }
-        ModRowWidget:hover {
-            background-color: #888;
-            border-color: #4d4d4d;
-        }
-        ModRowWidget[selected="true"]:hover {
-            background-color: #1177bb;
-            border-color: #1a8dd8;
-        }
-    )");
 
     setProperty("selected", false);
 

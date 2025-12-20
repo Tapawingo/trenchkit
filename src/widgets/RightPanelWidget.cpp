@@ -1,10 +1,11 @@
 #include "RightPanelWidget.h"
+#include "GradientFrame.h"
 #include "../utils/ModManager.h"
+#include "../utils/Theme.h"
 #include <QPushButton>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QLabel>
-#include <QFrame>
 #include <QMenu>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -50,8 +51,13 @@ void RightPanelWidget::onModSelectionChanged(int selectedRow, int totalMods) {
 
 void RightPanelWidget::setupUi() {
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(8, 8, 8, 8);
-    layout->setSpacing(12);
+    layout->setContentsMargins(
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN
+    );
+    layout->setSpacing(Theme::Spacing::RIGHT_PANEL_SECTION_SPACING);
 
     setupActionsSection();
     setupBackupSection();
@@ -64,65 +70,32 @@ void RightPanelWidget::setupUi() {
 }
 
 void RightPanelWidget::setupActionsSection() {
-    QString buttonStyle = R"(
-        QPushButton {
-            background-color: #0e639c;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        QPushButton:hover {
-            background-color: #1177bb;
-        }
-        QPushButton:pressed {
-            background-color: #0d5689;
-        }
-        QPushButton:disabled {
-            background-color: #3d3d3d;
-            color: #888888;
-        }
-    )";
-
     auto *layout = qobject_cast<QVBoxLayout*>(this->layout());
 
-    QFrame *frame = new QFrame(this);
-    frame->setFrameShape(QFrame::StyledPanel);
+    GradientFrame *frame = new GradientFrame(this);
 
     layout->addWidget(frame);
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
     auto *titleLabel = new QLabel("ACTIONS", this);
-    titleLabel->setStyleSheet(R"(
-        QLabel {
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-    )");
+    titleLabel->setObjectName("modActionsTitle");
     frameLayout->addWidget(titleLabel);
 
     m_addButton = new QPushButton("Add Mod", this);
-    m_addButton->setStyleSheet(buttonStyle);
     connect(m_addButton, &QPushButton::clicked, this, &RightPanelWidget::onAddModClicked);
     frameLayout->addWidget(m_addButton);
 
     m_removeButton = new QPushButton("Remove Mod", this);
-    m_removeButton->setStyleSheet(buttonStyle);
     m_removeButton->setEnabled(false);
     connect(m_removeButton, &QPushButton::clicked, this, &RightPanelWidget::onRemoveModClicked);
     frameLayout->addWidget(m_removeButton);
 
     m_moveUpButton = new QPushButton("Move Up", this);
-    m_moveUpButton->setStyleSheet(buttonStyle);
     m_moveUpButton->setEnabled(false);
     connect(m_moveUpButton, &QPushButton::clicked, this, &RightPanelWidget::onMoveUpClicked);
     frameLayout->addWidget(m_moveUpButton);
 
     m_moveDownButton = new QPushButton("Move Down", this);
-    m_moveDownButton->setStyleSheet(buttonStyle);
     m_moveDownButton->setEnabled(false);
     connect(m_moveDownButton, &QPushButton::clicked, this, &RightPanelWidget::onMoveDownClicked);
     frameLayout->addWidget(m_moveDownButton);
@@ -130,111 +103,38 @@ void RightPanelWidget::setupActionsSection() {
     frameLayout->addWidget(createSeparator());
 
     m_exploreFolderButton = new QPushButton("Explore Mod Folder", this);
-    m_exploreFolderButton->setStyleSheet(buttonStyle);
     connect(m_exploreFolderButton, &QPushButton::clicked, this, &RightPanelWidget::onExploreFolderClicked);
     frameLayout->addWidget(m_exploreFolderButton);
 }
 
 void RightPanelWidget::setupBackupSection() {
-    QString buttonStyle = R"(
-        QPushButton {
-            background-color: #0e639c;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        QPushButton:hover {
-            background-color: #1177bb;
-        }
-        QPushButton:pressed {
-            background-color: #0d5689;
-        }
-        QPushButton:disabled {
-            background-color: #3d3d3d;
-            color: #888888;
-        }
-    )";
-
     auto *layout = qobject_cast<QVBoxLayout*>(this->layout());
 
-    QFrame *frame = new QFrame(this);
-    frame->setFrameShape(QFrame::StyledPanel);
+    GradientFrame *frame = new GradientFrame(this);
 
     layout->addWidget(frame);
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
     auto *titleLabel = new QLabel("BACKUP", this);
-    titleLabel->setStyleSheet(R"(
-        QLabel {
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-    )");
+    titleLabel->setObjectName("backupTitle");
     frameLayout->addWidget(titleLabel);
 
     m_createBackupButton = new QPushButton("Create Backup", this);
-    m_createBackupButton->setStyleSheet(buttonStyle);
     connect(m_createBackupButton, &QPushButton::clicked, this, &RightPanelWidget::onCreateBackupClicked);
     frameLayout->addWidget(m_createBackupButton);
 
     m_restoreBackupButton = new QPushButton("Restore Backup", this);
-    m_restoreBackupButton->setStyleSheet(buttonStyle);
     connect(m_restoreBackupButton, &QPushButton::clicked, this, &RightPanelWidget::onRestoreBackupClicked);
     frameLayout->addWidget(m_restoreBackupButton);
 }
 
 void RightPanelWidget::setupLaunchSection() {
-    QString toolButtonStyle = R"(
-        QToolButton {
-            background-color: #0e639c;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 13px;
-        }
-        QToolButton:hover {
-            background-color: #1177bb;
-        }
-        QToolButton:pressed {
-            background-color: #0d5689;
-        }
-        QToolButton::menu-button {
-            background-color: #0e639c;
-            border: none;
-            border-left: 1px solid #0a4f7a;
-            border-top-right-radius: 4px;
-            border-bottom-right-radius: 4px;
-            width: 18px;
-        }
-        QToolButton::menu-button:hover {
-            background-color: #1177bb;
-        }
-        QToolButton::menu-button:pressed {
-            background-color: #0d5689;
-        }
-        QToolButton::menu-indicator {
-            subcontrol-position: right center;
-            subcontrol-origin: padding;
-            font-size: 10px;
-            left: -6px;
-            width: 10px;
-            height: 10px;
-        }
-    )";
-
     auto *layout = qobject_cast<QVBoxLayout*>(this->layout());
 
     m_launchButton = new QToolButton(this);
     m_launchButton->setText("Play with mods");
     m_launchButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_launchButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    m_launchButton->setStyleSheet(toolButtonStyle);
     m_launchButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QMenu *menu = new QMenu(this);
@@ -266,7 +166,6 @@ QFrame* RightPanelWidget::createSeparator() {
     QFrame *line = new QFrame(this);
     line->setFrameShape(QFrame::HLine);
     line->setFrameShadow(QFrame::Plain);
-    line->setStyleSheet("background-color: #404040; max-height: 1px;");
     line->setFixedHeight(1);
     return line;
 }

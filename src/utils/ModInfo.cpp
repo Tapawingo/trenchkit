@@ -14,6 +14,9 @@ QJsonObject ModInfo::toJson() const {
     if (!nexusModId.isEmpty()) {
         json["nexusModId"] = nexusModId;
     }
+    if (!nexusFileId.isEmpty()) {
+        json["nexusFileId"] = nexusFileId;
+    }
     if (!version.isEmpty()) {
         json["version"] = version;
     }
@@ -40,6 +43,9 @@ ModInfo ModInfo::fromJson(const QJsonObject &json) {
     // Optional fields
     if (json.contains("nexusModId")) {
         mod.nexusModId = json["nexusModId"].toString();
+    }
+    if (json.contains("nexusFileId")) {
+        mod.nexusModId = json["nexusFileId"].toString();
     }
     if (json.contains("version")) {
         mod.version = json["version"].toString();

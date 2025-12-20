@@ -7,12 +7,19 @@
 #include "utils/FoxholeDetector.h"
 #include "utils/ModManager.h"
 #include "utils/ProfileManager.h"
+#include "utils/Theme.h"
 #include <QMessageBox>
 #include <QSettings>
 #include <QShowEvent>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QPixmap>
+#include <QEvent>
 #include <QTimer>
 #include <QtConcurrent>
 #include <QFutureWatcher>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -32,13 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
 
-    centralWidget()->setStyleSheet(R"(
-        QWidget#centralwidget {
-            background-color: #1e1e1e;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-        }
-    )");
+    setStyleSheet(Theme::getStyleSheet());
 
     setupTitleBar();
     setupInstallPath();
@@ -49,6 +50,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->hbox->setStretch(0, 1);
     ui->hbox->setStretch(1, 2);
     ui->hbox->setStretch(2, 1);
+
+    ui->centralwidget->installEventFilter(this);
+    ui->centralwidget->setAutoFillBackground(true);
 
     connect(m_modLoadWatcher, &QFutureWatcher<bool>::finished,
             this, &MainWindow::onModsLoadComplete);
@@ -73,6 +77,31 @@ void MainWindow::showEvent(QShowEvent *event) {
         m_firstShow = false;
         QTimer::singleShot(0, this, &MainWindow::loadSettings);
     }
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == ui->centralwidget && event->type() == QEvent::Paint) {
+        QPaintEvent *paintEvent = static_cast<QPaintEvent*>(event);
+        QPainter painter(ui->centralwidget);
+        painter.setRenderHint(QPainter::SmoothPixmapTransform);
+
+        QPixmap texture(":/tex_main.png");
+        if (!texture.isNull()) {
+            QRect widgetRect = ui->centralwidget->rect();
+            QPixmap scaledTexture = texture.scaled(widgetRect.size(),
+                                                   Qt::KeepAspectRatioByExpanding,
+                                                   Qt::SmoothTransformation);
+
+            int x = (widgetRect.width() - scaledTexture.width()) / 2;
+            int y = (widgetRect.height() - scaledTexture.height()) / 2;
+
+            painter.drawPixmap(x, y, scaledTexture);
+        }
+
+        return true;
+    }
+
+    return QMainWindow::eventFilter(watched, event);
 }
 
 void MainWindow::setupTitleBar() {

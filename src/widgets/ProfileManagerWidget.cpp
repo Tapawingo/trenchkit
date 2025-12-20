@@ -1,14 +1,17 @@
 #include "ProfileManagerWidget.h"
+#include "ProfileRowWidget.h"
+#include "GradientFrame.h"
 #include "../utils/ProfileManager.h"
+#include "../utils/Theme.h"
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QFileDialog>
-#include <QFrame>
 
 ProfileManagerWidget::ProfileManagerWidget(QWidget *parent)
     : QWidget(parent)
@@ -17,114 +20,65 @@ ProfileManagerWidget::ProfileManagerWidget(QWidget *parent)
     , m_createButton(new QPushButton(this))
     , m_loadButton(new QPushButton(this))
     , m_updateButton(new QPushButton(this))
-    , m_exportButton(new QPushButton(this))
-    , m_importButton(new QPushButton(this))
-    , m_deleteButton(new QPushButton(this))
+    , m_importIconButton(new QToolButton(this))
     , m_layout(new QVBoxLayout(this))
 {
     setupUi();
 }
 
 void ProfileManagerWidget::setupUi() {
-    QFrame *frame = new QFrame(this);
-    frame->setFrameShape(QFrame::StyledPanel);
+    GradientFrame *frame = new GradientFrame(this);
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
+    auto *titleLayout = new QHBoxLayout();
     m_titleLabel->setText("Profiles");
     m_titleLabel->setObjectName("profileTitle");
 
+    m_importIconButton->setIcon(QIcon(":/icon_import.png"));
+    m_importIconButton->setIconSize(QSize(20, 20));
+    m_importIconButton->setFixedSize(28, 28);
+    m_importIconButton->setToolTip("Import Profile");
+    m_importIconButton->setObjectName("importIconButton");
+
+    titleLayout->addWidget(m_titleLabel);
+    titleLayout->addStretch();
+    titleLayout->addWidget(m_importIconButton);
+
     m_profileList->setObjectName("profileList");
     m_profileList->setMinimumHeight(150);
+    m_profileList->setSpacing(Theme::Spacing::PROFILE_LIST_ITEM_SPACING);
 
-    m_createButton->setText("Create");
+    m_createButton->setText("New Profile");
     m_createButton->setObjectName("profileButton");
 
-    m_loadButton->setText("Load");
+    m_loadButton->setText("Select Profile");
     m_loadButton->setObjectName("profileButton");
     m_loadButton->setEnabled(false);
 
-    m_updateButton->setText("Update");
+    m_updateButton->setText("Update Selected");
     m_updateButton->setObjectName("profileButton");
     m_updateButton->setEnabled(false);
 
-    m_exportButton->setText("Export");
-    m_exportButton->setObjectName("profileButton");
-    m_exportButton->setEnabled(false);
 
-    m_importButton->setText("Import");
-    m_importButton->setObjectName("profileButton");
-
-    m_deleteButton->setText("Delete");
-    m_deleteButton->setObjectName("profileButton");
-    m_deleteButton->setEnabled(false);
-
-    auto *buttonGrid1 = new QHBoxLayout();
-    buttonGrid1->addWidget(m_createButton);
-    buttonGrid1->addWidget(m_loadButton);
-    buttonGrid1->addWidget(m_updateButton);
-
-    auto *buttonGrid2 = new QHBoxLayout();
-    buttonGrid2->addWidget(m_exportButton);
-    buttonGrid2->addWidget(m_importButton);
-    buttonGrid2->addWidget(m_deleteButton);
-
-    frameLayout->addWidget(m_titleLabel);
+    frameLayout->addLayout(titleLayout);
     frameLayout->addWidget(m_profileList, 1);
-    frameLayout->addLayout(buttonGrid1);
-    frameLayout->addLayout(buttonGrid2);
+    frameLayout->addWidget(m_createButton);
+    frameLayout->addWidget(m_loadButton);
+    frameLayout->addWidget(m_updateButton);
 
-    m_layout->setContentsMargins(8, 8, 8, 8);
-    m_layout->setSpacing(8);
+    m_layout->setContentsMargins(
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN,
+        Theme::Spacing::CONTAINER_MARGIN
+    );
+    m_layout->setSpacing(Theme::Spacing::CONTAINER_SPACING);
     m_layout->addWidget(frame);
 
     setLayout(m_layout);
 
     frame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     m_profileList->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-
-    setStyleSheet(R"(
-        #profileTitle {
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        #profileList {
-            background-color: #2c2c2c;
-            color: #ffffff;
-            border: 1px solid #404040;
-            border-radius: 4px;
-            padding: 4px;
-        }
-        #profileList::item {
-            padding: 6px;
-            border-radius: 4px;
-        }
-        #profileList::item:selected {
-            background-color: #0078d4;
-        }
-        #profileList::item:hover {
-            background-color: #3a3a3a;
-        }
-        #profileButton {
-            background-color: #0078d4;
-            color: #ffffff;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        #profileButton:hover {
-            background-color: #106ebe;
-        }
-        #profileButton:pressed {
-            background-color: #005a9e;
-        }
-        #profileButton:disabled {
-            background-color: #404040;
-            color: #808080;
-        }
-    )");
 
     setupConnections();
 }
@@ -133,9 +87,7 @@ void ProfileManagerWidget::setupConnections() {
     connect(m_createButton, &QPushButton::clicked, this, &ProfileManagerWidget::onCreateClicked);
     connect(m_loadButton, &QPushButton::clicked, this, &ProfileManagerWidget::onLoadClicked);
     connect(m_updateButton, &QPushButton::clicked, this, &ProfileManagerWidget::onUpdateClicked);
-    connect(m_exportButton, &QPushButton::clicked, this, &ProfileManagerWidget::onExportClicked);
-    connect(m_importButton, &QPushButton::clicked, this, &ProfileManagerWidget::onImportClicked);
-    connect(m_deleteButton, &QPushButton::clicked, this, &ProfileManagerWidget::onDeleteClicked);
+    connect(m_importIconButton, &QToolButton::clicked, this, &ProfileManagerWidget::onImportClicked);
 
     connect(m_profileList, &QListWidget::itemSelectionChanged,
             this, &ProfileManagerWidget::onItemSelectionChanged);
@@ -167,18 +119,27 @@ void ProfileManagerWidget::refreshProfileList() {
     QString activeProfileId = m_profileManager->getActiveProfileId();
 
     for (const ProfileInfo &profile : profiles) {
-        QListWidgetItem *item = new QListWidgetItem(profile.name);
-        item->setData(Qt::UserRole, profile.id);
+        auto *rowWidget = new ProfileRowWidget(profile.id, profile.name, this);
 
         if (profile.id == activeProfileId) {
-            QFont font = item->font();
-            font.setBold(true);
-            item->setFont(font);
-            item->setForeground(QColor("#4ec9b0"));
-            item->setText(profile.name + " (Active)");
+            rowWidget->setActive(true);
         }
 
+        connect(rowWidget, &ProfileRowWidget::exportRequested,
+                this, &ProfileManagerWidget::onExportClicked);
+        connect(rowWidget, &ProfileRowWidget::renameRequested,
+                this, &ProfileManagerWidget::onRenameClicked);
+        connect(rowWidget, &ProfileRowWidget::deleteRequested,
+                this, &ProfileManagerWidget::onDeleteClicked);
+        connect(rowWidget, &ProfileRowWidget::clicked,
+                this, &ProfileManagerWidget::onProfileRowClicked);
+
+        auto *item = new QListWidgetItem(m_profileList);
+        item->setSizeHint(rowWidget->sizeHint());
+        item->setData(Qt::UserRole, profile.id);
+
         m_profileList->addItem(item);
+        m_profileList->setItemWidget(item, rowWidget);
     }
 
     updateButtonStates();
@@ -227,20 +188,41 @@ void ProfileManagerWidget::onUpdateClicked() {
     }
 }
 
-void ProfileManagerWidget::onExportClicked() {
-    QString profileId = getSelectedProfileId();
-    if (profileId.isEmpty()) {
+void ProfileManagerWidget::onRenameClicked(const QString &profileId) {
+    QString targetProfileId = profileId.isEmpty() ? getSelectedProfileId() : profileId;
+    if (targetProfileId.isEmpty()) {
         return;
     }
 
-    ProfileInfo profile = m_profileManager->getProfile(profileId);
+    ProfileInfo profile = m_profileManager->getProfile(targetProfileId);
+
+    bool ok;
+    QString newName = QInputDialog::getText(this, "Rename Profile",
+                                           "Enter new name:", QLineEdit::Normal,
+                                           profile.name, &ok);
+
+    if (ok && !newName.isEmpty() && newName != profile.name) {
+        if (m_profileManager->renameProfile(targetProfileId, newName)) {
+            QMessageBox::information(this, "Success",
+                "Profile renamed successfully!");
+        }
+    }
+}
+
+void ProfileManagerWidget::onExportClicked(const QString &profileId) {
+    QString targetProfileId = profileId.isEmpty() ? getSelectedProfileId() : profileId;
+    if (targetProfileId.isEmpty()) {
+        return;
+    }
+
+    ProfileInfo profile = m_profileManager->getProfile(targetProfileId);
     QString defaultFileName = profile.name + ".json";
 
     QString filePath = QFileDialog::getSaveFileName(this, "Export Profile",
         defaultFileName, "JSON Files (*.json)");
 
     if (!filePath.isEmpty()) {
-        if (m_profileManager->exportProfile(profileId, filePath)) {
+        if (m_profileManager->exportProfile(targetProfileId, filePath)) {
             QMessageBox::information(this, "Success",
                 "Profile exported to: " + filePath);
         }
@@ -268,13 +250,13 @@ void ProfileManagerWidget::onImportClicked() {
     }
 }
 
-void ProfileManagerWidget::onDeleteClicked() {
-    QString profileId = getSelectedProfileId();
-    if (profileId.isEmpty()) {
+void ProfileManagerWidget::onDeleteClicked(const QString &profileId) {
+    QString targetProfileId = profileId.isEmpty() ? getSelectedProfileId() : profileId;
+    if (targetProfileId.isEmpty()) {
         return;
     }
 
-    ProfileInfo profile = m_profileManager->getProfile(profileId);
+    ProfileInfo profile = m_profileManager->getProfile(targetProfileId);
 
     QMessageBox::StandardButton reply = QMessageBox::question(this,
         "Delete Profile",
@@ -282,7 +264,7 @@ void ProfileManagerWidget::onDeleteClicked() {
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
-        m_profileManager->deleteProfile(profileId);
+        m_profileManager->deleteProfile(targetProfileId);
     }
 }
 
@@ -322,8 +304,25 @@ void ProfileManagerWidget::updateButtonStates() {
 
     m_loadButton->setEnabled(hasSelection);
     m_updateButton->setEnabled(hasSelection);
-    m_exportButton->setEnabled(hasSelection);
-    m_deleteButton->setEnabled(hasSelection);
+}
+
+void ProfileManagerWidget::onProfileRowClicked(const QString &profileId) {
+    for (int i = 0; i < m_profileList->count(); ++i) {
+        QListWidgetItem *item = m_profileList->item(i);
+        if (item && item->data(Qt::UserRole).toString() == profileId) {
+            m_profileList->setCurrentItem(item);
+
+            auto *rowWidget = qobject_cast<ProfileRowWidget*>(m_profileList->itemWidget(item));
+            if (rowWidget) {
+                rowWidget->setSelected(true);
+            }
+        } else {
+            auto *rowWidget = qobject_cast<ProfileRowWidget*>(m_profileList->itemWidget(item));
+            if (rowWidget) {
+                rowWidget->setSelected(false);
+            }
+        }
+    }
 }
 
 void ProfileManagerWidget::showValidationDialog(const QString &profileId) {

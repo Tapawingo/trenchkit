@@ -8,6 +8,7 @@ class QLabel;
 class QListWidget;
 class QListWidgetItem;
 class QPushButton;
+class QToolButton;
 class QVBoxLayout;
 class ProfileManager;
 
@@ -29,13 +30,15 @@ private slots:
     void onCreateClicked();
     void onLoadClicked();
     void onUpdateClicked();
-    void onExportClicked();
+    void onRenameClicked(const QString &profileId = QString());
+    void onExportClicked(const QString &profileId = QString());
     void onImportClicked();
-    void onDeleteClicked();
+    void onDeleteClicked(const QString &profileId = QString());
     void onProfilesChanged();
     void onActiveProfileChanged(const QString &profileId);
     void onItemSelectionChanged();
     void onItemDoubleClicked(QListWidgetItem *item);
+    void onProfileRowClicked(const QString &profileId);
 
 private:
     void setupUi();
@@ -49,9 +52,7 @@ private:
     QPushButton *m_createButton;
     QPushButton *m_loadButton;
     QPushButton *m_updateButton;
-    QPushButton *m_exportButton;
-    QPushButton *m_importButton;
-    QPushButton *m_deleteButton;
+    QToolButton *m_importIconButton;
     QVBoxLayout *m_layout;
 
     ProfileManager *m_profileManager = nullptr;

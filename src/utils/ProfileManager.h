@@ -37,6 +37,7 @@ public:
 
     bool createProfile(const QString &name);
     bool updateProfile(const QString &profileId);
+    bool renameProfile(const QString &profileId, const QString &newName);
     bool deleteProfile(const QString &profileId);
     ProfileInfo getProfile(const QString &profileId) const;
     QList<ProfileInfo> getProfiles() const;

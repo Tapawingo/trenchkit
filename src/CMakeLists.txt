@@ -7,6 +7,10 @@ qt_add_executable(TrenchKit
   # Widgets
   widgets/TitleBar.h
   widgets/TitleBar.cpp
+  widgets/GradientFrame.h
+  widgets/GradientFrame.cpp
+  widgets/PanelFrame.h
+  widgets/PanelFrame.cpp
   widgets/InstallPathWidget.h
   widgets/InstallPathWidget.cpp
   widgets/ModListWidget.h
@@ -15,6 +19,8 @@ qt_add_executable(TrenchKit
   widgets/DraggableModList.cpp
   widgets/ModRowWidget.h
   widgets/ModRowWidget.cpp
+  widgets/ProfileRowWidget.h
+  widgets/ProfileRowWidget.cpp
   widgets/RightPanelWidget.h
   widgets/RightPanelWidget.cpp
   widgets/ModMetadataDialog.h
@@ -33,6 +39,8 @@ qt_add_executable(TrenchKit
   utils/ProfileInfo.cpp
   utils/ProfileManager.h
   utils/ProfileManager.cpp
+  utils/Theme.h
+  utils/Theme.cpp
 
   resources.qrc
   app.rc

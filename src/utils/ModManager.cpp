@@ -216,6 +216,7 @@ bool ModManager::updateModMetadata(const ModInfo &updatedMod) {
     it->name = updatedMod.name;
     it->description = updatedMod.description;
     it->nexusModId = updatedMod.nexusModId;
+    it->nexusFileId = updatedMod.nexusFileId;
     it->version = updatedMod.version;
     it->author = updatedMod.author;
     it->installDate = updatedMod.installDate;

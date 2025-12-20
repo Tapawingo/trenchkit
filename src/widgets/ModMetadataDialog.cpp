@@ -1,4 +1,5 @@
 #include "ModMetadataDialog.h"
+#include "../utils/Theme.h"
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QLineEdit>
@@ -24,7 +25,7 @@ void ModMetadataDialog::setupUi(const ModInfo &mod) {
     auto *mainLayout = new QVBoxLayout(this);
 
     auto *formLayout = new QFormLayout();
-    formLayout->setSpacing(12);
+    formLayout->setSpacing(Theme::Spacing::FORM_SPACING);
 
     m_nameEdit = new QLineEdit(mod.name, this);
     formLayout->addRow("Name:", m_nameEdit);
@@ -38,7 +39,11 @@ void ModMetadataDialog::setupUi(const ModInfo &mod) {
 
     m_nexusModIdEdit = new QLineEdit(mod.nexusModId, this);
     m_nexusModIdEdit->setPlaceholderText("e.g., 12345");
-    formLayout->addRow("NexusMods ID:", m_nexusModIdEdit);
+    formLayout->addRow("Nexusmods Mod ID:", m_nexusModIdEdit);
+
+    m_nexusFileIdEdit = new QLineEdit(mod.nexusFileId, this);
+    m_nexusFileIdEdit->setPlaceholderText("e.g., 12345");
+    formLayout->addRow("Nexusmods File ID:", m_nexusFileIdEdit);
 
     m_versionEdit = new QLineEdit(mod.version, this);
     m_versionEdit->setPlaceholderText("e.g., 1.0.0");
@@ -59,28 +64,6 @@ void ModMetadataDialog::setupUi(const ModInfo &mod) {
     connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     mainLayout->addWidget(m_buttonBox);
-
-    QString inputStyle = R"(
-        QLineEdit, QTextEdit, QDateTimeEdit {
-            background-color: #2c2c2c;
-            color: #ffffff;
-            border: 1px solid #404040;
-            border-radius: 4px;
-            padding: 6px;
-        }
-        QLineEdit:focus, QTextEdit:focus, QDateTimeEdit:focus {
-            border-color: #0078d4;
-        }
-    )";
-
-    setStyleSheet(inputStyle + R"(
-        QDialog {
-            background-color: #1e1e1e;
-        }
-        QLabel {
-            color: #ffffff;
-        }
-    )");
 }
 
 ModInfo ModMetadataDialog::getModInfo() const {
@@ -90,6 +73,7 @@ ModInfo ModMetadataDialog::getModInfo() const {
     mod.fileName = m_fileNameEdit->text();
     mod.description = m_descriptionEdit->toPlainText();
     mod.nexusModId = m_nexusModIdEdit->text();
+    mod.nexusFileId = m_nexusFileIdEdit->text();
     mod.version = m_versionEdit->text();
     mod.author = m_authorEdit->text();
     mod.installDate = m_installDateEdit->dateTime();
