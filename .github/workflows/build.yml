@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        build_type: [Debug, Release]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.10.1'
+        cache: true
+
+    - name: Install Ninja
+      uses: seanmiddleditch/gha-setup-ninja@v5
+
+    - name: Configure CMake
+      run: |
+        cmake -S . -B build/${{ matrix.build_type }} -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: |
+        cmake --build build/${{ matrix.build_type }}
