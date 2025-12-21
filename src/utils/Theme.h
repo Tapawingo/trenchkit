@@ -28,7 +28,7 @@ public:
         static constexpr const char* ACCENT_RED = "#e81123";
         static constexpr const char* ACCENT_RED_LIGHT = "#f48771";
 
-        static constexpr const char* TEXT_PRIMARY = "#ffffff";
+        static constexpr const char* TEXT_PRIMARY = "#e1d0ab";
         static constexpr const char* TEXT_SECONDARY = "#e0e0e0";
         static constexpr const char* TEXT_TERTIARY = "#cccccc";
         static constexpr const char* TEXT_MUTED = "#888888";
@@ -57,7 +57,11 @@ public:
         static constexpr int TITLE_BAR_MARGIN_LEFT = 12;
         static constexpr int TITLE_BAR_ICON_SPACING = 12;
 
-        static constexpr int RIGHT_PANEL_SECTION_SPACING = 12;
+        static constexpr int RIGHT_PANEL_SECTION_SPACING = 8;
+
+        static constexpr int LOG_ENTRY_PADDING_HORIZONTAL = 12;
+        static constexpr int LOG_ENTRY_PADDING_VERTICAL = 8;
+        static constexpr int LOG_LIST_ITEM_SPACING = 2;
 
         static constexpr int FORM_SPACING = 12;
     };

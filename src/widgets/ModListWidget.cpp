@@ -162,6 +162,8 @@ void ModListWidget::onAddModClicked() {
 
     if (!m_modManager->addMod(filePath, modName)) {
         QMessageBox::warning(this, "Error", "Failed to add mod");
+    } else {
+        emit modAdded(modName);
     }
 }
 
@@ -184,8 +186,11 @@ void ModListWidget::onRemoveModClicked() {
     );
 
     if (reply == QMessageBox::Yes) {
+        QString modName = mod.name;
         if (!m_modManager->removeMod(modId)) {
             QMessageBox::warning(this, "Error", "Failed to remove mod");
+        } else {
+            emit modRemoved(modName);
         }
     }
 }
@@ -221,6 +226,8 @@ void ModListWidget::onMoveUpClicked() {
 
     // Select the moved row
     m_modList->setCurrentRow(selectedRow - 1);
+
+    emit modReordered();
 }
 
 void ModListWidget::onMoveDownClicked() {
@@ -254,6 +261,8 @@ void ModListWidget::onMoveDownClicked() {
 
     // Select the moved row
     m_modList->setCurrentRow(selectedRow + 1);
+
+    emit modReordered();
 }
 
 QString ModListWidget::getSelectedModId() const {
@@ -381,8 +390,11 @@ void ModListWidget::onRemoveRequested(const QString &modId) {
     );
 
     if (reply == QMessageBox::Yes) {
+        QString modName = mod.name;
         if (!m_modManager->removeMod(modId)) {
             QMessageBox::warning(this, "Error", "Failed to remove mod");
+        } else {
+            emit modRemoved(modName);
         }
     }
 }

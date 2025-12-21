@@ -23,6 +23,16 @@ qt_add_executable(TrenchKit
   widgets/ProfileRowWidget.cpp
   widgets/RightPanelWidget.h
   widgets/RightPanelWidget.cpp
+  widgets/ActionsWidget.h
+  widgets/ActionsWidget.cpp
+  widgets/BackupWidget.h
+  widgets/BackupWidget.cpp
+  widgets/LogEntryWidget.h
+  widgets/LogEntryWidget.cpp
+  widgets/ActivityLogWidget.h
+  widgets/ActivityLogWidget.cpp
+  widgets/LaunchWidget.h
+  widgets/LaunchWidget.cpp
   widgets/ModMetadataDialog.h
   widgets/ModMetadataDialog.cpp
   widgets/ProfileManagerWidget.h

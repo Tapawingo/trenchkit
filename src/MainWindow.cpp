@@ -4,6 +4,9 @@
 #include "widgets/ProfileManagerWidget.h"
 #include "widgets/ModListWidget.h"
 #include "widgets/RightPanelWidget.h"
+#include "widgets/ActivityLogWidget.h"
+#include "widgets/BackupWidget.h"
+#include "widgets/LaunchWidget.h"
 #include "utils/FoxholeDetector.h"
 #include "utils/ModManager.h"
 #include "utils/ProfileManager.h"
@@ -65,6 +68,10 @@ MainWindow::MainWindow(QWidget *parent)
     setMinimumSize(windowSize);
     setMaximumSize(windowSize);
     resize(windowSize);
+
+    // Add initial log entry
+    ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
+    log->addLogEntry("TrenchKit Started", ActivityLogWidget::LogLevel::Info);
 }
 
 MainWindow::~MainWindow() {
@@ -138,8 +145,13 @@ void MainWindow::setupProfileManager() {
     m_profileManagerWidget->setProfileManager(m_profileManager);
     ui->leftBox->addWidget(m_profileManagerWidget);
 
+    ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
+
     connect(m_profileManagerWidget, &ProfileManagerWidget::profileLoadRequested,
-            m_modListWidget, &ModListWidget::refreshModList);
+            this, [this, log](const QString &profileId) {
+        m_modListWidget->refreshModList();
+        log->addLogEntry("Profile Loaded", ActivityLogWidget::LogLevel::Info);
+    });
 
     connect(m_profileManager, &ProfileManager::errorOccurred,
             this, [](const QString &error) {
@@ -174,6 +186,43 @@ void MainWindow::setupRightPanel() {
     connect(m_rightPanelWidget, &RightPanelWidget::errorOccurred,
             this, [](const QString &error) {
         QMessageBox::warning(nullptr, "Error", error);
+    });
+
+    // Connect activity log
+    ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
+
+    // ModListWidget logging
+    connect(m_modListWidget, &ModListWidget::modAdded, this, [log](const QString &name) {
+        log->addLogEntry("Mod Added: " + name, ActivityLogWidget::LogLevel::Success);
+    });
+    connect(m_modListWidget, &ModListWidget::modRemoved, this, [log](const QString &name) {
+        log->addLogEntry("Mod Removed: " + name, ActivityLogWidget::LogLevel::Info);
+    });
+    connect(m_modListWidget, &ModListWidget::modReordered, this, [log]() {
+        log->addLogEntry("Mods Reordered", ActivityLogWidget::LogLevel::Info);
+    });
+
+    // BackupWidget logging
+    connect(m_rightPanelWidget->findChild<BackupWidget*>(), &BackupWidget::backupCreated,
+            this, [log](int fileCount) {
+        log->addLogEntry(QString("Backup Created: %1 files").arg(fileCount),
+                        ActivityLogWidget::LogLevel::Success);
+    });
+    connect(m_rightPanelWidget->findChild<BackupWidget*>(), &BackupWidget::backupRestored,
+            this, [log](const QString &backupName) {
+        log->addLogEntry("Backup Restored: " + backupName, ActivityLogWidget::LogLevel::Success);
+    });
+
+    // LaunchWidget logging
+    connect(m_rightPanelWidget->findChild<LaunchWidget*>(), &LaunchWidget::gameLaunched,
+            this, [log](bool withMods) {
+        QString mode = withMods ? "With Mods" : "Vanilla";
+        log->addLogEntry("Game Launched: " + mode, ActivityLogWidget::LogLevel::Info);
+    });
+    connect(m_rightPanelWidget->findChild<LaunchWidget*>(), &LaunchWidget::modsRestored,
+            this, [log](int modCount) {
+        log->addLogEntry(QString("Mods Restored: %1 mods").arg(modCount),
+                        ActivityLogWidget::LogLevel::Success);
     });
 }
 
@@ -244,6 +293,9 @@ void MainWindow::onInstallPathChanged(const QString &path) {
     settings.setValue("foxholeInstallPath", path);
 
     m_modManager->setInstallPath(path);
+
+    ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
+    log->addLogEntry("Install Path Updated", ActivityLogWidget::LogLevel::Info);
 
     m_modListWidget->setLoadingState(true, "Detecting mods");
     QFuture<void> detectionFuture = QtConcurrent::run([this]() {

@@ -12,6 +12,7 @@ QString Theme::getStyleSheet() {
             margin: 8px;
             margin-top: 0px;
             border: 1px solid #171717;
+            border-radius: 3px;
         }
 
         #middlePanel {
@@ -221,7 +222,7 @@ QString Theme::getStyleSheet() {
         }
 
         /* ===== RIGHT PANEL WIDGET ===== */
-        #modActionsTitle, #launchTitle, #backupTitle {
+        #modActionsTitle, #launchTitle, #backupTitle, #activityLogTitle {
             color: #e1d0ab;
             font-size: 14px;
             font-weight: bold;
@@ -396,6 +397,33 @@ QString Theme::getStyleSheet() {
         }
         QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
             width: 0px;
+        }
+
+        /* ===== ACTIVITY LOG ===== */
+        LogEntryWidget {
+            border-radius: 2px;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        LogEntryWidget[level="info"] {
+            background-color: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #2a2a2a, stop: 0.6 #00000000);
+        }
+
+        LogEntryWidget[level="success"] {
+            background-color: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #1a4d3f, stop: 0.6 #00000000);
+        }
+
+        LogEntryWidget[level="warning"] {
+            background-color: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #4d2f1a, stop: 0.6 #00000000);
+        }
+
+        LogEntryWidget[level="error"] {
+            background-color: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #4d1a1f, stop: 0.6 #00000000);
+        }
+
+        LogEntryWidget QLabel {
+            color: #e0e0e0;
         }
     )";
 }

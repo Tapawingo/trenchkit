@@ -22,6 +22,9 @@ public:
 
 signals:
     void modSelectionChanged(int selectedRow, int totalMods);
+    void modAdded(const QString &modName);
+    void modRemoved(const QString &modName);
+    void modReordered();
 
 public slots:
     void onAddModClicked();
