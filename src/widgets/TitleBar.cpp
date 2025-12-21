@@ -39,16 +39,21 @@ void TitleBar::setupUi() {
     m_titleLabel->setObjectName("titleBarTitle");
 
     m_minimizeButton->setText("−");
-    m_minimizeButton->setFixedSize(64, 64);
+    m_minimizeButton->setFixedSize(48, 48);
     m_minimizeButton->setObjectName("minimizeButton");
     m_minimizeButton->setFocusPolicy(Qt::NoFocus);
 
     m_closeButton->setText("×");
-    m_closeButton->setFixedSize(64, 64);
+    m_closeButton->setFixedSize(48, 48);
     m_closeButton->setObjectName("closeButton");
     m_closeButton->setFocusPolicy(Qt::NoFocus);
 
-    m_layout->setContentsMargins(Theme::Spacing::TITLE_BAR_MARGIN_LEFT, 0, 0, 0);
+    m_layout->setContentsMargins(
+        Theme::Spacing::TITLE_BAR_MARGIN_LEFT, 
+        Theme::Spacing::TITLE_BAR_MARGIN_TOP,
+        Theme::Spacing::TITLE_BAR_MARGIN_RIGHT,
+        Theme::Spacing::TITLE_BAR_MARGIN_BOTTOM
+    );
     m_layout->setSpacing(0);
     m_layout->setAlignment(Qt::AlignVCenter);
     m_layout->addWidget(m_iconLabel);

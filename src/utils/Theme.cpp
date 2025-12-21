@@ -10,7 +10,6 @@ QString Theme::getStyleSheet() {
         /* ===== PANELS ===== */
         #leftPanel, #middlePanel, #rightPanel {
             margin: 8px;
-            margin-top: 0px;
             border: 1px solid #171717;
             border-radius: 3px;
         }
@@ -32,8 +31,10 @@ QString Theme::getStyleSheet() {
             background-color: transparent;
             color: #e1d0ab;
             border: none;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 300;
+            padding: 0px;
+            text-align: center;
         }
         #minimizeButton:hover {
             background-color: #404040;
@@ -47,7 +48,7 @@ QString Theme::getStyleSheet() {
         #profileTitle,
         QLabel[objectName="sectionTitle"] {
             color: #e1d0ab;
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
             margin-bottom: 4px;
         }
@@ -142,21 +143,20 @@ QString Theme::getStyleSheet() {
             margin-bottom: 3px;
         }
         ProfileRowWidget[selected="true"] {
-            background-color: #3d402e;
+            background-color: #716856;
         }
         ProfileRowWidget:hover {
-            background-color: #3a3a3a;
+            background-color: #716856;
         }
         ProfileRowWidget[selected="true"]:hover {
-            background-color: #373A29;
+            background-color: #716856;
         }
         #profileNameLabel {
-            color: #ffffff;
+            color: #e1d0ab;
             font-size: 13px;
         }
         #profileNameLabel[active="true"] {
             color: #4ec9b0;
-            font-weight: bold;
         }
 
         /* ===== MOD LIST ===== */
@@ -187,8 +187,13 @@ QString Theme::getStyleSheet() {
         }
         #modListTitle {
             color: #e1d0ab;
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
+            margin-bottom: 4px;
+        }
+        #modCountLabel {
+            color: #9e9278;
+            font-size: 14px;
             margin-bottom: 4px;
         }
 
@@ -199,21 +204,18 @@ QString Theme::getStyleSheet() {
             margin: 0px;
         }
         ModRowWidget[selected="true"] {
-            background-color: #3d402e;
-            border: 2px solid #373A29;
+            background-color: rgba(225, 209, 173, 0.25);
         }
         ModRowWidget:hover {
-            background-color: #888;
-            border-color: #4d4d4d;
+            background-color: rgba(225, 209, 173, 0.25);
         }
         ModRowWidget[selected="true"]:hover {
-            background-color: #373A29;
-            border-color: #1a8dd8;
+            background-color: rgba(225, 209, 173, 0.25);
         }
         #modNameLabel {
             font-size: 14px;
             font-weight: bold;
-            color: #e0e0e0;
+            color: #e1d0ab;
         }
         #modDateLabel {
             font-size: 11px;
@@ -224,7 +226,7 @@ QString Theme::getStyleSheet() {
         /* ===== RIGHT PANEL WIDGET ===== */
         #modActionsTitle, #launchTitle, #backupTitle, #activityLogTitle {
             color: #e1d0ab;
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
             margin-bottom: 8px;
         }
@@ -232,7 +234,7 @@ QString Theme::getStyleSheet() {
         /* ===== BUTTONS (RIGHT PANEL) ===== */
         QPushButton {
             background-color: #3d402e;
-            color: white;
+            color: #e1d0ab;
             border: none;
             padding: 8px 16px;
             font-weight: bold;
@@ -251,7 +253,7 @@ QString Theme::getStyleSheet() {
         /* ===== TOOL BUTTON (LAUNCH BUTTON) ===== */
         QToolButton {
             background-color: #3d402e;
-            color: white;
+            color: #e1d0ab;
             border: none;
             padding: 12px 20px;
             font-weight: bold;
@@ -286,8 +288,13 @@ QString Theme::getStyleSheet() {
 
         /* ===== SEPARATORS ===== */
         QFrame[frameShape="4"][frameShadow="16"] {
-            background-color: #16130e;
-            max-height: 1px;
+            background-color: #141413;
+            height: 2px;
+        }
+
+        #actionsSeparator {
+            background-color: #141413;
+            height: 2px;
         }
 
         /* ===== CHECKBOXES ===== */
@@ -298,15 +305,15 @@ QString Theme::getStyleSheet() {
         QCheckBox::indicator {
             width: 16px;
             height: 16px;
-            border: 1px solid #404040;
-            background-color: #2c2c2c;
+            border: 1px solid #e1d0ab;
+            border-radius: 1px;
+            background-color: #171511;
         }
         QCheckBox::indicator:hover {
-            border-color: #3d402e;
+            background-color: #716856;
         }
         QCheckBox::indicator:checked {
-            background-color: #3d402e;
-            border-color: #3d402e;
+            image: url(:/icon_checkmark.png);
         }
 
         /* ===== LABELS ===== */
@@ -372,28 +379,30 @@ QString Theme::getStyleSheet() {
         /* ===== SCROLL BARS ===== */
         QScrollBar:vertical {
             background-color: #2c2c2c;
-            width: 12px;
+            width: 6px;
+            border-radius: 2px;
         }
         QScrollBar::handle:vertical {
-            background-color: #404040;
+            background-color: #e1d0ab;
             min-height: 20px;
         }
         QScrollBar::handle:vertical:hover {
-            background-color: #4d4d4d;
+            background-color: #9e9278;
         }
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
             height: 0px;
         }
         QScrollBar:horizontal {
             background-color: #2c2c2c;
-            height: 12px;
+            height: 6px;
+            border-radius: 2px;
         }
         QScrollBar::handle:horizontal {
-            background-color: #404040;
+            background-color: #e1d0ab;
             min-width: 20px;
         }
         QScrollBar::handle:horizontal:hover {
-            background-color: #4d4d4d;
+            background-color: #9e9278;
         }
         QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
             width: 0px;
@@ -423,7 +432,7 @@ QString Theme::getStyleSheet() {
         }
 
         LogEntryWidget QLabel {
-            color: #e0e0e0;
+            color: #e1d0ab;
         }
     )";
 }

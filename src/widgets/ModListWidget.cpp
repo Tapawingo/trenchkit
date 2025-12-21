@@ -14,6 +14,7 @@
 ModListWidget::ModListWidget(QWidget *parent)
     : QWidget(parent)
     , m_loadingLabel(new QLabel(this))
+    , m_modCountLabel(new QLabel(this))
     , m_loadingTimer(new QTimer(this))
 {
     setupUi();
@@ -48,14 +49,25 @@ void ModListWidget::setupUi() {
     GradientFrame *frame = new GradientFrame(this);
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
+    auto *titleLayout = new QHBoxLayout();
+    titleLayout->setSpacing(Theme::Spacing::MOD_LIST_TITLE_SPACING);
+    titleLayout->setContentsMargins(0, 0, 0, 0);
+
     auto *titleLabel = new QLabel("Installed Mods:", this);
     titleLabel->setObjectName("modListTitle");
+
+    m_modCountLabel->setObjectName("modCountLabel");
+    m_modCountLabel->setText("0");
+
+    titleLayout->addWidget(titleLabel);
+    titleLayout->addWidget(m_modCountLabel);
+    titleLayout->addStretch();
 
     m_modList = new DraggableModList(this);
     m_modList->setSpacing(Theme::Spacing::MOD_LIST_ITEM_SPACING);
     m_modList->setUniformItemSizes(false);
 
-    frameLayout->addWidget(titleLabel);
+    frameLayout->addLayout(titleLayout);
     frameLayout->addWidget(m_modList, 1);
 
     auto *layout = new QVBoxLayout(this);
@@ -96,6 +108,7 @@ void ModListWidget::refreshModList() {
     m_modList->clear();
 
     QList<ModInfo> mods = m_modManager->getMods();
+    m_modCountLabel->setText(QString::number(mods.size()) + " Total");
     for (int i = 0; i < mods.size(); ++i) {
         const ModInfo &mod = mods[i];
         auto *modRow = new ModRowWidget(mod, this);

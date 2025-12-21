@@ -50,6 +50,7 @@ private:
     DraggableModList *m_modList;
 
     QLabel *m_loadingLabel;
+    QLabel *m_modCountLabel;
     QTimer *m_loadingTimer;
     int m_loadingDots = 0;
 

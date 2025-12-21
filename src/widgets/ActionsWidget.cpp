@@ -83,8 +83,8 @@ void ActionsWidget::setupConnections() {
 
 QFrame* ActionsWidget::createSeparator() {
     QFrame *line = new QFrame(this);
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Plain);
+    line->setObjectName("actionsSeparator");
+    line->setFrameShape(QFrame::NoFrame);
     line->setFixedHeight(1);
     return line;
 }

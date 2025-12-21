@@ -47,14 +47,17 @@ public:
         static constexpr int MOD_ROW_INTERNAL_SPACING = 8;
 
         static constexpr int MOD_LIST_ITEM_SPACING = 0;
-        static constexpr int MOD_LIST_TITLE_SPACING = 8;
+        static constexpr int MOD_LIST_TITLE_SPACING = 1;
 
         static constexpr int PROFILE_ROW_PADDING_HORIZONTAL = 8;
         static constexpr int PROFILE_ROW_PADDING_VERTICAL = 6;
         static constexpr int PROFILE_ROW_INTERNAL_SPACING = 8;
         static constexpr int PROFILE_LIST_ITEM_SPACING = 2;
 
-        static constexpr int TITLE_BAR_MARGIN_LEFT = 12;
+        static constexpr int TITLE_BAR_MARGIN_LEFT = 9;
+        static constexpr int TITLE_BAR_MARGIN_TOP = 8;
+        static constexpr int TITLE_BAR_MARGIN_RIGHT = 9;
+        static constexpr int TITLE_BAR_MARGIN_BOTTOM = 0;
         static constexpr int TITLE_BAR_ICON_SPACING = 12;
 
         static constexpr int RIGHT_PANEL_SECTION_SPACING = 8;

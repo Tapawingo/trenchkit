@@ -45,7 +45,7 @@ ModInfo ModInfo::fromJson(const QJsonObject &json) {
         mod.nexusModId = json["nexusModId"].toString();
     }
     if (json.contains("nexusFileId")) {
-        mod.nexusModId = json["nexusFileId"].toString();
+        mod.nexusFileId = json["nexusFileId"].toString();
     }
     if (json.contains("version")) {
         mod.version = json["version"].toString();

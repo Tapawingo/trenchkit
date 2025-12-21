@@ -121,13 +121,13 @@ void InstallPathWidget::validatePath(const QString &path) {
         style()->unpolish(m_statusLabel);
         style()->polish(m_statusLabel);
     } else if (m_isValid) {
-        m_statusLabel->setText("✓ Valid Foxhole installation detected");
+        m_statusLabel->setText("✓ Valid Foxhole installation");
         m_statusLabel->setProperty("status", "valid");
         style()->unpolish(m_statusLabel);
         style()->polish(m_statusLabel);
         emit validPathSelected(path);
     } else {
-        m_statusLabel->setText("✗ Invalid path - Foxhole installation not found");
+        m_statusLabel->setText("✗ Invalid Foxhole installation");
         m_statusLabel->setProperty("status", "invalid");
         style()->unpolish(m_statusLabel);
         style()->polish(m_statusLabel);
