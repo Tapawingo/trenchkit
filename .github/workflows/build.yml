@@ -17,12 +17,27 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
-    - name: Install Qt
+    - name: Install Qt (Windows)
+      if: runner.os == 'Windows'
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.10.1'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+        cache: true
+        setup-python: false
+
+    - name: Install Qt (Linux)
+      if: runner.os == 'Linux'
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.10.1'
         cache: true
+        setup-python: false
 
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@v5

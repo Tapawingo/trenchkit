@@ -15,6 +15,17 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Network Concurrent)
 
+# Fetch zip library for archive extraction (MIT, zero dependencies)
+include(FetchContent)
+FetchContent_Declare(
+  zip
+  GIT_REPOSITORY https://github.com/kuba--/zip.git
+  GIT_TAG v0.3.2
+)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(ZIP_STATIC ON)
+FetchContent_MakeAvailable(zip)
+
 qt_standard_project_setup()
 
 add_subdirectory(src)

@@ -37,6 +37,10 @@ qt_add_executable(TrenchKit
   widgets/ModMetadataDialog.cpp
   widgets/ProfileManagerWidget.h
   widgets/ProfileManagerWidget.cpp
+  widgets/FileSelectionDialog.h
+  widgets/FileSelectionDialog.cpp
+  widgets/AddModDialog.h
+  widgets/AddModDialog.cpp
 
   # Utilities
   utils/FoxholeDetector.h
@@ -51,6 +55,8 @@ qt_add_executable(TrenchKit
   utils/ProfileManager.cpp
   utils/Theme.h
   utils/Theme.cpp
+  utils/ArchiveExtractor.h
+  utils/ArchiveExtractor.cpp
 
   resources.qrc
   app.rc
@@ -61,9 +67,13 @@ target_link_libraries(TrenchKit
     Qt6::Widgets
     Qt6::Network
     Qt6::Concurrent
+    zip
 )
 
-target_include_directories(TrenchKit PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(TrenchKit
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 # Post-build: Copy Qt and MinGW runtime DLLs for Windows
 if(WIN32)

@@ -2,7 +2,10 @@
 #include "ModRowWidget.h"
 #include "ModMetadataDialog.h"
 #include "GradientFrame.h"
+#include "AddModDialog.h"
+#include "FileSelectionDialog.h"
 #include "../utils/Theme.h"
+#include "../utils/ArchiveExtractor.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
@@ -10,6 +13,7 @@
 #include <QListWidgetItem>
 #include <QLabel>
 #include <QTimer>
+#include <QFileInfo>
 
 ModListWidget::ModListWidget(QWidget *parent)
     : QWidget(parent)
@@ -159,25 +163,9 @@ void ModListWidget::onAddModClicked() {
         return;
     }
 
-    QString filePath = QFileDialog::getOpenFileName(
-        this,
-        "Select Mod File",
-        QString(),
-        "Pak Files (*.pak);;All Files (*.*)"
-    );
-
-    if (filePath.isEmpty()) {
-        return;
-    }
-
-    QFileInfo fileInfo(filePath);
-    QString modName = fileInfo.baseName();
-
-    if (!m_modManager->addMod(filePath, modName)) {
-        QMessageBox::warning(this, "Error", "Failed to add mod");
-    } else {
-        emit modAdded(modName);
-    }
+    AddModDialog dialog(m_modManager, this);
+    connect(&dialog, &AddModDialog::modAdded, this, &ModListWidget::modAdded);
+    dialog.exec();
 }
 
 void ModListWidget::onRemoveModClicked() {
