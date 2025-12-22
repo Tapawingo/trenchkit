@@ -20,6 +20,10 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Set up MSVC dev env
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
     - name: Install Qt (Windows)
       if: runner.os == 'Windows'
       uses: jurplel/install-qt-action@v4
@@ -27,7 +31,7 @@ jobs:
         version: '6.10.1'
         host: 'windows'
         target: 'desktop'
-        arch: 'win64_mingw'
+        arch: 'win64_msvc2022_64'
         cache: true
         setup-python: false
 
