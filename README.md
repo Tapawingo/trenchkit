@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/Tapawingo/TrenchKit/releases"><img src="https://img.shields.io/github/v/release/Tapawingo/TrenchKit?style=flat-square" alt="Releases"></a>
+    <a href="https://github.com/Tapawingo/TrenchKit/releases"><img src="https://img.shields.io/github/v/release/Tapawingo/trenchkit?include_prereleases&style=flat-square" alt="Releases"></a>
     <a><img src="https://img.shields.io/github/actions/workflow/status/Tapawingo/TrenchKit/build.yml?style=flat-square" alt="Build Status"></a>
     <a href="https://github.com/Tapawingo/TrenchKit/issues" alt="Issue Tracker"><img src="https://img.shields.io/github/issues-raw/Tapawingo/TrenchKit?style=flat-square"></a>
     <a href="https://github.com/Tapawingo/TrenchKit/blob/master/LICENSE.md"><img src="https://img.shields.io/github/license/Tapawingo/TrenchKit?style=flat-square" alt="License"></a>
