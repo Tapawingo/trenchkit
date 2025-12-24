@@ -49,13 +49,19 @@ ArchiveExtractor::ExtractResult ArchiveExtractor::extractPakFiles(const QString 
             void *buf = nullptr;
             size_t bufsize = 0;
 
-            if (zip_entry_read(zip, &buf, &bufsize) == 0) {
+            const ssize_t readResult = zip_entry_read(zip, &buf, &bufsize);
+            if (readResult >= 0) {
                 QFile outFile(destPath);
                 if (outFile.open(QIODevice::WriteOnly)) {
-                    outFile.write(static_cast<const char*>(buf), bufsize);
+                    if (buf && bufsize > 0) {
+                        outFile.write(static_cast<const char*>(buf),
+                                      static_cast<qint64>(bufsize));
+                    }
                     outFile.close();
                     pakFiles.append(destPath);
                 }
+            }
+            if (buf) {
                 free(buf);
             }
         }
