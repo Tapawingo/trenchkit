@@ -26,8 +26,14 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(ZIP_STATIC ON)
 FetchContent_MakeAvailable(zip)
 
+set_target_properties(zip PROPERTIES
+  AUTOMOC OFF
+  AUTOUIC OFF
+  AUTORCC OFF
+)
+
 target_compile_options(zip PRIVATE
-  $<$<COMPILE_LANGUAGE:C>:-Wno-error>
+  $<$<AND:$<COMPILE_LANGUAGE:C>,$<NOT:$<C_COMPILER_ID:MSVC>>>:-Wno-error>
 )
 
 qt_standard_project_setup()
