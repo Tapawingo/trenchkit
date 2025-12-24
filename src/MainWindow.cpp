@@ -72,6 +72,11 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onUpdateDownloadFinished);
     connect(m_updater, &UpdaterService::errorOccurred,
             this, &MainWindow::onUpdateCheckError);
+    connect(m_updater, &UpdaterService::checkingStarted, this, [this]() {
+        if (m_settingsWidget) {
+            m_settingsWidget->setCheckStatus("Checking...");
+        }
+    });
 
     ui->hbox->setStretch(0, 1);
     ui->hbox->setStretch(1, 2);
@@ -403,6 +408,9 @@ void MainWindow::onUpdateCheckError(const QString &message) {
     qWarning() << "Updater:" << message;
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
     log->addLogEntry("Update check failed", ActivityLogWidget::LogLevel::Warning);
+    if (m_settingsWidget) {
+        m_settingsWidget->setCheckStatus("Update check failed");
+    }
     if (m_updateDialog) {
         closeUpdateDialog();
         QMessageBox::warning(this, "Update Error", message);
@@ -415,12 +423,18 @@ void MainWindow::onUpdateAvailable(const UpdaterService::ReleaseInfo &release) {
     ui->titleBar->setUpdateVisible(true);
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
     log->addLogEntry("Update available", ActivityLogWidget::LogLevel::Info);
+    if (m_settingsWidget) {
+        m_settingsWidget->setCheckStatus(QString("Update available: %1").arg(release.version.toString()));
+    }
 }
 
 void MainWindow::onUpdateUpToDate(const UpdaterService::ReleaseInfo &latest) {
     Q_UNUSED(latest);
     m_updateAvailable = false;
     ui->titleBar->setUpdateVisible(false);
+    if (m_settingsWidget) {
+        m_settingsWidget->setCheckStatus("Up to date");
+    }
 }
 
 void MainWindow::onUpdateDownloadProgress(qint64 received, qint64 total) {

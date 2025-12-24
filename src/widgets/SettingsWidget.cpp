@@ -43,6 +43,12 @@ void SettingsWidget::setCurrentVersion(const QString &version) {
     }
 }
 
+void SettingsWidget::setCheckStatus(const QString &status) {
+    if (m_checkStatusLabel) {
+        m_checkStatusLabel->setText(status.isEmpty() ? QStringLiteral("Idle") : status);
+    }
+}
+
 QString SettingsWidget::resolvedDownloadDir() const {
     QString dir;
     if (m_downloadDirEdit) {
@@ -93,7 +99,7 @@ void SettingsWidget::buildUi() {
     containerLayout->setVerticalSpacing(Theme::Spacing::SETTINGS_ROW_SPACING);
     containerLayout->setColumnStretch(0, 1);
     containerLayout->setColumnStretch(1, 2);
-    containerLayout->setRowStretch(8, 1);
+    containerLayout->setRowStretch(9, 1);
 
     auto *title = new QLabel("Settings", m_panel);
     title->setObjectName("settingsTitle");
@@ -168,6 +174,11 @@ void SettingsWidget::buildUi() {
     m_checkNowButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     containerLayout->addWidget(m_checkNowButton, 7, 1);
 
+    m_checkStatusLabel = new QLabel("Idle", m_panel);
+    m_checkStatusLabel->setObjectName("settingsStatus");
+    m_checkStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_checkStatusLabel, 8, 1);
+
     scrollArea->setWidget(m_container);
     panelLayout->addWidget(scrollArea);
 
@@ -212,6 +223,9 @@ void SettingsWidget::buildUi() {
                 : QStringLiteral("stable");
             m_updater->setRepository(owner, repo);
             m_updater->setIncludePrereleases(channel == "prerelease");
+        }
+        if (m_checkStatusLabel) {
+            m_checkStatusLabel->setText("Checking...");
         }
         emit manualCheckRequested();
     });

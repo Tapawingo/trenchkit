@@ -47,6 +47,10 @@ QString Theme::getStyleSheet() {
             color: #e1d0ab;
             font-size: 13px;
         }
+        #settingsStatus {
+            color: #9e9278;
+            font-size: 12px;
+        }
         #settingsPanel QLabel {
             margin: 0px;
             padding: 0px;

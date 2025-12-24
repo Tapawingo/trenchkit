@@ -24,6 +24,7 @@ public:
     void loadSettingsIntoUi();
     QString resolvedDownloadDir() const;
     void setCurrentVersion(const QString &version);
+    void setCheckStatus(const QString &status);
 
 signals:
     void cancelRequested();
@@ -49,6 +50,7 @@ private:
     QPushButton *m_settingsSaveButton = nullptr;
     QPushButton *m_settingsCancelButton = nullptr;
     QLabel *m_versionLabel = nullptr;
+    QLabel *m_checkStatusLabel = nullptr;
 };
 
 #endif // SETTINGSWIDGET_H

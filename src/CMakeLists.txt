@@ -88,7 +88,7 @@ target_include_directories(TrenchKit
 )
 
 # Post-build: Copy Qt and MinGW runtime DLLs for Windows
-if(WIN32)
+if(WIN32) 
     add_dependencies(TrenchKit updater)
     add_custom_command(TARGET TrenchKit POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
