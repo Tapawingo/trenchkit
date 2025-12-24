@@ -37,6 +37,9 @@ public:
                             QObject* parent = nullptr);
 
     void setAuthToken(const QString& token);
+    void setRepository(const QString& owner, const QString& repo);
+    QString owner() const { return m_owner; }
+    QString repo() const { return m_repo; }
     void setIncludePrereleases(bool include);
     bool includePrereleases() const { return m_includePrereleases; }
 

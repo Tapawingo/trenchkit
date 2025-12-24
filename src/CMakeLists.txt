@@ -37,6 +37,8 @@ qt_add_executable(TrenchKit
   widgets/ModMetadataDialog.cpp
   widgets/ProfileManagerWidget.h
   widgets/ProfileManagerWidget.cpp
+  widgets/SettingsWidget.h
+  widgets/SettingsWidget.cpp
   widgets/FileSelectionDialog.h
   widgets/FileSelectionDialog.cpp
   widgets/AddModDialog.h

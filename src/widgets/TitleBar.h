@@ -21,6 +21,7 @@ public:
 
 signals:
     void updateClicked();
+    void settingsClicked();
     void closeClicked();
     void minimizeClicked();
 

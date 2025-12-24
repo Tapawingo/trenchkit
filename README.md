@@ -51,7 +51,7 @@
 - A C++20 compiler toolchain
 - CMake 3.24+
 - Ninja
-- Qt 6.10.1+ (Widgets) with Schannel TLS backend on Windows
+- Qt 6.5+
 
 ### 1) Install dependencies
 - Install **Qt 6** (development files + CMake config packages)

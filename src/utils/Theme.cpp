@@ -23,6 +23,40 @@ QString Theme::getStyleSheet() {
             margin: 0px;
         }
 
+        /* ===== SETTINGS ===== */
+        #settingsPanel {
+            margin: 0px;
+        }
+        #settingsContainer {
+            margin: 0px;
+        }
+        #settingsTitle {
+            color: #e1d0ab;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        #settingsSectionHeader {
+            color: #e1d0ab;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+        #settingsLabel {
+            color: #e1d0ab;
+            font-size: 13px;
+        }
+        #settingsPanel QLabel {
+            margin: 0px;
+            padding: 0px;
+        }
+        #settingsPanel QLineEdit,
+        #settingsPanel QComboBox,
+        #settingsPanel QCheckBox {
+            margin: 0px;
+        }
+
         /* ===== TITLE BAR ===== */
         #titleBar {
             background-color: #2c2c2c;
