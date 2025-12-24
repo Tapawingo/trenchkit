@@ -57,9 +57,19 @@ qt_add_executable(TrenchKit
   utils/Theme.cpp
   utils/ArchiveExtractor.h
   utils/ArchiveExtractor.cpp
+  utils/UpdaterService.h
+  utils/UpdaterService.cpp
+  utils/UpdateArchiveExtractor.h
+  utils/UpdateArchiveExtractor.cpp
+  utils/UpdateCleanup.h
+  utils/UpdateCleanup.cpp
 
   resources.qrc
   app.rc
+)
+
+target_compile_definitions(TrenchKit PRIVATE
+  TRENCHKIT_VERSION="${PROJECT_VERSION}"
 )
 
 target_link_libraries(TrenchKit
@@ -77,6 +87,14 @@ target_include_directories(TrenchKit
 
 # Post-build: Copy Qt and MinGW runtime DLLs for Windows
 if(WIN32)
+    add_dependencies(TrenchKit updater)
+    add_custom_command(TARGET TrenchKit POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:updater>
+            $<TARGET_FILE_DIR:TrenchKit>
+        COMMENT "Copying updater helper to output directory"
+    )
+
     # Qt DLLs
     add_custom_command(TARGET TrenchKit POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different

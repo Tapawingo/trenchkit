@@ -31,12 +31,19 @@ QString Theme::getStyleSheet() {
             background-color: transparent;
             color: #e1d0ab;
             border: none;
+            border-left: 1px solid rgba(225, 209, 173, 0.25);
             font-size: 28px;
             font-weight: 300;
             padding: 0px;
             text-align: center;
         }
-        #minimizeButton:hover {
+        #settingsButton, #updateButton {
+            background-color: transparent;
+            border: none;
+            border-left: 1px solid rgba(225, 209, 173, 0.25);
+            padding: 0px;
+        }
+        #minimizeButton:hover, #settingsButton:hover, #updateButton:hover {
             background-color: #404040;
         }
         #closeButton:hover {

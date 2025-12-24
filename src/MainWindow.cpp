@@ -8,6 +8,7 @@
 #include "widgets/BackupWidget.h"
 #include "widgets/LaunchWidget.h"
 #include "utils/FoxholeDetector.h"
+#include "utils/UpdateArchiveExtractor.h"
 #include "utils/ModManager.h"
 #include "utils/ProfileManager.h"
 #include "utils/Theme.h"
@@ -23,6 +24,12 @@
 #include <QFutureWatcher>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QProgressDialog>
+#include <QProcess>
+#include <QDir>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -35,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_profileManager(new ProfileManager(this))
     , m_modLoadWatcher(new QFutureWatcher<bool>(this))
     , m_unregisteredModsWatcher(new QFutureWatcher<void>(this))
+    , m_updater(new UpdaterService("Tapawingo", "TrenchKit", this))
 {
     ui->setupUi(this);
 
@@ -51,6 +59,17 @@ MainWindow::MainWindow(QWidget *parent)
     setupProfileManager();
     setupModList();
     setupRightPanel();
+
+    connect(m_updater, &UpdaterService::updateAvailable,
+            this, &MainWindow::onUpdateAvailable);
+    connect(m_updater, &UpdaterService::upToDate,
+            this, &MainWindow::onUpdateUpToDate);
+    connect(m_updater, &UpdaterService::downloadProgress,
+            this, &MainWindow::onUpdateDownloadProgress);
+    connect(m_updater, &UpdaterService::downloadFinished,
+            this, &MainWindow::onUpdateDownloadFinished);
+    connect(m_updater, &UpdaterService::errorOccurred,
+            this, &MainWindow::onUpdateCheckError);
 
     ui->hbox->setStretch(0, 1);
     ui->hbox->setStretch(1, 2);
@@ -72,6 +91,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Add initial log entry
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
     log->addLogEntry("TrenchKit Started", ActivityLogWidget::LogLevel::Info);
+
+    QTimer::singleShot(0, this, &MainWindow::startUpdateCheck);
 }
 
 MainWindow::~MainWindow() {
@@ -121,9 +142,11 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
 void MainWindow::setupTitleBar() {
     ui->titleBar->setTitle("TrenchKit - Foxhole Mod Manager");
     ui->titleBar->setIcon(QIcon(":/icon.png"));
+    ui->titleBar->setUpdateVisible(false);
 
     connect(ui->titleBar, &TitleBar::minimizeClicked, this, &MainWindow::onMinimizeClicked);
     connect(ui->titleBar, &TitleBar::closeClicked, this, &MainWindow::onCloseClicked);
+    connect(ui->titleBar, &TitleBar::updateClicked, this, &MainWindow::onUpdateClicked);
 }
 
 void MainWindow::onMinimizeClicked() {
@@ -132,6 +155,11 @@ void MainWindow::onMinimizeClicked() {
 
 void MainWindow::onCloseClicked() {
     close();
+}
+
+void MainWindow::startUpdateCheck() {
+    if (!m_updater) return;
+    m_updater->checkForUpdates();
 }
 
 void MainWindow::setupInstallPath() {
@@ -316,4 +344,217 @@ void MainWindow::onModsLoadComplete() {
 
 void MainWindow::onUnregisteredModsDetectionComplete() {
     m_modListWidget->setLoadingState(false);
+}
+
+void MainWindow::onUpdateClicked() {
+    if (!m_updateAvailable) {
+        QMessageBox::information(this, "Up To Date", "No updates are available.");
+        return;
+    }
+    beginUpdateDownload();
+}
+
+void MainWindow::onUpdateCheckError(const QString &message) {
+    qWarning() << "Updater:" << message;
+    ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
+    log->addLogEntry("Update check failed", ActivityLogWidget::LogLevel::Warning);
+    if (m_updateDialog) {
+        closeUpdateDialog();
+        QMessageBox::warning(this, "Update Error", message);
+    }
+}
+
+void MainWindow::onUpdateAvailable(const UpdaterService::ReleaseInfo &release) {
+    m_updateRelease = release;
+    m_updateAvailable = true;
+    ui->titleBar->setUpdateVisible(true);
+    ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
+    log->addLogEntry("Update available", ActivityLogWidget::LogLevel::Info);
+}
+
+void MainWindow::onUpdateUpToDate(const UpdaterService::ReleaseInfo &latest) {
+    Q_UNUSED(latest);
+    m_updateAvailable = false;
+    ui->titleBar->setUpdateVisible(false);
+}
+
+void MainWindow::onUpdateDownloadProgress(qint64 received, qint64 total) {
+    if (!m_updateDialog) return;
+    if (total > 0) {
+        int percent = static_cast<int>((received * 100) / total);
+        m_updateDialog->setRange(0, 100);
+        m_updateDialog->setValue(percent);
+        const double receivedMb = received / 1024.0 / 1024.0;
+        const double totalMb = total / 1024.0 / 1024.0;
+        m_updateDialog->setLabelText(
+            QString("Downloading update (%1 / %2 MB)")
+                .arg(receivedMb, 0, 'f', 1)
+                .arg(totalMb, 0, 'f', 1));
+    } else {
+        m_updateDialog->setRange(0, 0);
+        m_updateDialog->setLabelText("Downloading update...");
+    }
+}
+
+void MainWindow::onUpdateDownloadFinished(const QString &savePath) {
+    closeUpdateDialog();
+
+    QString version = m_updateRelease.version.toString();
+    if (version.isEmpty()) {
+        version = m_updateRelease.tagName;
+        if (version.startsWith('v') || version.startsWith('V')) {
+            version = version.mid(1);
+        }
+    }
+
+    QString error;
+    if (!stageUpdate(savePath, version, &error)) {
+        QMessageBox::warning(this, "Update Error", error);
+        return;
+    }
+
+    const QString stagingDir = QDir(QCoreApplication::applicationDirPath())
+                                   .filePath(QString("updates/staging/%1").arg(version));
+    launchUpdater(stagingDir);
+}
+
+void MainWindow::beginUpdateDownload() {
+    const QString assetName = selectUpdateAssetName();
+    if (assetName.isEmpty()) {
+        QMessageBox::warning(this, "Update Error", "No compatible update asset was found.");
+        return;
+    }
+
+    UpdaterService::Asset chosen;
+    bool found = false;
+    for (const auto &asset : m_updateRelease.assets) {
+        if (asset.name.compare(assetName, Qt::CaseInsensitive) == 0) {
+            chosen = asset;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        QMessageBox::warning(this, "Update Error", "No compatible update asset was found.");
+        return;
+    }
+
+    const QString updatesDir = QDir(QCoreApplication::applicationDirPath())
+                                   .filePath("updates");
+    const QString savePath = QDir(updatesDir).filePath(chosen.name);
+
+    showUpdateDialog();
+    m_updater->downloadAsset(chosen, savePath);
+}
+
+void MainWindow::showUpdateDialog() {
+    if (m_updateDialog) {
+        m_updateDialog->close();
+        m_updateDialog->deleteLater();
+    }
+    m_updateDialog = new QProgressDialog("Downloading update...", "Cancel", 0, 100, this);
+    m_updateDialog->setWindowTitle("Update Download");
+    m_updateDialog->setWindowModality(Qt::ApplicationModal);
+    m_updateDialog->setAutoClose(false);
+    m_updateDialog->setAutoReset(false);
+    connect(m_updateDialog, &QProgressDialog::canceled, this, [this]() {
+        if (m_updater) {
+            m_updater->cancelDownload();
+        }
+        closeUpdateDialog();
+    });
+    m_updateDialog->show();
+}
+
+void MainWindow::closeUpdateDialog() {
+    if (!m_updateDialog) return;
+    m_updateDialog->close();
+    m_updateDialog->deleteLater();
+    m_updateDialog = nullptr;
+}
+
+QString MainWindow::selectUpdateAssetName() const {
+    QString platform;
+#if defined(Q_OS_WIN)
+    platform = "windows";
+#elif defined(Q_OS_LINUX)
+    platform = "linux";
+#else
+    return QString();
+#endif
+
+    QString version = m_updateRelease.version.toString();
+    if (version.isEmpty()) {
+        version = m_updateRelease.tagName;
+        if (version.startsWith('v') || version.startsWith('V')) {
+            version = version.mid(1);
+        }
+    }
+
+    if (version.isEmpty()) {
+        return QString();
+    }
+
+    return QString("%1-%2.zip").arg(platform, version);
+}
+
+bool MainWindow::stageUpdate(const QString &archivePath,
+                             const QString &version,
+                             QString *error) {
+    const QString appDir = QCoreApplication::applicationDirPath();
+    const QString stagingDir = QDir(appDir).filePath(QString("updates/staging/%1").arg(version));
+
+    QDir dir(stagingDir);
+    if (dir.exists() && !dir.removeRecursively()) {
+        if (error) {
+            *error = "Failed to clear existing staging directory.";
+        }
+        return false;
+    }
+    if (!dir.mkpath(".")) {
+        if (error) {
+            *error = "Failed to create staging directory.";
+        }
+        return false;
+    }
+
+    QString extractError;
+    if (!UpdateArchiveExtractor::extractZip(archivePath, stagingDir, &extractError)) {
+        if (error) {
+            *error = QString("Failed to extract update: %1").arg(extractError);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+void MainWindow::launchUpdater(const QString &stagingDir) {
+    const QString appDir = QCoreApplication::applicationDirPath();
+    const QString exeName = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
+
+#if defined(Q_OS_WIN)
+    const QString updaterExe = QDir(appDir).filePath("updater.exe");
+#else
+    const QString updaterExe = QDir(appDir).filePath("updater");
+#endif
+
+    if (!QFileInfo::exists(updaterExe)) {
+        QMessageBox::warning(this, "Update Error", "Updater helper was not found.");
+        return;
+    }
+
+    QStringList args;
+    args << "--install"
+         << "--app-dir" << appDir
+         << "--new-dir" << stagingDir
+         << "--exe-name" << exeName;
+
+    qInfo() << "Updater: launching helper" << updaterExe;
+    if (!QProcess::startDetached(updaterExe, args, appDir)) {
+        QMessageBox::warning(this, "Update Error", "Failed to launch updater helper.");
+        return;
+    }
+
+    QCoreApplication::quit();
 }

@@ -17,8 +17,10 @@ public:
 
     void setTitle(const QString &title);
     void setIcon(const QIcon &icon);
+    void setUpdateVisible(bool visible);
 
 signals:
+    void updateClicked();
     void closeClicked();
     void minimizeClicked();
 
@@ -33,6 +35,8 @@ private:
 
     QLabel *m_iconLabel;
     QLabel *m_titleLabel;
+    QPushButton *m_updateButton;
+    QPushButton *m_settingsButton;
     QPushButton *m_minimizeButton;
     QPushButton *m_closeButton;
     QHBoxLayout *m_layout;
