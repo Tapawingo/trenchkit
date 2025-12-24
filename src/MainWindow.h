@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QFutureWatcher>
+#include <QPointer>
+#include "utils/UpdaterService.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -16,6 +18,7 @@ class RightPanelWidget;
 class ProfileManagerWidget;
 class ModManager;
 class ProfileManager;
+class QProgressDialog;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -34,6 +37,12 @@ private slots:
     void onInstallPathChanged(const QString &path);
     void onModsLoadComplete();
     void onUnregisteredModsDetectionComplete();
+    void onUpdateClicked();
+    void onUpdateCheckError(const QString &message);
+    void onUpdateAvailable(const UpdaterService::ReleaseInfo &release);
+    void onUpdateUpToDate(const UpdaterService::ReleaseInfo &latest);
+    void onUpdateDownloadProgress(qint64 received, qint64 total);
+    void onUpdateDownloadFinished(const QString &savePath);
 
 private:
     void setupTitleBar();
@@ -43,6 +52,13 @@ private:
     void setupRightPanel();
     void loadSettings();
     void saveSettings();
+    void startUpdateCheck();
+    void beginUpdateDownload();
+    void showUpdateDialog();
+    void closeUpdateDialog();
+    QString selectUpdateAssetName() const;
+    bool stageUpdate(const QString &archivePath, const QString &version, QString *error);
+    void launchUpdater(const QString &stagingDir);
 
     Ui::MainWindow *ui;
     InstallPathWidget *m_installPathWidget;
@@ -54,6 +70,10 @@ private:
     QFutureWatcher<bool> *m_modLoadWatcher;
     QFutureWatcher<void> *m_unregisteredModsWatcher;
     bool m_firstShow = true;
+    UpdaterService *m_updater = nullptr;
+    UpdaterService::ReleaseInfo m_updateRelease;
+    bool m_updateAvailable = false;
+    QPointer<QProgressDialog> m_updateDialog;
 
     QPixmap m_backgroundTexture;
     QPixmap m_cachedScaledTexture;

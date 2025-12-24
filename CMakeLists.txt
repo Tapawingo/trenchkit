@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(TrenchKit
-  VERSION 0.1.0
+  VERSION 1.0.0
   LANGUAGES CXX
 )
 
@@ -26,6 +26,11 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(ZIP_STATIC ON)
 FetchContent_MakeAvailable(zip)
 
+target_compile_options(zip PRIVATE
+  $<$<COMPILE_LANGUAGE:C>:-Wno-error>
+)
+
 qt_standard_project_setup()
 
+add_subdirectory(updater)
 add_subdirectory(src)

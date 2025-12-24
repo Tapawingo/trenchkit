@@ -11,6 +11,8 @@ TitleBar::TitleBar(QWidget *parent)
     : QWidget(parent)
     , m_iconLabel(new QLabel(this))
     , m_titleLabel(new QLabel(this))
+    , m_updateButton(new QPushButton(this))
+    , m_settingsButton(new QPushButton(this))
     , m_minimizeButton(new QPushButton(this))
     , m_closeButton(new QPushButton(this))
     , m_layout(new QHBoxLayout(this))
@@ -38,6 +40,21 @@ void TitleBar::setupUi() {
     m_titleLabel->setAlignment(Qt::AlignCenter);
     m_titleLabel->setObjectName("titleBarTitle");
 
+    QIcon updateIcon(":/icon_update.png");
+    m_updateButton->setText("");
+    m_updateButton->setIcon(updateIcon);
+    m_updateButton->setFixedSize(48, 48);
+    m_updateButton->setObjectName("updateButton");
+    m_updateButton->setFocusPolicy(Qt::NoFocus);
+    m_updateButton->setVisible(false);
+
+    QIcon settingsIcon(":/icon_settings.png");
+    m_settingsButton->setText("");
+    m_settingsButton->setIcon(settingsIcon);
+    m_settingsButton->setFixedSize(48, 48);
+    m_settingsButton->setObjectName("settingsButton");
+    m_settingsButton->setFocusPolicy(Qt::NoFocus);
+
     m_minimizeButton->setText("−");
     m_minimizeButton->setFixedSize(48, 48);
     m_minimizeButton->setObjectName("minimizeButton");
@@ -60,6 +77,8 @@ void TitleBar::setupUi() {
     m_layout->addSpacing(Theme::Spacing::TITLE_BAR_ICON_SPACING);
     m_layout->addWidget(m_titleLabel);
     m_layout->addStretch();
+    m_layout->addWidget(m_updateButton);
+    m_layout->addWidget(m_settingsButton);
     m_layout->addWidget(m_minimizeButton);
     m_layout->addWidget(m_closeButton);
 
@@ -67,6 +86,7 @@ void TitleBar::setupUi() {
 }
 
 void TitleBar::setupConnections() {
+    connect(m_updateButton, &QPushButton::clicked, this, &TitleBar::updateClicked);
     connect(m_minimizeButton, &QPushButton::clicked, this, &TitleBar::minimizeClicked);
     connect(m_closeButton, &QPushButton::clicked, this, &TitleBar::closeClicked);
 }
@@ -77,6 +97,10 @@ void TitleBar::setTitle(const QString &title) {
 
 void TitleBar::setIcon(const QIcon &icon) {
     Q_UNUSED(icon);
+}
+
+void TitleBar::setUpdateVisible(bool visible) {
+    m_updateButton->setVisible(visible);
 }
 
 void TitleBar::mousePressEvent(QMouseEvent *event) {
