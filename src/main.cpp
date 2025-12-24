@@ -3,6 +3,16 @@
 #include "utils/UpdateCleanup.h"
 #include <QTimer>
 #include <QCoreApplication>
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#ifdef _WIN32
+int main(int argc, char *argv[]);
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+    return main(__argc, __argv);
+}
+#endif
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);

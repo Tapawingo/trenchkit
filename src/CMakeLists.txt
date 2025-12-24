@@ -74,6 +74,13 @@ target_compile_definitions(TrenchKit PRIVATE
   TRENCHKIT_VERSION="${PROJECT_VERSION}"
 )
 
+if(WIN32)
+  target_link_options(TrenchKit PRIVATE
+    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:MSVC>>:/SUBSYSTEM:WINDOWS>
+    $<$<AND:$<CONFIG:Release>,$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>>:-mwindows>
+  )
+endif()
+
 target_link_libraries(TrenchKit
   PRIVATE
     Qt6::Widgets
