@@ -41,6 +41,7 @@ public:
     bool includePrereleases() const { return m_includePrereleases; }
 
     QVersionNumber currentVersion() const;
+    static QVersionNumber parseVersionFromTag(const QString& tag);
 
 public slots:
     void checkForUpdates();
@@ -63,8 +64,6 @@ private:
     QString formatNetworkError(const QString& context,
                                QNetworkReply* reply,
                                const QByteArray& body) const;
-
-    static QVersionNumber parseVersionFromTag(const QString& tag);
 
     QFile m_downloadFile;
     qint64 m_resumeFrom = 0;

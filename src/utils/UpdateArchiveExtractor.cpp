@@ -66,8 +66,8 @@ bool UpdateArchiveExtractor::extractZip(const QString &zipPath,
 
         void *buf = nullptr;
         size_t bufsize = 0;
-        const int readResult = zip_entry_read(zip, &buf, &bufsize);
-        if (readResult != 0 || !buf) {
+        const ssize_t readResult = zip_entry_read(zip, &buf, &bufsize);
+        if (readResult < 0) {
             zip_entry_close(zip);
             zip_close(zip);
             if (error) {
@@ -87,9 +87,14 @@ bool UpdateArchiveExtractor::extractZip(const QString &zipPath,
             return false;
         }
 
-        outFile.write(static_cast<const char *>(buf), static_cast<qint64>(bufsize));
+        if (buf && bufsize > 0) {
+            outFile.write(static_cast<const char *>(buf),
+                          static_cast<qint64>(bufsize));
+        }
         outFile.close();
-        free(buf);
+        if (buf) {
+            free(buf);
+        }
 
         zip_entry_close(zip);
     }

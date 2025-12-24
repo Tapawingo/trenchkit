@@ -1,6 +1,8 @@
 #include <QApplication>
 #include "MainWindow.h"
 #include "utils/UpdateCleanup.h"
+#include <QTimer>
+#include <QCoreApplication>
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -12,5 +14,9 @@ int main(int argc, char *argv[]) {
 
     MainWindow w;
     w.show();
+
+    if (app.arguments().contains("--smoke-test")) {
+        QTimer::singleShot(200, &app, &QCoreApplication::quit);
+    }
     return app.exec();
 }

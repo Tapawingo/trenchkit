@@ -5,6 +5,8 @@ project(TrenchKit
   LANGUAGES CXX
 )
 
+enable_testing()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -13,7 +15,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Network Concurrent)
+find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Network Concurrent Test)
 
 # Fetch zip library for archive extraction (MIT, zero dependencies)
 include(FetchContent)
@@ -40,3 +42,4 @@ qt_standard_project_setup()
 
 add_subdirectory(updater)
 add_subdirectory(src)
+add_subdirectory(tests)

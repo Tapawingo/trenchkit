@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QDebug>
+#include <QSslSocket>
 
 static QString trimmed(const QString& s) {
     auto t = s.trimmed();
@@ -60,6 +61,15 @@ QVersionNumber UpdaterService::parseVersionFromTag(const QString& tag) {
 void UpdaterService::checkForUpdates() {
     emit checkingStarted();
 
+    if (!QSslSocket::supportsSsl()) {
+        const QString message = QStringLiteral("TLS initialization failed. No TLS backend is available.");
+        qWarning() << "Updater:" << message
+                   << "Build SSL:" << QSslSocket::sslLibraryBuildVersionString()
+                   << "Runtime SSL:" << QSslSocket::sslLibraryVersionString();
+        emit errorOccurred(message);
+        return;
+    }
+
     qInfo() << "Updater: checking for updates.";
     const QUrl url = m_includePrereleases
         ? QUrl(QStringLiteral("https://api.github.com/repos/%1/%2/releases")
@@ -85,6 +95,33 @@ void UpdaterService::checkForUpdates() {
         m_activeReply = nullptr;
 
         if (err != QNetworkReply::NoError || (httpStatus != 200 && httpStatus != 0)) {
+            if (!m_includePrereleases && httpStatus == 404) {
+                const QUrl fallbackUrl(QStringLiteral("https://api.github.com/repos/%1/%2/releases")
+                                           .arg(m_owner, m_repo));
+                qInfo() << "Updater: latest release not found, falling back to releases list.";
+                m_activeReply = m_nam.get(makeRequest(fallbackUrl));
+                connect(m_activeReply, &QNetworkReply::finished, this, [this]() {
+                    if (!m_activeReply) return;
+
+                    QNetworkReply* fallbackReply = m_activeReply;
+                    const auto fallbackErr = fallbackReply->error();
+                    const QByteArray fallbackBody = fallbackReply->readAll();
+                    const int fallbackStatus =
+                        fallbackReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                    m_activeReply->deleteLater();
+                    m_activeReply = nullptr;
+
+                    if (fallbackErr != QNetworkReply::NoError || (fallbackStatus != 200 && fallbackStatus != 0)) {
+                        emit errorOccurred(formatNetworkError(
+                            QStringLiteral("Update check failed"), fallbackReply, fallbackBody));
+                        return;
+                    }
+
+                    handleReleaseJson(fallbackBody);
+                });
+                return;
+            }
+
             emit errorOccurred(formatNetworkError(
                 QStringLiteral("Update check failed"), reply, body));
             return;

@@ -75,7 +75,10 @@ static void writeMarkerVersion(const QString &markerPath, const QString &version
 }
 
 void UpdateCleanup::run() {
-    const QString appDir = QCoreApplication::applicationDirPath();
+    run(QCoreApplication::applicationDirPath());
+}
+
+void UpdateCleanup::run(const QString &appDir) {
     QDir updatesDir(QDir(appDir).filePath("updates"));
     if (!updatesDir.exists()) {
         updatesDir.mkpath(".");
