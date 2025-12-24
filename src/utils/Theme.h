@@ -67,6 +67,12 @@ public:
         static constexpr int LOG_LIST_ITEM_SPACING = 2;
 
         static constexpr int FORM_SPACING = 12;
+
+        static constexpr int SETTINGS_OUTER_MARGIN = 8;
+        static constexpr int SETTINGS_PANEL_MARGIN = 8;
+        static constexpr int SETTINGS_CONTAINER_MARGIN = 16;
+        static constexpr int SETTINGS_ROW_SPACING = 8;
+        static constexpr int SETTINGS_SECTION_SPACING = 8;
     };
 };
 

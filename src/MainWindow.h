@@ -19,6 +19,7 @@ class ProfileManagerWidget;
 class ModManager;
 class ProfileManager;
 class QProgressDialog;
+class SettingsWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -43,6 +44,7 @@ private slots:
     void onUpdateUpToDate(const UpdaterService::ReleaseInfo &latest);
     void onUpdateDownloadProgress(qint64 received, qint64 total);
     void onUpdateDownloadFinished(const QString &savePath);
+    void onSettingsClicked();
 
 private:
     void setupTitleBar();
@@ -50,6 +52,7 @@ private:
     void setupProfileManager();
     void setupModList();
     void setupRightPanel();
+    void setupSettingsOverlay();
     void loadSettings();
     void saveSettings();
     void startUpdateCheck();
@@ -59,6 +62,9 @@ private:
     QString selectUpdateAssetName() const;
     bool stageUpdate(const QString &archivePath, const QString &version, QString *error);
     void launchUpdater(const QString &stagingDir);
+    void showSettingsOverlay();
+    void hideSettingsOverlay();
+    void onSettingsApplied(bool autoCheck);
 
     Ui::MainWindow *ui;
     InstallPathWidget *m_installPathWidget;
@@ -74,6 +80,8 @@ private:
     UpdaterService::ReleaseInfo m_updateRelease;
     bool m_updateAvailable = false;
     QPointer<QProgressDialog> m_updateDialog;
+    QWidget *m_settingsPage = nullptr;
+    SettingsWidget *m_settingsWidget = nullptr;
 
     QPixmap m_backgroundTexture;
     QPixmap m_cachedScaledTexture;

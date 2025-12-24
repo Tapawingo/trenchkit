@@ -7,6 +7,7 @@
 #include "widgets/ActivityLogWidget.h"
 #include "widgets/BackupWidget.h"
 #include "widgets/LaunchWidget.h"
+#include "widgets/SettingsWidget.h"
 #include "utils/FoxholeDetector.h"
 #include "utils/UpdateArchiveExtractor.h"
 #include "utils/ModManager.h"
@@ -59,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
     setupProfileManager();
     setupModList();
     setupRightPanel();
+    setupSettingsOverlay();
 
     connect(m_updater, &UpdaterService::updateAvailable,
             this, &MainWindow::onUpdateAvailable);
@@ -70,6 +72,11 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onUpdateDownloadFinished);
     connect(m_updater, &UpdaterService::errorOccurred,
             this, &MainWindow::onUpdateCheckError);
+    connect(m_updater, &UpdaterService::checkingStarted, this, [this]() {
+        if (m_settingsWidget) {
+            m_settingsWidget->setCheckStatus("Checking...");
+        }
+    });
 
     ui->hbox->setStretch(0, 1);
     ui->hbox->setStretch(1, 2);
@@ -110,30 +117,33 @@ void MainWindow::showEvent(QShowEvent *event) {
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == ui->centralwidget && event->type() == QEvent::Paint) {
-        QPaintEvent *paintEvent = static_cast<QPaintEvent*>(event);
-        QPainter painter(ui->centralwidget);
-        painter.setRenderHint(QPainter::SmoothPixmapTransform);
+    if (watched == ui->centralwidget) {
+        if (event->type() == QEvent::Paint) {
+            QPaintEvent *paintEvent = static_cast<QPaintEvent*>(event);
+            Q_UNUSED(paintEvent);
+            QPainter painter(ui->centralwidget);
+            painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
-        if (!m_backgroundTexture.isNull()) {
-            QRect widgetRect = ui->centralwidget->rect();
+            if (!m_backgroundTexture.isNull()) {
+                QRect widgetRect = ui->centralwidget->rect();
 
-            if (widgetRect.size() != m_lastSize) {
-                m_cachedScaledTexture = m_backgroundTexture.scaled(
-                    widgetRect.size(),
-                    Qt::KeepAspectRatioByExpanding,
-                    Qt::SmoothTransformation
-                );
-                m_lastSize = widgetRect.size();
+                if (widgetRect.size() != m_lastSize) {
+                    m_cachedScaledTexture = m_backgroundTexture.scaled(
+                        widgetRect.size(),
+                        Qt::KeepAspectRatioByExpanding,
+                        Qt::SmoothTransformation
+                    );
+                    m_lastSize = widgetRect.size();
+                }
+
+                int x = (widgetRect.width() - m_cachedScaledTexture.width()) / 2;
+                int y = (widgetRect.height() - m_cachedScaledTexture.height()) / 2;
+
+                painter.drawPixmap(x, y, m_cachedScaledTexture);
             }
 
-            int x = (widgetRect.width() - m_cachedScaledTexture.width()) / 2;
-            int y = (widgetRect.height() - m_cachedScaledTexture.height()) / 2;
-
-            painter.drawPixmap(x, y, m_cachedScaledTexture);
+            return true;
         }
-
-        return true;
     }
 
     return QMainWindow::eventFilter(watched, event);
@@ -147,6 +157,7 @@ void MainWindow::setupTitleBar() {
     connect(ui->titleBar, &TitleBar::minimizeClicked, this, &MainWindow::onMinimizeClicked);
     connect(ui->titleBar, &TitleBar::closeClicked, this, &MainWindow::onCloseClicked);
     connect(ui->titleBar, &TitleBar::updateClicked, this, &MainWindow::onUpdateClicked);
+    connect(ui->titleBar, &TitleBar::settingsClicked, this, &MainWindow::onSettingsClicked);
 }
 
 void MainWindow::onMinimizeClicked() {
@@ -159,6 +170,9 @@ void MainWindow::onCloseClicked() {
 
 void MainWindow::startUpdateCheck() {
     if (!m_updater) return;
+    if (!m_settingsWidget || !m_settingsWidget->applyStoredSettings()) {
+        return;
+    }
     m_updater->checkForUpdates();
 }
 
@@ -254,6 +268,29 @@ void MainWindow::setupRightPanel() {
     });
 }
 
+void MainWindow::setupSettingsOverlay() {
+    m_settingsPage = ui->settingsPage;
+    if (!m_settingsPage) {
+        return;
+    }
+    auto *overlayLayout = ui->settingsLayout;
+    if (!overlayLayout) {
+        overlayLayout = new QVBoxLayout(m_settingsPage);
+    }
+    m_settingsWidget = new SettingsWidget(m_settingsPage, m_updater);
+    overlayLayout->addWidget(m_settingsWidget);
+
+    connect(m_settingsWidget, &SettingsWidget::cancelRequested,
+            this, &MainWindow::hideSettingsOverlay);
+    connect(m_settingsWidget, &SettingsWidget::settingsApplied,
+            this, &MainWindow::onSettingsApplied);
+    connect(m_settingsWidget, &SettingsWidget::manualCheckRequested, this, [this]() {
+        if (m_updater) {
+            m_updater->checkForUpdates();
+        }
+    });
+}
+
 void MainWindow::loadSettings() {
     QSettings settings("TrenchKit", "FoxholeModManager");
 
@@ -346,6 +383,19 @@ void MainWindow::onUnregisteredModsDetectionComplete() {
     m_modListWidget->setLoadingState(false);
 }
 
+void MainWindow::onSettingsClicked() {
+    showSettingsOverlay();
+}
+
+void MainWindow::onSettingsApplied(bool autoCheck) {
+    m_updateAvailable = false;
+    ui->titleBar->setUpdateVisible(false);
+    hideSettingsOverlay();
+    if (autoCheck && m_updater) {
+        m_updater->checkForUpdates();
+    }
+}
+
 void MainWindow::onUpdateClicked() {
     if (!m_updateAvailable) {
         QMessageBox::information(this, "Up To Date", "No updates are available.");
@@ -358,6 +408,9 @@ void MainWindow::onUpdateCheckError(const QString &message) {
     qWarning() << "Updater:" << message;
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
     log->addLogEntry("Update check failed", ActivityLogWidget::LogLevel::Warning);
+    if (m_settingsWidget) {
+        m_settingsWidget->setCheckStatus("Update check failed");
+    }
     if (m_updateDialog) {
         closeUpdateDialog();
         QMessageBox::warning(this, "Update Error", message);
@@ -370,12 +423,18 @@ void MainWindow::onUpdateAvailable(const UpdaterService::ReleaseInfo &release) {
     ui->titleBar->setUpdateVisible(true);
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
     log->addLogEntry("Update available", ActivityLogWidget::LogLevel::Info);
+    if (m_settingsWidget) {
+        m_settingsWidget->setCheckStatus(QString("Update available: %1").arg(release.version.toString()));
+    }
 }
 
 void MainWindow::onUpdateUpToDate(const UpdaterService::ReleaseInfo &latest) {
     Q_UNUSED(latest);
     m_updateAvailable = false;
     ui->titleBar->setUpdateVisible(false);
+    if (m_settingsWidget) {
+        m_settingsWidget->setCheckStatus("Up to date");
+    }
 }
 
 void MainWindow::onUpdateDownloadProgress(qint64 received, qint64 total) {
@@ -439,8 +498,9 @@ void MainWindow::beginUpdateDownload() {
         return;
     }
 
-    const QString updatesDir = QDir(QCoreApplication::applicationDirPath())
-                                   .filePath("updates");
+    const QString updatesDir = m_settingsWidget
+        ? m_settingsWidget->resolvedDownloadDir()
+        : QDir(QCoreApplication::applicationDirPath()).filePath("updates");
     const QString savePath = QDir(updatesDir).filePath(chosen.name);
 
     showUpdateDialog();
@@ -557,4 +617,17 @@ void MainWindow::launchUpdater(const QString &stagingDir) {
     }
 
     QCoreApplication::quit();
+}
+
+void MainWindow::showSettingsOverlay() {
+    if (!m_settingsPage || !ui->bodyStack || !ui->mainPage) return;
+    if (m_settingsWidget) {
+        m_settingsWidget->loadSettingsIntoUi();
+    }
+    ui->bodyStack->setCurrentWidget(m_settingsPage);
+}
+
+void MainWindow::hideSettingsOverlay() {
+    if (!m_settingsPage || !ui->bodyStack || !ui->mainPage) return;
+    ui->bodyStack->setCurrentWidget(ui->mainPage);
 }

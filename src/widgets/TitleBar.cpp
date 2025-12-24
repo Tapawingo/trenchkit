@@ -87,6 +87,7 @@ void TitleBar::setupUi() {
 
 void TitleBar::setupConnections() {
     connect(m_updateButton, &QPushButton::clicked, this, &TitleBar::updateClicked);
+    connect(m_settingsButton, &QPushButton::clicked, this, &TitleBar::settingsClicked);
     connect(m_minimizeButton, &QPushButton::clicked, this, &TitleBar::minimizeClicked);
     connect(m_closeButton, &QPushButton::clicked, this, &TitleBar::closeClicked);
 }

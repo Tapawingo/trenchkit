@@ -37,6 +37,8 @@ qt_add_executable(TrenchKit
   widgets/ModMetadataDialog.cpp
   widgets/ProfileManagerWidget.h
   widgets/ProfileManagerWidget.cpp
+  widgets/SettingsWidget.h
+  widgets/SettingsWidget.cpp
   widgets/FileSelectionDialog.h
   widgets/FileSelectionDialog.cpp
   widgets/AddModDialog.h
@@ -86,7 +88,7 @@ target_include_directories(TrenchKit
 )
 
 # Post-build: Copy Qt and MinGW runtime DLLs for Windows
-if(WIN32)
+if(WIN32) 
     add_dependencies(TrenchKit updater)
     add_custom_command(TARGET TrenchKit POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different

@@ -23,6 +23,14 @@ void UpdaterService::setAuthToken(const QString& token) {
     m_authToken = token;
 }
 
+void UpdaterService::setRepository(const QString& owner, const QString& repo) {
+    if (owner.isEmpty() || repo.isEmpty()) {
+        return;
+    }
+    m_owner = owner;
+    m_repo = repo;
+}
+
 void UpdaterService::setIncludePrereleases(bool include) {
     m_includePrereleases = include;
 }
