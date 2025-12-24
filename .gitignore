@@ -2,6 +2,9 @@
 build/
 cmake-build-*/
 
+# Distrobution directory
+dist/
+
 # CMake
 CMakeCache.txt
 CMakeFiles/
