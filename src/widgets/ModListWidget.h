@@ -9,6 +9,9 @@
 #include <QLabel>
 #include <QTimer>
 
+class NexusModsClient;
+class NexusModsAuth;
+
 class ModListWidget : public QWidget {
     Q_OBJECT
 
@@ -17,6 +20,7 @@ public:
     ~ModListWidget() override = default;
 
     void setModManager(ModManager *modManager);
+    void setNexusServices(NexusModsClient *client, NexusModsAuth *auth);
     void refreshModList();
     void setLoadingState(bool loading, const QString &message = "Loading mods");
 
@@ -47,6 +51,8 @@ private:
     int getSelectedRow() const;
 
     ModManager *m_modManager = nullptr;
+    NexusModsClient *m_nexusClient = nullptr;
+    NexusModsAuth *m_nexusAuth = nullptr;
     DraggableModList *m_modList;
 
     QLabel *m_loadingLabel;

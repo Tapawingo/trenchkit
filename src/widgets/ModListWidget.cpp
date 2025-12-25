@@ -163,7 +163,7 @@ void ModListWidget::onAddModClicked() {
         return;
     }
 
-    AddModDialog dialog(m_modManager, this);
+    AddModDialog dialog(m_modManager, m_nexusClient, m_nexusAuth, this);
     connect(&dialog, &AddModDialog::modAdded, this, &ModListWidget::modAdded);
     dialog.exec();
 }
@@ -398,4 +398,9 @@ void ModListWidget::onRemoveRequested(const QString &modId) {
             emit modRemoved(modName);
         }
     }
+}
+
+void ModListWidget::setNexusServices(NexusModsClient *client, NexusModsAuth *auth) {
+    m_nexusClient = client;
+    m_nexusAuth = auth;
 }

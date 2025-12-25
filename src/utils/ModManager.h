@@ -19,7 +19,10 @@ public:
     void setModsStoragePath(const QString &modsPath);
 
     // Mod management
-    bool addMod(const QString &pakFilePath, const QString &modName = QString());
+    bool addMod(const QString &pakFilePath, const QString &modName = QString(),
+                const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
+                const QString &author = QString(), const QString &description = QString(),
+                const QString &version = QString());
     bool removeMod(const QString &modId);
     bool enableMod(const QString &modId);
     bool disableMod(const QString &modId);

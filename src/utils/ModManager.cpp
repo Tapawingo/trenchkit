@@ -34,7 +34,10 @@ QString ModManager::getPaksPath() const {
     return m_foxholeInstallPath + "/War/Content/Paks";
 }
 
-bool ModManager::addMod(const QString &pakFilePath, const QString &modName) {
+bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
+                        const QString &nexusModId, const QString &nexusFileId,
+                        const QString &author, const QString &description,
+                        const QString &version) {
     QFileInfo fileInfo(pakFilePath);
     if (!fileInfo.exists() || !fileInfo.isFile()) {
         emit errorOccurred("Mod file does not exist: " + pakFilePath);
@@ -48,8 +51,13 @@ bool ModManager::addMod(const QString &pakFilePath, const QString &modName) {
     mod.installDate = QDateTime::currentDateTime();
     mod.enabled = false;
     mod.priority = m_mods.size();
+    mod.nexusModId = nexusModId;
+    mod.nexusFileId = nexusFileId;
+    mod.author = author;
+    mod.description = description;
+    mod.version = version;
 
-    QString destPath = getModFilePath(mod.id);
+    QString destPath = m_modsStoragePath + "/" + mod.fileName;
     if (!QFile::copy(pakFilePath, destPath)) {
         emit errorOccurred("Failed to copy mod file to storage");
         return false;

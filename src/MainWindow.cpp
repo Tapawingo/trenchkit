@@ -53,6 +53,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_modLoadWatcher(new QFutureWatcher<bool>(this))
     , m_unregisteredModsWatcher(new QFutureWatcher<void>(this))
     , m_updater(new UpdaterService("Tapawingo", "TrenchKit", this))
+    , m_nexusClient(new NexusModsClient(this))
+    , m_nexusAuth(new NexusModsAuth(this))
 {
     ui->setupUi(this);
 
@@ -213,6 +215,7 @@ void MainWindow::setupProfileManager() {
 void MainWindow::setupModList() {
     ui->middleBox->addWidget(m_modListWidget);
     m_modListWidget->setModManager(m_modManager);
+    m_modListWidget->setNexusServices(m_nexusClient, m_nexusAuth);
 }
 
 void MainWindow::setupRightPanel() {
@@ -287,6 +290,7 @@ void MainWindow::setupSettingsOverlay() {
         overlayLayout = new QVBoxLayout(m_settingsPage);
     }
     m_settingsWidget = new SettingsWidget(m_settingsPage, m_updater);
+    m_settingsWidget->setNexusServices(m_nexusClient, m_nexusAuth);
     overlayLayout->addWidget(m_settingsWidget);
 
     connect(m_settingsWidget, &SettingsWidget::cancelRequested,

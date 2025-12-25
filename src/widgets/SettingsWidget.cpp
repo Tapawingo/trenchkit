@@ -1,6 +1,8 @@
 #include "SettingsWidget.h"
 
 #include "../utils/UpdaterService.h"
+#include "../utils/NexusModsClient.h"
+#include "../utils/NexusModsAuth.h"
 #include "../utils/Theme.h"
 #include "PanelFrame.h"
 #include "GradientFrame.h"
@@ -13,6 +15,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSettings>
@@ -21,6 +24,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QStandardPaths>
+#include <QDesktopServices>
 
 SettingsWidget::SettingsWidget(QWidget *parent, UpdaterService *updater)
     : QWidget(parent),
@@ -101,7 +105,7 @@ void SettingsWidget::buildUi() {
     containerLayout->setVerticalSpacing(Theme::Spacing::SETTINGS_ROW_SPACING);
     containerLayout->setColumnStretch(0, 1);
     containerLayout->setColumnStretch(1, 2);
-    containerLayout->setRowStretch(9, 1);
+    containerLayout->setRowStretch(12, 1);
 
     auto *title = new QLabel("Settings", m_panel);
     title->setObjectName("settingsTitle");
@@ -180,6 +184,35 @@ void SettingsWidget::buildUi() {
     m_checkStatusLabel->setObjectName("settingsStatus");
     m_checkStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     containerLayout->addWidget(m_checkStatusLabel, 8, 1);
+
+    auto *nexusHeader = new QLabel("Nexus Mods Integration", m_panel);
+    nexusHeader->setObjectName("settingsSectionHeader");
+    nexusHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(nexusHeader, 9, 0, 1, 2);
+
+    auto *nexusLabel = new QLabel("Connection status", m_panel);
+    nexusLabel->setObjectName("settingsLabel");
+    nexusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(nexusLabel, 10, 0);
+
+    m_nexusStatusLabel = new QLabel("Not connected", m_panel);
+    m_nexusStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_nexusStatusLabel, 10, 1);
+
+    auto *nexusActionsLabel = new QLabel("Authentication", m_panel);
+    nexusActionsLabel->setObjectName("settingsLabel");
+    nexusActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(nexusActionsLabel, 11, 0);
+
+    auto *nexusButtonRow = new QHBoxLayout();
+    m_nexusAuthButton = new QPushButton("Add API Key", m_panel);
+    m_nexusAuthButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_nexusClearButton = new QPushButton("Clear API Key", m_panel);
+    m_nexusClearButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    nexusButtonRow->addWidget(m_nexusAuthButton);
+    nexusButtonRow->addWidget(m_nexusClearButton);
+    nexusButtonRow->addStretch();
+    containerLayout->addLayout(nexusButtonRow, 11, 1);
 
     scrollArea->setWidget(m_container);
     panelLayout->addWidget(scrollArea);
@@ -333,4 +366,109 @@ bool SettingsWidget::parseGithubRepo(const QString &text, QString *owner, QStrin
     *owner = parts.at(0);
     *repo = repoPart;
     return !owner->isEmpty() && !repo->isEmpty();
+}
+
+void SettingsWidget::setNexusServices(NexusModsClient *client, NexusModsAuth *auth) {
+    m_nexusClient = client;
+    m_nexusAuth = auth;
+
+    if (!m_nexusStatusLabel || !m_nexusAuthButton || !m_nexusClearButton) {
+        return;
+    }
+
+    auto updateStatus = [this]() {
+        if (m_nexusClient && m_nexusClient->hasApiKey()) {
+            m_nexusStatusLabel->setText(QStringLiteral("Connected"));
+            m_nexusAuthButton->setVisible(false);
+            m_nexusClearButton->setVisible(true);
+        } else {
+            m_nexusStatusLabel->setText(QStringLiteral("Not connected"));
+            m_nexusAuthButton->setVisible(true);
+            m_nexusClearButton->setVisible(false);
+        }
+    };
+
+    updateStatus();
+
+    if (m_nexusAuth) {
+        connect(m_nexusAuth, &NexusModsAuth::authenticationStarted, this, [this](const QString &url) {
+            if (m_nexusStatusLabel) {
+                m_nexusStatusLabel->setText(QStringLiteral("Authenticating..."));
+            }
+            QDesktopServices::openUrl(QUrl(url));
+        });
+
+        connect(m_nexusAuth, &NexusModsAuth::authenticationComplete, this, [this, updateStatus](const QString &apiKey) {
+            if (m_nexusClient) {
+                m_nexusClient->setApiKey(apiKey);
+            }
+            if (m_nexusStatusLabel) {
+                m_nexusStatusLabel->setText(QStringLiteral("Connected"));
+            }
+            updateStatus();
+            QMessageBox::information(this, QStringLiteral("Success"),
+                                   QStringLiteral("Successfully authenticated with Nexus Mods!"));
+        });
+
+        connect(m_nexusAuth, &NexusModsAuth::authenticationFailed, this, [this, updateStatus](const QString &error) {
+            updateStatus();
+            QMessageBox::warning(this, QStringLiteral("Authentication Failed"), error);
+        });
+    }
+
+    if (m_nexusAuthButton) {
+        connect(m_nexusAuthButton, &QPushButton::clicked, this, [this, updateStatus]() {
+            auto reply = QMessageBox::question(
+                this,
+                QStringLiteral("Authentication Method"),
+                QStringLiteral("SSO authentication requires 'trenchkit' to be registered with Nexus Mods.\n\n"
+                             "Would you like to use SSO (if registered) or enter an API key manually?\n\n"
+                             "You can get a personal API key from: https://www.nexusmods.com/users/myaccount?tab=api+access"),
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No
+            );
+
+            if (reply == QMessageBox::Yes) {
+                if (m_nexusAuth) {
+                    m_nexusAuth->startAuthentication();
+                }
+            } else {
+                bool ok;
+                QString apiKey = QInputDialog::getText(
+                    this,
+                    QStringLiteral("Enter API Key"),
+                    QStringLiteral("Enter your Nexus Mods API key:\n"
+                                 "(Get it from: https://www.nexusmods.com/users/myaccount?tab=api+access)"),
+                    QLineEdit::Normal,
+                    QString(),
+                    &ok
+                );
+
+                if (ok && !apiKey.isEmpty()) {
+                    if (m_nexusClient) {
+                        m_nexusClient->setApiKey(apiKey);
+                        updateStatus();
+                        QMessageBox::information(this, QStringLiteral("Success"),
+                                               QStringLiteral("API key saved successfully!"));
+                    }
+                }
+            }
+        });
+    }
+
+    if (m_nexusClearButton) {
+        connect(m_nexusClearButton, &QPushButton::clicked, this, [this, updateStatus]() {
+            auto reply = QMessageBox::question(
+                this,
+                QStringLiteral("Clear API Key"),
+                QStringLiteral("Are you sure you want to clear your Nexus Mods API key?"),
+                QMessageBox::Yes | QMessageBox::No
+            );
+
+            if (reply == QMessageBox::Yes && m_nexusClient) {
+                m_nexusClient->clearApiKey();
+                updateStatus();
+            }
+        });
+    }
 }
