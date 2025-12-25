@@ -131,12 +131,34 @@ void NexusModsClient::getModFiles(const QString &modId) {
             return;
         }
 
-        QJsonArray filesArray = doc.object()[QStringLiteral("files")].toArray();
+        QJsonObject rootObj = doc.object();
+        QJsonArray filesArray = rootObj[QStringLiteral("files")].toArray();
         QList<NexusFileInfo> files;
 
         for (const QJsonValue &value : filesArray) {
             if (value.isObject()) {
                 files.append(NexusFileInfo::fromJson(value.toObject()));
+            }
+        }
+
+        QJsonArray fileUpdatesArray = rootObj[QStringLiteral("file_updates")].toArray();
+        qDebug() << "Found" << fileUpdatesArray.size() << "file_updates entries";
+
+        for (const QJsonValue &updateValue : fileUpdatesArray) {
+            if (!updateValue.isObject()) continue;
+
+            QJsonObject updateObj = updateValue.toObject();
+            QString oldFileId = QString::number(updateObj[QStringLiteral("old_file_id")].toInt());
+            QString newFileId = QString::number(updateObj[QStringLiteral("new_file_id")].toInt());
+
+            if (oldFileId == "0" || newFileId == "0") continue;
+
+            for (NexusFileInfo &file : files) {
+                if (file.id == newFileId) {
+                    file.fileUpdates.append(qMakePair(oldFileId, newFileId));
+                    qDebug() << "  File" << newFileId << "replaces" << oldFileId;
+                    break;
+                }
             }
         }
 

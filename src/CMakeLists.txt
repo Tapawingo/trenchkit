@@ -73,12 +73,17 @@ qt_add_executable(TrenchKit
   utils/NexusModsAuth.cpp
   utils/NexusModsClient.h
   utils/NexusModsClient.cpp
+  utils/ModUpdateInfo.h
+  utils/ModUpdateService.h
+  utils/ModUpdateService.cpp
 
   # Nexus Widgets
   widgets/NexusFileSelectionDialog.h
   widgets/NexusFileSelectionDialog.cpp
   widgets/NexusDownloadDialog.h
   widgets/NexusDownloadDialog.cpp
+  widgets/ModUpdateDialog.h
+  widgets/ModUpdateDialog.cpp
 
   resources.qrc
   app.rc

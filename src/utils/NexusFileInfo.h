@@ -3,6 +3,8 @@
 #include <QString>
 #include <QJsonObject>
 #include <QDateTime>
+#include <QList>
+#include <QPair>
 
 struct NexusFileInfo {
     QString id;
@@ -12,6 +14,7 @@ struct NexusFileInfo {
     qint64 sizeBytes = -1;
     QString categoryName;
     QDateTime uploadedTime;
+    QList<QPair<QString, QString>> fileUpdates;
 
     static NexusFileInfo fromJson(const QJsonObject &json);
 };

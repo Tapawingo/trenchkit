@@ -99,6 +99,69 @@ bool ModManager::removeMod(const QString &modId) {
     return true;
 }
 
+bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
+                            const QString &newVersion, const QString &newFileId) {
+    auto it = std::find_if(m_mods.begin(), m_mods.end(),
+                           [&modId](const ModInfo &mod) { return mod.id == modId; });
+
+    if (it == m_mods.end()) {
+        emit errorOccurred("Mod not found: " + modId);
+        return false;
+    }
+
+    QFileInfo newFileInfo(newPakPath);
+    if (!newFileInfo.exists() || !newFileInfo.isFile()) {
+        emit errorOccurred("New mod file does not exist: " + newPakPath);
+        return false;
+    }
+
+    bool wasEnabled = it->enabled;
+    int savedPriority = it->priority;
+    QString savedName = it->name;
+
+    if (wasEnabled) {
+        if (!disableMod(modId)) {
+            emit errorOccurred("Failed to disable mod before replacement");
+            return false;
+        }
+    }
+
+    QString oldPath = m_modsStoragePath + "/" + it->fileName;
+    if (QFile::exists(oldPath)) {
+        if (!QFile::remove(oldPath)) {
+            emit errorOccurred("Failed to remove old mod file");
+            if (wasEnabled) {
+                it->priority = savedPriority;
+                enableMod(modId);
+            }
+            return false;
+        }
+    }
+
+    QString destPath = m_modsStoragePath + "/" + it->fileName;
+    if (!QFile::copy(newPakPath, destPath)) {
+        emit errorOccurred("Failed to copy new mod file to storage");
+        return false;
+    }
+
+    it->version = newVersion;
+    it->nexusFileId = newFileId;
+    it->installDate = QDateTime::currentDateTime();
+
+    if (wasEnabled) {
+        it->priority = savedPriority;
+        if (!enableMod(modId)) {
+            emit errorOccurred("Failed to re-enable mod after replacement");
+        }
+    }
+
+    saveMods();
+    emit modsChanged();
+
+    qDebug() << "Replaced mod:" << savedName << "version" << newVersion;
+    return true;
+}
+
 bool ModManager::enableMod(const QString &modId) {
     auto it = std::find_if(m_mods.begin(), m_mods.end(),
                            [&modId](const ModInfo &mod) { return mod.id == modId; });

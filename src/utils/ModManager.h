@@ -24,6 +24,8 @@ public:
                 const QString &author = QString(), const QString &description = QString(),
                 const QString &version = QString());
     bool removeMod(const QString &modId);
+    bool replaceMod(const QString &modId, const QString &newPakPath,
+                   const QString &newVersion, const QString &newFileId);
     bool enableMod(const QString &modId);
     bool disableMod(const QString &modId);
     bool setModPriority(const QString &modId, int priority);

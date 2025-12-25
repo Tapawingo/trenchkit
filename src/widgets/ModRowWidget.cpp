@@ -15,14 +15,17 @@ ModRowWidget::ModRowWidget(const ModInfo &mod, QWidget *parent)
 }
 
 void ModRowWidget::setupUi(const ModInfo &mod) {
-    auto *mainLayout = new QVBoxLayout(this);
+    auto *mainLayout = new QHBoxLayout(this);
     mainLayout->setContentsMargins(
         Theme::Spacing::MOD_ROW_PADDING_HORIZONTAL,
         Theme::Spacing::MOD_ROW_PADDING_VERTICAL,
         Theme::Spacing::MOD_ROW_PADDING_HORIZONTAL,
         Theme::Spacing::MOD_ROW_PADDING_VERTICAL
     );
-    mainLayout->setSpacing(0);
+    mainLayout->setSpacing(Theme::Spacing::MOD_ROW_INTERNAL_SPACING);
+
+    auto *leftSection = new QVBoxLayout();
+    leftSection->setSpacing(0);
 
     auto *topLayout = new QHBoxLayout();
     topLayout->setSpacing(Theme::Spacing::MOD_ROW_INTERNAL_SPACING);
@@ -36,19 +39,33 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     topLayout->addWidget(m_enabledCheckBox);
     topLayout->addWidget(m_nameLabel, 1);
 
-    mainLayout->addLayout(topLayout);
+    leftSection->addLayout(topLayout);
 
     m_dateLabel = new QLabel(this);
     m_dateLabel->setText("Installed: " + mod.installDate.toString("yyyy-MM-dd hh:mm"));
     m_dateLabel->setObjectName("modDateLabel");
 
-    mainLayout->addWidget(m_dateLabel);
+    leftSection->addWidget(m_dateLabel);
+
+    mainLayout->addLayout(leftSection, 1);
+
+    m_updateButton = new QPushButton(this);
+    m_updateButton->setObjectName("modUpdateButton");
+    m_updateButton->setVisible(false);
+    m_updateButton->setIcon(QIcon(":/icon_update.png"));
+    m_updateButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+    mainLayout->addWidget(m_updateButton);
 
     setProperty("selected", false);
 
     connect(m_enabledCheckBox, &QCheckBox::checkStateChanged,
             this, [this](Qt::CheckState state) {
         emit enabledChanged(m_modId, state == Qt::Checked);
+    });
+
+    connect(m_updateButton, &QPushButton::clicked, this, [this]() {
+        emit updateRequested(m_modId);
     });
 }
 
@@ -87,5 +104,35 @@ void ModRowWidget::contextMenuEvent(QContextMenuEvent *event) {
         emit editMetaRequested(m_modId);
     } else if (selectedAction == removeAction) {
         emit removeRequested(m_modId);
+    }
+}
+
+void ModRowWidget::setUpdateAvailable(bool available, const QString &version) {
+    if (m_updateButton) {
+        m_updateButton->setVisible(available);
+        if (available) {
+            if (!version.isEmpty()) {
+                m_updateButton->setToolTip(QStringLiteral("Update to version %1").arg(version));
+            }
+            int buttonHeight = m_updateButton->height();
+            if (buttonHeight > 0) {
+                m_updateButton->setFixedWidth(buttonHeight);
+            }
+        }
+    }
+}
+
+void ModRowWidget::hideUpdateButton() {
+    if (m_updateButton) {
+        m_updateButton->setVisible(false);
+    }
+}
+
+void ModRowWidget::resizeEvent(QResizeEvent *event) {
+    QWidget::resizeEvent(event);
+
+    if (m_updateButton && m_updateButton->isVisible()) {
+        int buttonHeight = m_updateButton->height();
+        m_updateButton->setFixedWidth(buttonHeight);
     }
 }
