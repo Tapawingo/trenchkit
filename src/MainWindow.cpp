@@ -31,6 +31,15 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFileInfo>
+#include <QStandardPaths>
+#include <QMetaObject>
+
+namespace {
+QString defaultUpdatesDir() {
+    const QString base = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    return QDir(base).filePath("updates");
+}
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -449,6 +458,14 @@ void MainWindow::onUpdateDownloadProgress(qint64 received, qint64 total) {
             QString("Downloading update (%1 / %2 MB)")
                 .arg(receivedMb, 0, 'f', 1)
                 .arg(totalMb, 0, 'f', 1));
+        if (!m_updateInstallStarted && received >= total && !m_pendingUpdatePath.isEmpty()) {
+            QMetaObject::invokeMethod(this, [this]() {
+                if (!m_pendingUpdatePath.isEmpty()) {
+                    onUpdateDownloadFinished(m_pendingUpdatePath);
+                }
+            }, Qt::QueuedConnection);
+            return;
+        }
     } else {
         m_updateDialog->setRange(0, 0);
         m_updateDialog->setLabelText("Downloading update...");
@@ -456,7 +473,18 @@ void MainWindow::onUpdateDownloadProgress(qint64 received, qint64 total) {
 }
 
 void MainWindow::onUpdateDownloadFinished(const QString &savePath) {
-    closeUpdateDialog();
+    if (m_updateInstallStarted) {
+        return;
+    }
+    m_updateInstallStarted = true;
+    if (m_updateDialog) {
+        m_updateDialog->setCancelButton(nullptr);
+        m_updateDialog->setRange(0, 0);
+        m_updateDialog->setLabelText("Installing update...");
+    }
+    const QString updatesDir = m_settingsWidget
+        ? m_settingsWidget->resolvedDownloadDir()
+        : defaultUpdatesDir();
 
     QString version = m_updateRelease.version.toString();
     if (version.isEmpty()) {
@@ -467,14 +495,14 @@ void MainWindow::onUpdateDownloadFinished(const QString &savePath) {
     }
 
     QString error;
-    if (!stageUpdate(savePath, version, &error)) {
+    if (!stageUpdate(savePath, version, updatesDir, &error)) {
         QMessageBox::warning(this, "Update Error", error);
         return;
     }
 
-    const QString stagingDir = QDir(QCoreApplication::applicationDirPath())
-                                   .filePath(QString("updates/staging/%1").arg(version));
-    launchUpdater(stagingDir);
+    const QString stagingDir = QDir(updatesDir)
+                                   .filePath(QString("staging/%1").arg(version));
+    launchUpdater(stagingDir, updatesDir);
 }
 
 void MainWindow::beginUpdateDownload() {
@@ -500,8 +528,17 @@ void MainWindow::beginUpdateDownload() {
 
     const QString updatesDir = m_settingsWidget
         ? m_settingsWidget->resolvedDownloadDir()
-        : QDir(QCoreApplication::applicationDirPath()).filePath("updates");
+        : defaultUpdatesDir();
     const QString savePath = QDir(updatesDir).filePath(chosen.name);
+
+    QFileInfo existing(savePath);
+    m_updateInstallStarted = false;
+    m_pendingUpdatePath = savePath;
+    m_pendingUpdateSize = chosen.sizeBytes;
+    if (existing.exists() && chosen.sizeBytes > 0 && existing.size() == chosen.sizeBytes) {
+        onUpdateDownloadFinished(savePath);
+        return;
+    }
 
     showUpdateDialog();
     m_updater->downloadAsset(chosen, savePath);
@@ -560,9 +597,9 @@ QString MainWindow::selectUpdateAssetName() const {
 
 bool MainWindow::stageUpdate(const QString &archivePath,
                              const QString &version,
+                             const QString &updatesDir,
                              QString *error) {
-    const QString appDir = QCoreApplication::applicationDirPath();
-    const QString stagingDir = QDir(appDir).filePath(QString("updates/staging/%1").arg(version));
+    const QString stagingDir = QDir(updatesDir).filePath(QString("staging/%1").arg(version));
 
     QDir dir(stagingDir);
     if (dir.exists() && !dir.removeRecursively()) {
@@ -589,7 +626,7 @@ bool MainWindow::stageUpdate(const QString &archivePath,
     return true;
 }
 
-void MainWindow::launchUpdater(const QString &stagingDir) {
+void MainWindow::launchUpdater(const QString &stagingDir, const QString &updatesDir) {
     const QString appDir = QCoreApplication::applicationDirPath();
     const QString exeName = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
 
@@ -608,14 +645,16 @@ void MainWindow::launchUpdater(const QString &stagingDir) {
     args << "--install"
          << "--app-dir" << appDir
          << "--new-dir" << stagingDir
+         << "--updates-dir" << updatesDir
          << "--exe-name" << exeName;
 
     qInfo() << "Updater: launching helper" << updaterExe;
-    if (!QProcess::startDetached(updaterExe, args, appDir)) {
+    qint64 pid = 0;
+    const bool started = QProcess::startDetached(updaterExe, args, appDir, &pid);
+    if (!started) {
         QMessageBox::warning(this, "Update Error", "Failed to launch updater helper.");
         return;
     }
-
     QCoreApplication::quit();
 }
 

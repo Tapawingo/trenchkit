@@ -60,8 +60,8 @@ private:
     void showUpdateDialog();
     void closeUpdateDialog();
     QString selectUpdateAssetName() const;
-    bool stageUpdate(const QString &archivePath, const QString &version, QString *error);
-    void launchUpdater(const QString &stagingDir);
+    bool stageUpdate(const QString &archivePath, const QString &version, const QString &updatesDir, QString *error);
+    void launchUpdater(const QString &stagingDir, const QString &updatesDir);
     void showSettingsOverlay();
     void hideSettingsOverlay();
     void onSettingsApplied(bool autoCheck);
@@ -79,7 +79,10 @@ private:
     UpdaterService *m_updater = nullptr;
     UpdaterService::ReleaseInfo m_updateRelease;
     bool m_updateAvailable = false;
+    bool m_updateInstallStarted = false;
     QPointer<QProgressDialog> m_updateDialog;
+    QString m_pendingUpdatePath;
+    qint64 m_pendingUpdateSize = -1;
     QWidget *m_settingsPage = nullptr;
     SettingsWidget *m_settingsWidget = nullptr;
 

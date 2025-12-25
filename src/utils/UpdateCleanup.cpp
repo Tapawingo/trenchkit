@@ -6,6 +6,7 @@
 #include <QFileInfoList>
 #include <QSaveFile>
 #include <QDebug>
+#include <QStandardPaths>
 #include <algorithm>
 
 static QString currentVersionString() {
@@ -75,7 +76,25 @@ static void writeMarkerVersion(const QString &markerPath, const QString &version
 }
 
 void UpdateCleanup::run() {
-    run(QCoreApplication::applicationDirPath());
+    const QString base = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    const QString updatesDirPath = QDir(base).filePath("updates");
+    QDir updatesDir(updatesDirPath);
+    if (!updatesDir.exists()) {
+        updatesDir.mkpath(".");
+    }
+
+    const QString markerPath = updatesDir.filePath("last_installed_version.txt");
+    const QString previousVersion = readMarkerVersion(markerPath);
+    const QString currentVersion = currentVersionString();
+    const bool versionChanged = !previousVersion.isEmpty() && previousVersion != currentVersion;
+
+    if (versionChanged) {
+        qInfo() << "Update cleanup: installed version" << currentVersion;
+        cleanupArchives(updatesDir);
+    }
+
+    cleanupStagingDirectories(updatesDir);
+    writeMarkerVersion(markerPath, currentVersion);
 }
 
 void UpdateCleanup::run(const QString &appDir) {

@@ -20,6 +20,7 @@
 #include <QVBoxLayout>
 #include <QCoreApplication>
 #include <QDir>
+#include <QStandardPaths>
 
 SettingsWidget::SettingsWidget(QWidget *parent, UpdaterService *updater)
     : QWidget(parent),
@@ -55,7 +56,8 @@ QString SettingsWidget::resolvedDownloadDir() const {
         dir = m_downloadDirEdit->text().trimmed();
     }
     if (dir.isEmpty()) {
-        return QDir(QCoreApplication::applicationDirPath()).filePath("updates");
+        const QString base = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+        return QDir(base).filePath("updates");
     }
     return dir;
 }
@@ -157,7 +159,7 @@ void SettingsWidget::buildUi() {
 
     auto *downloadRow = new QHBoxLayout();
     m_downloadDirEdit = new QLineEdit(m_panel);
-    m_downloadDirEdit->setPlaceholderText("Default: <appdir>/updates");
+    m_downloadDirEdit->setPlaceholderText("Default: AppData/Local/TrenchKit/updates");
     m_downloadDirEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_downloadBrowseButton = new QPushButton("Browse...", m_panel);
     m_downloadBrowseButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

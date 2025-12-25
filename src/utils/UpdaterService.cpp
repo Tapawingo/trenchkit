@@ -8,6 +8,18 @@
 #include <QDir>
 #include <QDebug>
 #include <QSslSocket>
+#include <QMetaObject>
+
+namespace {
+void emitDownloadFinishedQueued(UpdaterService *service, const QString &path) {
+    if (!service) {
+        return;
+    }
+    QMetaObject::invokeMethod(service, [service, path]() {
+        emit service->downloadFinished(path);
+    }, Qt::QueuedConnection);
+}
+}
 
 static QString trimmed(const QString& s) {
     auto t = s.trimmed();
@@ -237,6 +249,18 @@ void UpdaterService::startDownload(bool allowResume, bool forceRestart) {
     }
 
     m_downloadFile.setFileName(m_currentSavePath);
+    if (!forceRestart && m_downloadFile.exists() && m_currentAsset.sizeBytes > 0) {
+        const qint64 existingSize = m_downloadFile.size();
+        if (existingSize == m_currentAsset.sizeBytes && existingSize > 0) {
+            emitDownloadFinishedQueued(this, m_currentSavePath);
+            return;
+        }
+        if (existingSize > m_currentAsset.sizeBytes) {
+            forceRestart = true;
+            allowResume = false;
+        }
+    }
+
     if (!forceRestart && allowResume && m_downloadFile.exists()) {
         m_resumeFrom = m_downloadFile.size();
         if (!m_downloadFile.open(QIODevice::Append)) {
@@ -251,6 +275,8 @@ void UpdaterService::startDownload(bool allowResume, bool forceRestart) {
     }
 
     QNetworkRequest req = makeRequest(m_currentAsset.downloadUrl);
+    req.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                     QNetworkRequest::NoLessSafeRedirectPolicy);
 
     if (m_resumeFrom > 0) {
         req.setRawHeader("Range",
@@ -297,6 +323,16 @@ void UpdaterService::startDownload(bool allowResume, bool forceRestart) {
         m_downloadFile.flush();
         m_downloadFile.close();
 
+        if (httpStatus == 416 && m_resumeFrom > 0 && !m_restartAttempted) {
+            QFileInfo fi(m_currentSavePath);
+            if (m_currentAsset.sizeBytes > 0 && fi.exists() && fi.size() == m_currentAsset.sizeBytes) {
+                emitDownloadFinishedQueued(this, m_currentSavePath);
+                return;
+            }
+            restartDownloadFromScratch();
+            return;
+        }
+
         if (err != QNetworkReply::NoError) {
             emit errorOccurred(formatNetworkError(
                 QStringLiteral("Download failed"), reply, body));
@@ -313,7 +349,7 @@ void UpdaterService::startDownload(bool allowResume, bool forceRestart) {
             return;
         }
 
-        emit downloadFinished(m_currentSavePath);
+        emitDownloadFinishedQueued(this, m_currentSavePath);
     });
 }
 

@@ -16,6 +16,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
+    QCoreApplication::setOrganizationName(QStringLiteral("TrenchKit"));
+    QCoreApplication::setApplicationName(QStringLiteral("TrenchKit"));
 
     // Set application icon (for taskbar, alt-tab, etc.)
     app.setWindowIcon(QIcon(":/icon.png"));
