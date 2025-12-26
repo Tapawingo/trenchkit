@@ -3,9 +3,12 @@
 #include "ModMetadataDialog.h"
 #include "GradientFrame.h"
 #include "AddModDialog.h"
+#include "ModUpdateDialog.h"
 #include "FileSelectionDialog.h"
 #include "../utils/Theme.h"
 #include "../utils/ArchiveExtractor.h"
+#include "../utils/ModUpdateService.h"
+#include "../utils/ModUpdateInfo.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
@@ -14,6 +17,7 @@
 #include <QLabel>
 #include <QTimer>
 #include <QFileInfo>
+#include <QPushButton>
 
 ModListWidget::ModListWidget(QWidget *parent)
     : QWidget(parent)
@@ -63,9 +67,16 @@ void ModListWidget::setupUi() {
     m_modCountLabel->setObjectName("modCountLabel");
     m_modCountLabel->setText("0");
 
+    m_checkUpdatesButton = new QPushButton("Check for Updates", this);
+    m_checkUpdatesButton->setObjectName("checkUpdatesButton");
+
     titleLayout->addWidget(titleLabel);
     titleLayout->addWidget(m_modCountLabel);
     titleLayout->addStretch();
+    titleLayout->addWidget(m_checkUpdatesButton);
+
+    connect(m_checkUpdatesButton, &QPushButton::clicked,
+            this, &ModListWidget::onCheckUpdatesClicked);
 
     m_modList = new DraggableModList(this);
     m_modList->setSpacing(Theme::Spacing::MOD_LIST_ITEM_SPACING);
@@ -124,6 +135,8 @@ void ModListWidget::refreshModList() {
                 this, &ModListWidget::onEditMetaRequested);
         connect(modRow, &ModRowWidget::removeRequested,
                 this, &ModListWidget::onRemoveRequested);
+        connect(modRow, &ModRowWidget::updateRequested,
+                this, &ModListWidget::onUpdateRequested);
 
         auto *item = new QListWidgetItem(m_modList);
         item->setSizeHint(modRow->sizeHint());
@@ -163,7 +176,7 @@ void ModListWidget::onAddModClicked() {
         return;
     }
 
-    AddModDialog dialog(m_modManager, this);
+    AddModDialog dialog(m_modManager, m_nexusClient, m_nexusAuth, this);
     connect(&dialog, &AddModDialog::modAdded, this, &ModListWidget::modAdded);
     dialog.exec();
 }
@@ -396,6 +409,92 @@ void ModListWidget::onRemoveRequested(const QString &modId) {
             QMessageBox::warning(this, "Error", "Failed to remove mod");
         } else {
             emit modRemoved(modName);
+        }
+    }
+}
+
+void ModListWidget::setNexusServices(NexusModsClient *client, NexusModsAuth *auth) {
+    m_nexusClient = client;
+    m_nexusAuth = auth;
+}
+
+void ModListWidget::setUpdateService(ModUpdateService *service) {
+    if (m_updateService) {
+        disconnect(m_updateService, nullptr, this, nullptr);
+    }
+
+    m_updateService = service;
+
+    if (m_updateService) {
+        connect(m_updateService, &ModUpdateService::updateFound,
+                this, &ModListWidget::onUpdateFound);
+        connect(m_updateService, &ModUpdateService::checkComplete,
+                this, &ModListWidget::onUpdateCheckComplete);
+    }
+}
+
+void ModListWidget::onCheckUpdatesClicked() {
+    if (!m_updateService) {
+        return;
+    }
+
+    m_checkUpdatesButton->setEnabled(false);
+    m_checkUpdatesButton->setText("Checking...");
+    m_updateService->checkAllModsForUpdates();
+}
+
+void ModListWidget::onUpdateFound(const QString &modId, const ModUpdateInfo &updateInfo) {
+    for (int i = 0; i < m_modList->count(); ++i) {
+        QListWidgetItem *item = m_modList->item(i);
+        if (item && item->data(Qt::UserRole).toString() == modId) {
+            auto *rowWidget = qobject_cast<ModRowWidget*>(m_modList->itemWidget(item));
+            if (rowWidget) {
+                rowWidget->setUpdateAvailable(true, updateInfo.availableVersion);
+            }
+            break;
+        }
+    }
+}
+
+void ModListWidget::onUpdateCheckComplete(int updatesFound) {
+    m_checkUpdatesButton->setEnabled(true);
+    m_checkUpdatesButton->setText("Check for Updates");
+
+    if (updatesFound > 0) {
+        QString message = QString("%1 update%2 available")
+                             .arg(updatesFound)
+                             .arg(updatesFound == 1 ? "" : "s");
+        QMessageBox::information(this, "Updates Available", message);
+    }
+}
+
+void ModListWidget::onUpdateRequested(const QString &modId) {
+    if (!m_modManager || !m_nexusClient || !m_updateService) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    if (!m_updateService->hasUpdate(modId)) {
+        return;
+    }
+
+    ModUpdateInfo updateInfo = m_updateService->getUpdateInfo(modId);
+
+    ModUpdateDialog dialog(mod, updateInfo, m_modManager, m_nexusClient, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        for (int i = 0; i < m_modList->count(); ++i) {
+            QListWidgetItem *item = m_modList->item(i);
+            if (item && item->data(Qt::UserRole).toString() == modId) {
+                auto *rowWidget = qobject_cast<ModRowWidget*>(m_modList->itemWidget(item));
+                if (rowWidget) {
+                    rowWidget->hideUpdateButton();
+                }
+                break;
+            }
         }
     }
 }

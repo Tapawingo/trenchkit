@@ -65,6 +65,25 @@ qt_add_executable(TrenchKit
   utils/UpdateArchiveExtractor.cpp
   utils/UpdateCleanup.h
   utils/UpdateCleanup.cpp
+  utils/NexusFileInfo.h
+  utils/NexusFileInfo.cpp
+  utils/NexusUrlParser.h
+  utils/NexusUrlParser.cpp
+  utils/NexusModsAuth.h
+  utils/NexusModsAuth.cpp
+  utils/NexusModsClient.h
+  utils/NexusModsClient.cpp
+  utils/ModUpdateInfo.h
+  utils/ModUpdateService.h
+  utils/ModUpdateService.cpp
+
+  # Nexus Widgets
+  widgets/NexusFileSelectionDialog.h
+  widgets/NexusFileSelectionDialog.cpp
+  widgets/NexusDownloadDialog.h
+  widgets/NexusDownloadDialog.cpp
+  widgets/ModUpdateDialog.h
+  widgets/ModUpdateDialog.cpp
 
   resources.qrc
   app.rc
@@ -86,6 +105,7 @@ target_link_libraries(TrenchKit
     Qt6::Widgets
     Qt6::Network
     Qt6::Concurrent
+    Qt6::WebSockets
     zip
 )
 
@@ -124,7 +144,8 @@ if(WIN32)
             Qt6Gui.dll
             Qt6Widgets.dll
             Qt6Network.dll
-            Qt6Concurrent.dll)
+            Qt6Concurrent.dll
+            Qt6WebSockets.dll)
         if(EXISTS "${QT_BIN_DIR}/${QT_DLL_NAME}")
             list(APPEND QT_APP_DLLS "${QT_BIN_DIR}/${QT_DLL_NAME}")
         endif()

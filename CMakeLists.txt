@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(TrenchKit
-  VERSION 1.0.0
+  VERSION 1.0.1
   LANGUAGES CXX
 )
 
@@ -15,7 +15,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Network Concurrent Test)
+find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Network Concurrent Test WebSockets)
 
 # Fetch zip library for archive extraction (MIT, zero dependencies)
 include(FetchContent)

@@ -5,6 +5,8 @@
 #include <QPointer>
 
 class UpdaterService;
+class NexusModsClient;
+class NexusModsAuth;
 class PanelFrame;
 class GradientFrame;
 class QLineEdit;
@@ -25,6 +27,7 @@ public:
     QString resolvedDownloadDir() const;
     void setCurrentVersion(const QString &version);
     void setCheckStatus(const QString &status);
+    void setNexusServices(NexusModsClient *client, NexusModsAuth *auth);
 
 signals:
     void cancelRequested();
@@ -38,6 +41,8 @@ private:
     static bool parseGithubRepo(const QString &text, QString *owner, QString *repo);
 
     QPointer<UpdaterService> m_updater;
+    QPointer<NexusModsClient> m_nexusClient;
+    QPointer<NexusModsAuth> m_nexusAuth;
     PanelFrame *m_panel = nullptr;
     GradientFrame *m_container = nullptr;
     GradientFrame *m_footer = nullptr;
@@ -51,6 +56,9 @@ private:
     QPushButton *m_settingsCancelButton = nullptr;
     QLabel *m_versionLabel = nullptr;
     QLabel *m_checkStatusLabel = nullptr;
+    QLabel *m_nexusStatusLabel = nullptr;
+    QPushButton *m_nexusAuthButton = nullptr;
+    QPushButton *m_nexusClearButton = nullptr;
 };
 
 #endif // SETTINGSWIDGET_H

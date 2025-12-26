@@ -32,6 +32,7 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_msvc2022_64'
+        modules: 'qtwebsockets'
         cache: true
         setup-python: false
 
@@ -40,6 +41,7 @@ jobs:
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.10.1'
+        modules: 'qtwebsockets'
         cache: true
         setup-python: false
 

@@ -5,6 +5,9 @@
 #include <QFutureWatcher>
 #include <QPointer>
 #include "utils/UpdaterService.h"
+#include "utils/NexusModsClient.h"
+#include "utils/NexusModsAuth.h"
+#include "utils/ModUpdateService.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -77,6 +80,9 @@ private:
     QFutureWatcher<void> *m_unregisteredModsWatcher;
     bool m_firstShow = true;
     UpdaterService *m_updater = nullptr;
+    NexusModsClient *m_nexusClient = nullptr;
+    NexusModsAuth *m_nexusAuth = nullptr;
+    ModUpdateService *m_modUpdateService = nullptr;
     UpdaterService::ReleaseInfo m_updateRelease;
     bool m_updateAvailable = false;
     bool m_updateInstallStarted = false;

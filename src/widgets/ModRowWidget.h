@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QCheckBox>
 #include <QLabel>
+#include <QPushButton>
 
 class ModRowWidget : public QWidget {
     Q_OBJECT
@@ -16,15 +17,19 @@ public:
     QString modId() const { return m_modId; }
     void updateModInfo(const ModInfo &mod);
     void setSelected(bool selected);
+    void setUpdateAvailable(bool available, const QString &version);
+    void hideUpdateButton();
 
 signals:
     void enabledChanged(const QString &modId, bool enabled);
     void renameRequested(const QString &modId);
     void editMetaRequested(const QString &modId);
     void removeRequested(const QString &modId);
+    void updateRequested(const QString &modId);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     void setupUi(const ModInfo &mod);
@@ -34,6 +39,7 @@ private:
     QCheckBox *m_enabledCheckBox;
     QLabel *m_nameLabel;
     QLabel *m_dateLabel;
+    QPushButton *m_updateButton;
     bool m_selected = false;
 };
 
