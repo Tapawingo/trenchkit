@@ -27,9 +27,11 @@ private:
     QTextEdit *m_descriptionEdit;
     QLineEdit *m_nexusModIdEdit;
     QLineEdit *m_nexusFileIdEdit;
+    QLineEdit *m_itchGameIdEdit;
     QLineEdit *m_versionEdit;
     QLineEdit *m_authorEdit;
     QDateTimeEdit *m_installDateEdit;
+    QDateTimeEdit *m_uploadDateEdit;
     QDialogButtonBox *m_buttonBox;
 
     int m_priority;

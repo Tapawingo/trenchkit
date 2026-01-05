@@ -3,12 +3,15 @@
 
 #include <QDialog>
 #include <QString>
+#include <QDateTime>
 
 class QPushButton;
 class QDialogButtonBox;
 class ModManager;
 class NexusModsClient;
 class NexusModsAuth;
+class ItchClient;
+class ItchAuth;
 
 class AddModDialog : public QDialog {
     Q_OBJECT
@@ -17,6 +20,8 @@ public:
     explicit AddModDialog(ModManager *modManager,
                          NexusModsClient *nexusClient,
                          NexusModsAuth *nexusAuth,
+                         ItchClient *itchClient,
+                         ItchAuth *itchAuth,
                          QWidget *parent = nullptr);
 
 signals:
@@ -30,13 +35,17 @@ private slots:
 private:
     void setupUi();
     void handleZipFile(const QString &zipPath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
-                       const QString &author = QString(), const QString &description = QString(), const QString &version = QString());
+                       const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
+                       const QString &itchGameId = QString(), const QDateTime &uploadDate = QDateTime());
     void handlePakFile(const QString &pakPath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
-                       const QString &author = QString(), const QString &description = QString(), const QString &version = QString());
+                       const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
+                       const QString &itchGameId = QString(), const QString &customModName = QString(), const QDateTime &uploadDate = QDateTime());
 
     ModManager *m_modManager;
     NexusModsClient *m_nexusClient;
     NexusModsAuth *m_nexusAuth;
+    ItchClient *m_itchClient;
+    ItchAuth *m_itchAuth;
     QPushButton *m_fromFileButton;
     QPushButton *m_fromNexusButton;
     QPushButton *m_fromItchButton;

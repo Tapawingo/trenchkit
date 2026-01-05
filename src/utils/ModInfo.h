@@ -12,10 +12,12 @@ struct ModInfo {
     QString fileName;              // Original .pak file name
     QString numberedFileName;      // Numbered name in paks folder (e.g., "001_modname.pak")
     QDateTime installDate;         // When the mod was added
+    QDateTime uploadDate;          // When the mod was uploaded (Nexus/itch.io)
     bool enabled;                  // Whether mod is currently active
     int priority;                  // Load order (lower = loads first)
     QString nexusModId;            // Optional Nexus Mod ID
     QString nexusFileId;           // Optional Nexus File ID
+    QString itchGameId;            // Optional itch.io Game ID
     QString version;               // Optional mod version
     QString author;                // Optional mod author
     QString description;           // Optional mod description

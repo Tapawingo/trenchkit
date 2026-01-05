@@ -55,7 +55,10 @@ MainWindow::MainWindow(QWidget *parent)
     , m_updater(new UpdaterService("Tapawingo", "TrenchKit", this))
     , m_nexusClient(new NexusModsClient(this))
     , m_nexusAuth(new NexusModsAuth(this))
+    , m_itchClient(new ItchClient(this))
+    , m_itchAuth(new ItchAuth(this))
     , m_modUpdateService(new ModUpdateService(m_modManager, m_nexusClient, this))
+    , m_itchUpdateService(new ItchModUpdateService(m_modManager, m_itchClient, this))
 {
     ui->setupUi(this);
 
@@ -217,7 +220,9 @@ void MainWindow::setupModList() {
     ui->middleBox->addWidget(m_modListWidget);
     m_modListWidget->setModManager(m_modManager);
     m_modListWidget->setNexusServices(m_nexusClient, m_nexusAuth);
+    m_modListWidget->setItchServices(m_itchClient, m_itchAuth);
     m_modListWidget->setUpdateService(m_modUpdateService);
+    m_modListWidget->setItchUpdateService(m_itchUpdateService);
 }
 
 void MainWindow::setupRightPanel() {
@@ -395,6 +400,11 @@ void MainWindow::onModsLoadComplete() {
         if (m_modUpdateService) {
             QTimer::singleShot(0, this, [this]() {
                 m_modUpdateService->checkAllModsForUpdates();
+            });
+        }
+        if (m_itchUpdateService) {
+            QTimer::singleShot(0, this, [this]() {
+                m_itchUpdateService->checkAllModsForUpdates();
             });
         }
     }

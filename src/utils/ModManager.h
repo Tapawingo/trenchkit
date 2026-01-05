@@ -22,10 +22,12 @@ public:
     bool addMod(const QString &pakFilePath, const QString &modName = QString(),
                 const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
                 const QString &author = QString(), const QString &description = QString(),
-                const QString &version = QString());
+                const QString &version = QString(), const QString &itchGameId = QString(),
+                const QDateTime &uploadDate = QDateTime());
     bool removeMod(const QString &modId);
     bool replaceMod(const QString &modId, const QString &newPakPath,
-                   const QString &newVersion, const QString &newFileId);
+                   const QString &newVersion, const QString &newFileId,
+                   const QDateTime &uploadDate = QDateTime());
     bool enableMod(const QString &modId);
     bool disableMod(const QString &modId);
     bool setModPriority(const QString &modId, int priority);

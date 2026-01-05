@@ -11,11 +11,17 @@ QJsonObject ModInfo::toJson() const {
     json["priority"] = priority;
 
     // Optional fields
+    if (uploadDate.isValid()) {
+        json["uploadDate"] = uploadDate.toString(Qt::ISODate);
+    }
     if (!nexusModId.isEmpty()) {
         json["nexusModId"] = nexusModId;
     }
     if (!nexusFileId.isEmpty()) {
         json["nexusFileId"] = nexusFileId;
+    }
+    if (!itchGameId.isEmpty()) {
+        json["itchGameId"] = itchGameId;
     }
     if (!version.isEmpty()) {
         json["version"] = version;
@@ -41,11 +47,17 @@ ModInfo ModInfo::fromJson(const QJsonObject &json) {
     mod.priority = json["priority"].toInt();
 
     // Optional fields
+    if (json.contains("uploadDate")) {
+        mod.uploadDate = QDateTime::fromString(json["uploadDate"].toString(), Qt::ISODate);
+    }
     if (json.contains("nexusModId")) {
         mod.nexusModId = json["nexusModId"].toString();
     }
     if (json.contains("nexusFileId")) {
         mod.nexusFileId = json["nexusFileId"].toString();
+    }
+    if (json.contains("itchGameId")) {
+        mod.itchGameId = json["itchGameId"].toString();
     }
     if (json.contains("version")) {
         mod.version = json["version"].toString();

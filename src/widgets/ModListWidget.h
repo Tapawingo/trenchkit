@@ -11,8 +11,12 @@
 
 class NexusModsClient;
 class NexusModsAuth;
+class ItchClient;
+class ItchAuth;
 class ModUpdateService;
+class ItchModUpdateService;
 struct ModUpdateInfo;
+struct ItchUpdateInfo;
 
 class ModListWidget : public QWidget {
     Q_OBJECT
@@ -23,7 +27,9 @@ public:
 
     void setModManager(ModManager *modManager);
     void setNexusServices(NexusModsClient *client, NexusModsAuth *auth);
+    void setItchServices(ItchClient *client, ItchAuth *auth);
     void setUpdateService(ModUpdateService *service);
+    void setItchUpdateService(ItchModUpdateService *service);
     void refreshModList();
     void setLoadingState(bool loading, const QString &message = "Loading mods");
 
@@ -51,6 +57,8 @@ private slots:
     void onUpdateRequested(const QString &modId);
     void onUpdateFound(const QString &modId, const ModUpdateInfo &updateInfo);
     void onUpdateCheckComplete(int updatesFound);
+    void onItchUpdateFound(const QString &modId, const ItchUpdateInfo &updateInfo);
+    void onItchUpdateCheckComplete(int updatesFound);
 
 private:
     void setupUi();
@@ -60,7 +68,10 @@ private:
     ModManager *m_modManager = nullptr;
     NexusModsClient *m_nexusClient = nullptr;
     NexusModsAuth *m_nexusAuth = nullptr;
+    ItchClient *m_itchClient = nullptr;
+    ItchAuth *m_itchAuth = nullptr;
     ModUpdateService *m_updateService = nullptr;
+    ItchModUpdateService *m_itchUpdateService = nullptr;
     DraggableModList *m_modList;
 
     QLabel *m_loadingLabel;

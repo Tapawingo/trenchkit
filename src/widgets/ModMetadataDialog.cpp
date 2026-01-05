@@ -45,6 +45,10 @@ void ModMetadataDialog::setupUi(const ModInfo &mod) {
     m_nexusFileIdEdit->setPlaceholderText("e.g., 12345");
     formLayout->addRow("Nexusmods File ID:", m_nexusFileIdEdit);
 
+    m_itchGameIdEdit = new QLineEdit(mod.itchGameId, this);
+    m_itchGameIdEdit->setPlaceholderText("e.g., 1276966");
+    formLayout->addRow("Itch.io Game ID:", m_itchGameIdEdit);
+
     m_versionEdit = new QLineEdit(mod.version, this);
     m_versionEdit->setPlaceholderText("e.g., 1.0.0");
     formLayout->addRow("Version:", m_versionEdit);
@@ -56,6 +60,13 @@ void ModMetadataDialog::setupUi(const ModInfo &mod) {
     m_installDateEdit->setDisplayFormat("yyyy-MM-dd hh:mm:ss");
     m_installDateEdit->setCalendarPopup(true);
     formLayout->addRow("Install Date:", m_installDateEdit);
+
+    m_uploadDateEdit = new QDateTimeEdit(mod.uploadDate.isValid() ? mod.uploadDate : QDateTime::currentDateTime(), this);
+    m_uploadDateEdit->setDisplayFormat("yyyy-MM-dd hh:mm:ss");
+    m_uploadDateEdit->setCalendarPopup(true);
+    m_uploadDateEdit->setSpecialValueText("Not Set");
+    m_uploadDateEdit->setMinimumDateTime(QDateTime());
+    formLayout->addRow("Upload Date:", m_uploadDateEdit);
 
     mainLayout->addLayout(formLayout);
 
@@ -74,9 +85,11 @@ ModInfo ModMetadataDialog::getModInfo() const {
     mod.description = m_descriptionEdit->toPlainText();
     mod.nexusModId = m_nexusModIdEdit->text();
     mod.nexusFileId = m_nexusFileIdEdit->text();
+    mod.itchGameId = m_itchGameIdEdit->text();
     mod.version = m_versionEdit->text();
     mod.author = m_authorEdit->text();
     mod.installDate = m_installDateEdit->dateTime();
+    mod.uploadDate = m_uploadDateEdit->dateTime();
     mod.priority = m_priority;
     mod.enabled = m_enabled;
     mod.numberedFileName = m_numberedFileName;
