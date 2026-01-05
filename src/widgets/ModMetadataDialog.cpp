@@ -45,6 +45,10 @@ void ModMetadataDialog::setupUi(const ModInfo &mod) {
     m_nexusFileIdEdit->setPlaceholderText("e.g., 12345");
     formLayout->addRow("Nexusmods File ID:", m_nexusFileIdEdit);
 
+    m_itchGameIdEdit = new QLineEdit(mod.itchGameId, this);
+    m_itchGameIdEdit->setPlaceholderText("e.g., 1276966");
+    formLayout->addRow("Itch.io Game ID:", m_itchGameIdEdit);
+
     m_versionEdit = new QLineEdit(mod.version, this);
     m_versionEdit->setPlaceholderText("e.g., 1.0.0");
     formLayout->addRow("Version:", m_versionEdit);
@@ -74,6 +78,7 @@ ModInfo ModMetadataDialog::getModInfo() const {
     mod.description = m_descriptionEdit->toPlainText();
     mod.nexusModId = m_nexusModIdEdit->text();
     mod.nexusFileId = m_nexusFileIdEdit->text();
+    mod.itchGameId = m_itchGameIdEdit->text();
     mod.version = m_versionEdit->text();
     mod.author = m_authorEdit->text();
     mod.installDate = m_installDateEdit->dateTime();

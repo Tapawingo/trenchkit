@@ -55,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_updater(new UpdaterService("Tapawingo", "TrenchKit", this))
     , m_nexusClient(new NexusModsClient(this))
     , m_nexusAuth(new NexusModsAuth(this))
+    , m_itchClient(new ItchClient(this))
+    , m_itchAuth(new ItchAuth(this))
     , m_modUpdateService(new ModUpdateService(m_modManager, m_nexusClient, this))
 {
     ui->setupUi(this);
@@ -217,6 +219,7 @@ void MainWindow::setupModList() {
     ui->middleBox->addWidget(m_modListWidget);
     m_modListWidget->setModManager(m_modManager);
     m_modListWidget->setNexusServices(m_nexusClient, m_nexusAuth);
+    m_modListWidget->setItchServices(m_itchClient, m_itchAuth);
     m_modListWidget->setUpdateService(m_modUpdateService);
 }
 

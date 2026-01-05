@@ -1,9 +1,12 @@
 #include "AddModDialog.h"
 #include "FileSelectionDialog.h"
 #include "NexusDownloadDialog.h"
+#include "ItchDownloadDialog.h"
 #include "../utils/ModManager.h"
 #include "../utils/NexusModsClient.h"
 #include "../utils/NexusModsAuth.h"
+#include "../utils/ItchClient.h"
+#include "../utils/ItchAuth.h"
 #include "../utils/ArchiveExtractor.h"
 #include <QVBoxLayout>
 #include <QLabel>
@@ -17,11 +20,15 @@
 AddModDialog::AddModDialog(ModManager *modManager,
                            NexusModsClient *nexusClient,
                            NexusModsAuth *nexusAuth,
+                           ItchClient *itchClient,
+                           ItchAuth *itchAuth,
                            QWidget *parent)
     : QDialog(parent)
     , m_modManager(modManager)
     , m_nexusClient(nexusClient)
     , m_nexusAuth(nexusAuth)
+    , m_itchClient(itchClient)
+    , m_itchAuth(itchAuth)
     , m_fromFileButton(new QPushButton("From File", this))
     , m_fromNexusButton(new QPushButton("From Nexus Mods", this))
     , m_fromItchButton(new QPushButton("From itch.io", this))
@@ -40,6 +47,7 @@ AddModDialog::AddModDialog(ModManager *modManager,
         m_fromItchButton->setEnabled(false);
     } else {
         m_fromNexusButton->setEnabled(m_nexusClient && m_nexusAuth);
+        m_fromItchButton->setEnabled(m_itchClient && m_itchAuth);
     }
 }
 
@@ -52,8 +60,6 @@ void AddModDialog::setupUi() {
 
     layout->addWidget(m_fromFileButton);
     layout->addWidget(m_fromNexusButton);
-
-    m_fromItchButton->setEnabled(false);
     layout->addWidget(m_fromItchButton);
 
     layout->addStretch();
@@ -80,7 +86,7 @@ void AddModDialog::onFromFileClicked() {
 }
 
 void AddModDialog::handleZipFile(const QString &zipPath, const QString &nexusModId, const QString &nexusFileId,
-                                  const QString &author, const QString &description, const QString &version) {
+                                  const QString &author, const QString &description, const QString &version, const QString &itchGameId) {
     ArchiveExtractor extractor;
     auto result = extractor.extractPakFiles(zipPath);
 
@@ -121,7 +127,7 @@ void AddModDialog::handleZipFile(const QString &zipPath, const QString &nexusMod
     }
 
     for (const QString &pakPath : selectedPaks) {
-        handlePakFile(pakPath, nexusModId, nexusFileId, author, description, version);
+        handlePakFile(pakPath, nexusModId, nexusFileId, author, description, version, itchGameId);
     }
 
     ArchiveExtractor::cleanupTempDir(result.tempDir);
@@ -132,11 +138,16 @@ void AddModDialog::handleZipFile(const QString &zipPath, const QString &nexusMod
 }
 
 void AddModDialog::handlePakFile(const QString &pakPath, const QString &nexusModId, const QString &nexusFileId,
-                                  const QString &author, const QString &description, const QString &version) {
-    QFileInfo fileInfo(pakPath);
-    QString modName = fileInfo.baseName();
+                                  const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QString &customModName) {
+    QString modName;
+    if (!customModName.isEmpty()) {
+        modName = customModName;
+    } else {
+        QFileInfo fileInfo(pakPath);
+        modName = fileInfo.baseName();
+    }
 
-    if (!m_modManager->addMod(pakPath, modName, nexusModId, nexusFileId, author, description, version)) {
+    if (!m_modManager->addMod(pakPath, modName, nexusModId, nexusFileId, author, description, version, itchGameId)) {
         QMessageBox::warning(this, "Error", "Failed to add mod: " + modName);
     } else {
         emit modAdded(modName);
@@ -178,5 +189,48 @@ void AddModDialog::onFromNexusClicked() {
 }
 
 void AddModDialog::onFromItchClicked() {
-    // Future implementation
+    if (!m_itchClient || !m_itchAuth) {
+        return;
+    }
+
+    ItchDownloadDialog dialog(m_itchClient, m_itchAuth, this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    QStringList filePaths = dialog.getDownloadedFilePaths();
+    if (filePaths.isEmpty()) {
+        return;
+    }
+
+    QString itchGameId = dialog.getGameId();
+    QString author = dialog.getAuthor();
+    QString gameTitle = dialog.getGameTitle();
+
+    for (const QString &filePath : filePaths) {
+        QFileInfo fileInfo(filePath);
+        QString fileName = fileInfo.fileName();
+        QString modName;
+
+        if (fileName.startsWith(QStringLiteral("itch_game_"))) {
+            int secondUnderscore = fileName.indexOf('_', 10);
+            int thirdUnderscore = fileName.indexOf('_', secondUnderscore + 1);
+            if (thirdUnderscore != -1) {
+                modName = fileName.mid(thirdUnderscore + 1);
+                modName = QFileInfo(modName).baseName();
+            }
+        }
+
+        if (filePath.endsWith(".zip", Qt::CaseInsensitive)) {
+            handleZipFile(filePath, "", "", author, gameTitle, "", itchGameId);
+        } else {
+            handlePakFile(filePath, "", "", author, gameTitle, "", itchGameId, modName);
+        }
+
+        if (filePath.contains(QStringLiteral("itch_game_"))) {
+            QFile::remove(filePath);
+        }
+    }
+
+    accept();
 }

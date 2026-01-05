@@ -11,6 +11,8 @@
 
 class NexusModsClient;
 class NexusModsAuth;
+class ItchClient;
+class ItchAuth;
 class ModUpdateService;
 struct ModUpdateInfo;
 
@@ -23,6 +25,7 @@ public:
 
     void setModManager(ModManager *modManager);
     void setNexusServices(NexusModsClient *client, NexusModsAuth *auth);
+    void setItchServices(ItchClient *client, ItchAuth *auth);
     void setUpdateService(ModUpdateService *service);
     void refreshModList();
     void setLoadingState(bool loading, const QString &message = "Loading mods");
@@ -60,6 +63,8 @@ private:
     ModManager *m_modManager = nullptr;
     NexusModsClient *m_nexusClient = nullptr;
     NexusModsAuth *m_nexusAuth = nullptr;
+    ItchClient *m_itchClient = nullptr;
+    ItchAuth *m_itchAuth = nullptr;
     ModUpdateService *m_updateService = nullptr;
     DraggableModList *m_modList;
 
