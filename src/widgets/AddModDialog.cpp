@@ -86,7 +86,7 @@ void AddModDialog::onFromFileClicked() {
 }
 
 void AddModDialog::handleZipFile(const QString &zipPath, const QString &nexusModId, const QString &nexusFileId,
-                                  const QString &author, const QString &description, const QString &version, const QString &itchGameId) {
+                                  const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QDateTime &uploadDate) {
     ArchiveExtractor extractor;
     auto result = extractor.extractPakFiles(zipPath);
 
@@ -127,7 +127,7 @@ void AddModDialog::handleZipFile(const QString &zipPath, const QString &nexusMod
     }
 
     for (const QString &pakPath : selectedPaks) {
-        handlePakFile(pakPath, nexusModId, nexusFileId, author, description, version, itchGameId);
+        handlePakFile(pakPath, nexusModId, nexusFileId, author, description, version, itchGameId, QString(), uploadDate);
     }
 
     ArchiveExtractor::cleanupTempDir(result.tempDir);
@@ -138,7 +138,7 @@ void AddModDialog::handleZipFile(const QString &zipPath, const QString &nexusMod
 }
 
 void AddModDialog::handlePakFile(const QString &pakPath, const QString &nexusModId, const QString &nexusFileId,
-                                  const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QString &customModName) {
+                                  const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QString &customModName, const QDateTime &uploadDate) {
     QString modName;
     if (!customModName.isEmpty()) {
         modName = customModName;
@@ -147,7 +147,7 @@ void AddModDialog::handlePakFile(const QString &pakPath, const QString &nexusMod
         modName = fileInfo.baseName();
     }
 
-    if (!m_modManager->addMod(pakPath, modName, nexusModId, nexusFileId, author, description, version, itchGameId)) {
+    if (!m_modManager->addMod(pakPath, modName, nexusModId, nexusFileId, author, description, version, itchGameId, uploadDate)) {
         QMessageBox::warning(this, "Error", "Failed to add mod: " + modName);
     } else {
         emit modAdded(modName);
@@ -206,8 +206,10 @@ void AddModDialog::onFromItchClicked() {
     QString itchGameId = dialog.getGameId();
     QString author = dialog.getAuthor();
     QString gameTitle = dialog.getGameTitle();
+    QList<ItchUploadInfo> uploads = dialog.getPendingUploads();
 
-    for (const QString &filePath : filePaths) {
+    for (int i = 0; i < filePaths.size(); ++i) {
+        const QString &filePath = filePaths[i];
         QFileInfo fileInfo(filePath);
         QString fileName = fileInfo.fileName();
         QString modName;
@@ -221,10 +223,15 @@ void AddModDialog::onFromItchClicked() {
             }
         }
 
+        QDateTime uploadDate;
+        if (i < uploads.size()) {
+            uploadDate = uploads[i].updatedAt.isValid() ? uploads[i].updatedAt : uploads[i].createdAt;
+        }
+
         if (filePath.endsWith(".zip", Qt::CaseInsensitive)) {
-            handleZipFile(filePath, "", "", author, gameTitle, "", itchGameId);
+            handleZipFile(filePath, "", "", author, gameTitle, "", itchGameId, uploadDate);
         } else {
-            handlePakFile(filePath, "", "", author, gameTitle, "", itchGameId, modName);
+            handlePakFile(filePath, "", "", author, gameTitle, "", itchGameId, modName, uploadDate);
         }
 
         if (filePath.contains(QStringLiteral("itch_game_"))) {

@@ -11,6 +11,9 @@ QJsonObject ModInfo::toJson() const {
     json["priority"] = priority;
 
     // Optional fields
+    if (uploadDate.isValid()) {
+        json["uploadDate"] = uploadDate.toString(Qt::ISODate);
+    }
     if (!nexusModId.isEmpty()) {
         json["nexusModId"] = nexusModId;
     }
@@ -44,6 +47,9 @@ ModInfo ModInfo::fromJson(const QJsonObject &json) {
     mod.priority = json["priority"].toInt();
 
     // Optional fields
+    if (json.contains("uploadDate")) {
+        mod.uploadDate = QDateTime::fromString(json["uploadDate"].toString(), Qt::ISODate);
+    }
     if (json.contains("nexusModId")) {
         mod.nexusModId = json["nexusModId"].toString();
     }

@@ -25,6 +25,7 @@ public:
 
     QString getDownloadedFilePath() const { return m_downloadedPath; }
     QStringList getDownloadedFilePaths() const { return m_downloadedPaths; }
+    QList<ItchUploadInfo> getPendingUploads() const { return m_pendingUploads; }
     QString getGameId() const { return m_currentGameId; }
     QString getAuthor() const { return m_author; }
     QString getGameTitle() const { return m_gameTitle; }

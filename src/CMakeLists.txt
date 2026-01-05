@@ -84,6 +84,9 @@ qt_add_executable(TrenchKit
   utils/ModUpdateInfo.h
   utils/ModUpdateService.h
   utils/ModUpdateService.cpp
+  utils/ItchUpdateInfo.h
+  utils/ItchModUpdateService.h
+  utils/ItchModUpdateService.cpp
 
   # Nexus Widgets
   widgets/NexusFileSelectionDialog.h
@@ -96,6 +99,8 @@ qt_add_executable(TrenchKit
   widgets/ItchDownloadDialog.cpp
   widgets/ModUpdateDialog.h
   widgets/ModUpdateDialog.cpp
+  widgets/ItchModUpdateDialog.h
+  widgets/ItchModUpdateDialog.cpp
 
   resources.qrc
   app.rc

@@ -31,6 +31,7 @@ private:
     QLineEdit *m_versionEdit;
     QLineEdit *m_authorEdit;
     QDateTimeEdit *m_installDateEdit;
+    QDateTimeEdit *m_uploadDateEdit;
     QDialogButtonBox *m_buttonBox;
 
     int m_priority;

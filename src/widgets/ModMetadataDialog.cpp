@@ -61,6 +61,13 @@ void ModMetadataDialog::setupUi(const ModInfo &mod) {
     m_installDateEdit->setCalendarPopup(true);
     formLayout->addRow("Install Date:", m_installDateEdit);
 
+    m_uploadDateEdit = new QDateTimeEdit(mod.uploadDate.isValid() ? mod.uploadDate : QDateTime::currentDateTime(), this);
+    m_uploadDateEdit->setDisplayFormat("yyyy-MM-dd hh:mm:ss");
+    m_uploadDateEdit->setCalendarPopup(true);
+    m_uploadDateEdit->setSpecialValueText("Not Set");
+    m_uploadDateEdit->setMinimumDateTime(QDateTime());
+    formLayout->addRow("Upload Date:", m_uploadDateEdit);
+
     mainLayout->addLayout(formLayout);
 
     m_buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -82,6 +89,7 @@ ModInfo ModMetadataDialog::getModInfo() const {
     mod.version = m_versionEdit->text();
     mod.author = m_authorEdit->text();
     mod.installDate = m_installDateEdit->dateTime();
+    mod.uploadDate = m_uploadDateEdit->dateTime();
     mod.priority = m_priority;
     mod.enabled = m_enabled;
     mod.numberedFileName = m_numberedFileName;

@@ -4,11 +4,14 @@
 #include "GradientFrame.h"
 #include "AddModDialog.h"
 #include "ModUpdateDialog.h"
+#include "ItchModUpdateDialog.h"
 #include "FileSelectionDialog.h"
 #include "../utils/Theme.h"
 #include "../utils/ArchiveExtractor.h"
 #include "../utils/ModUpdateService.h"
 #include "../utils/ModUpdateInfo.h"
+#include "../utils/ItchModUpdateService.h"
+#include "../utils/ItchUpdateInfo.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
@@ -144,6 +147,14 @@ void ModListWidget::refreshModList() {
 
         m_modList->addItem(item);
         m_modList->setItemWidget(item, modRow);
+
+        if (m_updateService && m_updateService->hasUpdate(mod.id)) {
+            ModUpdateInfo updateInfo = m_updateService->getUpdateInfo(mod.id);
+            modRow->setUpdateAvailable(true, updateInfo.availableVersion);
+        } else if (m_itchUpdateService && m_itchUpdateService->hasUpdate(mod.id)) {
+            ItchUpdateInfo updateInfo = m_itchUpdateService->getUpdateInfo(mod.id);
+            modRow->setUpdateAvailable(true, updateInfo.availableVersion);
+        }
 
         modRow->setSelected(i == currentRow);
     }
@@ -438,14 +449,32 @@ void ModListWidget::setUpdateService(ModUpdateService *service) {
     }
 }
 
-void ModListWidget::onCheckUpdatesClicked() {
-    if (!m_updateService) {
-        return;
+void ModListWidget::setItchUpdateService(ItchModUpdateService *service) {
+    if (m_itchUpdateService) {
+        disconnect(m_itchUpdateService, nullptr, this, nullptr);
     }
 
+    m_itchUpdateService = service;
+
+    if (m_itchUpdateService) {
+        connect(m_itchUpdateService, &ItchModUpdateService::updateFound,
+                this, &ModListWidget::onItchUpdateFound);
+        connect(m_itchUpdateService, &ItchModUpdateService::checkComplete,
+                this, &ModListWidget::onItchUpdateCheckComplete);
+    }
+}
+
+void ModListWidget::onCheckUpdatesClicked() {
     m_checkUpdatesButton->setEnabled(false);
     m_checkUpdatesButton->setText("Checking...");
-    m_updateService->checkAllModsForUpdates();
+
+    if (m_updateService) {
+        m_updateService->checkAllModsForUpdates();
+    }
+
+    if (m_itchUpdateService) {
+        m_itchUpdateService->checkAllModsForUpdates();
+    }
 }
 
 void ModListWidget::onUpdateFound(const QString &modId, const ModUpdateInfo &updateInfo) {
@@ -464,17 +493,28 @@ void ModListWidget::onUpdateFound(const QString &modId, const ModUpdateInfo &upd
 void ModListWidget::onUpdateCheckComplete(int updatesFound) {
     m_checkUpdatesButton->setEnabled(true);
     m_checkUpdatesButton->setText("Check for Updates");
+}
 
-    if (updatesFound > 0) {
-        QString message = QString("%1 update%2 available")
-                             .arg(updatesFound)
-                             .arg(updatesFound == 1 ? "" : "s");
-        QMessageBox::information(this, "Updates Available", message);
+void ModListWidget::onItchUpdateFound(const QString &modId, const ItchUpdateInfo &updateInfo) {
+    for (int i = 0; i < m_modList->count(); ++i) {
+        QListWidgetItem *item = m_modList->item(i);
+        if (item && item->data(Qt::UserRole).toString() == modId) {
+            auto *rowWidget = qobject_cast<ModRowWidget*>(m_modList->itemWidget(item));
+            if (rowWidget) {
+                rowWidget->setUpdateAvailable(true, updateInfo.availableVersion);
+            }
+            break;
+        }
     }
 }
 
+void ModListWidget::onItchUpdateCheckComplete(int updatesFound) {
+    m_checkUpdatesButton->setEnabled(true);
+    m_checkUpdatesButton->setText("Check for Updates");
+}
+
 void ModListWidget::onUpdateRequested(const QString &modId) {
-    if (!m_modManager || !m_nexusClient || !m_updateService) {
+    if (!m_modManager) {
         return;
     }
 
@@ -483,14 +523,19 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
         return;
     }
 
-    if (!m_updateService->hasUpdate(modId)) {
-        return;
+    bool dialogExecuted = false;
+
+    if (!mod.nexusModId.isEmpty() && m_nexusClient && m_updateService && m_updateService->hasUpdate(modId)) {
+        ModUpdateInfo updateInfo = m_updateService->getUpdateInfo(modId);
+        ModUpdateDialog dialog(mod, updateInfo, m_modManager, m_nexusClient, this);
+        dialogExecuted = (dialog.exec() == QDialog::Accepted);
+    } else if (!mod.itchGameId.isEmpty() && m_itchClient && m_itchUpdateService && m_itchUpdateService->hasUpdate(modId)) {
+        ItchUpdateInfo updateInfo = m_itchUpdateService->getUpdateInfo(modId);
+        ItchModUpdateDialog dialog(mod, updateInfo, m_modManager, m_itchClient, this);
+        dialogExecuted = (dialog.exec() == QDialog::Accepted);
     }
 
-    ModUpdateInfo updateInfo = m_updateService->getUpdateInfo(modId);
-
-    ModUpdateDialog dialog(mod, updateInfo, m_modManager, m_nexusClient, this);
-    if (dialog.exec() == QDialog::Accepted) {
+    if (dialogExecuted) {
         for (int i = 0; i < m_modList->count(); ++i) {
             QListWidgetItem *item = m_modList->item(i);
             if (item && item->data(Qt::UserRole).toString() == modId) {

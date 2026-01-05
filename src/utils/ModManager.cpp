@@ -37,7 +37,8 @@ QString ModManager::getPaksPath() const {
 bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
                         const QString &nexusModId, const QString &nexusFileId,
                         const QString &author, const QString &description,
-                        const QString &version, const QString &itchGameId) {
+                        const QString &version, const QString &itchGameId,
+                        const QDateTime &uploadDate) {
     QFileInfo fileInfo(pakFilePath);
     if (!fileInfo.exists() || !fileInfo.isFile()) {
         emit errorOccurred("Mod file does not exist: " + pakFilePath);
@@ -56,6 +57,7 @@ bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
     }
 
     mod.installDate = QDateTime::currentDateTime();
+    mod.uploadDate = uploadDate;
     mod.enabled = false;
     mod.priority = m_mods.size();
     mod.nexusModId = nexusModId;
@@ -108,7 +110,8 @@ bool ModManager::removeMod(const QString &modId) {
 }
 
 bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
-                            const QString &newVersion, const QString &newFileId) {
+                            const QString &newVersion, const QString &newFileId,
+                            const QDateTime &uploadDate) {
     auto it = std::find_if(m_mods.begin(), m_mods.end(),
                            [&modId](const ModInfo &mod) { return mod.id == modId; });
 
@@ -154,6 +157,7 @@ bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
 
     it->version = newVersion;
     it->nexusFileId = newFileId;
+    it->uploadDate = uploadDate;
     it->installDate = QDateTime::currentDateTime();
 
     if (wasEnabled) {

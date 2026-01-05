@@ -10,6 +10,7 @@
 #include "utils/ItchClient.h"
 #include "utils/ItchAuth.h"
 #include "utils/ModUpdateService.h"
+#include "utils/ItchModUpdateService.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -87,6 +88,7 @@ private:
     ItchClient *m_itchClient = nullptr;
     ItchAuth *m_itchAuth = nullptr;
     ModUpdateService *m_modUpdateService = nullptr;
+    ItchModUpdateService *m_itchUpdateService = nullptr;
     UpdaterService::ReleaseInfo m_updateRelease;
     bool m_updateAvailable = false;
     bool m_updateInstallStarted = false;
