@@ -31,11 +31,11 @@
 - Save / export / import / share "profiles" of enabled / disabled mods
 - Create / restore game backups
 - Launch game with or without mods
-
-## Planned Features
 - Install mod from Nexusmods
 - Install mod from Itch.io
 - Check for mod updates
+
+## Planned Features
 - Create mod development environment
 - Bundle mod development tools ([UE Viewer](https://github.com/gildor2/UEViewer))
 

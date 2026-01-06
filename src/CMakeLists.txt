@@ -102,6 +102,22 @@ qt_add_executable(TrenchKit
   widgets/ItchModUpdateDialog.h
   widgets/ItchModUpdateDialog.cpp
 
+  # Modals
+  modals/ModalManager.h
+  modals/ModalManager.cpp
+  modals/ModalOverlay.h
+  modals/ModalOverlay.cpp
+  modals/ModalContainer.h
+  modals/ModalContainer.cpp
+  modals/BaseModalContent.h
+  modals/BaseModalContent.cpp
+  modals/MessageModal.h
+  modals/MessageModal.cpp
+  modals/InputModal.h
+  modals/InputModal.cpp
+  modals/ProgressModal.h
+  modals/ProgressModal.cpp
+
   resources.qrc
   app.rc
 )

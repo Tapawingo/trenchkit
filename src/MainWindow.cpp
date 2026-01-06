@@ -59,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_itchAuth(new ItchAuth(this))
     , m_modUpdateService(new ModUpdateService(m_modManager, m_nexusClient, this))
     , m_itchUpdateService(new ItchModUpdateService(m_modManager, m_itchClient, this))
+    , m_modalManager(new ModalManager(this))
 {
     ui->setupUi(this);
 
