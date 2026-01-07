@@ -6,6 +6,8 @@
 #include "../utils/UpdaterService.h"
 #include "../utils/NexusModsClient.h"
 #include "../utils/NexusModsAuth.h"
+#include "../utils/ItchClient.h"
+#include "../utils/ItchAuth.h"
 #include "../utils/Theme.h"
 #include "PanelFrame.h"
 #include "GradientFrame.h"
@@ -219,6 +221,37 @@ void SettingsWidget::buildUi() {
     nexusButtonRow->addWidget(m_nexusClearButton);
     nexusButtonRow->addStretch();
     containerLayout->addLayout(nexusButtonRow, 11, 1);
+
+    auto *itchHeader = new QLabel("Itch.io Integration", m_panel);
+    itchHeader->setObjectName("settingsSectionHeader");
+    itchHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(itchHeader, 12, 0, 1, 2);
+
+    auto *itchLabel = new QLabel("Connection status", m_panel);
+    itchLabel->setObjectName("settingsLabel");
+    itchLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(itchLabel, 13, 0);
+
+    m_itchStatusLabel = new QLabel("Not connected", m_panel);
+    m_itchStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_itchStatusLabel, 13, 1);
+
+    auto *itchActionsLabel = new QLabel("Authentication", m_panel);
+    itchActionsLabel->setObjectName("settingsLabel");
+    itchActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(itchActionsLabel, 14, 0);
+
+    auto *itchButtonRow = new QHBoxLayout();
+    m_itchAuthButton = new QPushButton("Add API Key", m_panel);
+    m_itchAuthButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_itchAuthButton->setCursor(Qt::PointingHandCursor);
+    m_itchClearButton = new QPushButton("Clear API Key", m_panel);
+    m_itchClearButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_itchClearButton->setCursor(Qt::PointingHandCursor);
+    itchButtonRow->addWidget(m_itchAuthButton);
+    itchButtonRow->addWidget(m_itchClearButton);
+    itchButtonRow->addStretch();
+    containerLayout->addLayout(itchButtonRow, 14, 1);
 
     scrollArea->setWidget(m_container);
     panelLayout->addWidget(scrollArea);
@@ -496,6 +529,83 @@ void SettingsWidget::setNexusServices(NexusModsClient *client, NexusModsAuth *au
                     updateStatus();
                 }
             });
+            m_modalManager->showModal(modal);
+        });
+    }
+}
+
+void SettingsWidget::setItchServices(ItchClient *client, ItchAuth *auth) {
+    m_itchClient = client;
+    m_itchAuth = auth;
+
+    auto updateStatus = [this]() {
+        if (m_itchClient && m_itchClient->hasApiKey()) {
+            m_itchStatusLabel->setText(QStringLiteral("Connected"));
+            m_itchAuthButton->setVisible(false);
+            m_itchClearButton->setVisible(true);
+        } else {
+            m_itchStatusLabel->setText(QStringLiteral("Not connected"));
+            m_itchAuthButton->setVisible(true);
+            m_itchClearButton->setVisible(false);
+        }
+    };
+
+    updateStatus();
+
+    if (m_itchAuthButton) {
+        connect(m_itchAuthButton, &QPushButton::clicked, this, [this, updateStatus]() {
+            if (!m_modalManager) {
+                return;
+            }
+
+            auto *inputModal = new InputModal(
+                QStringLiteral("Enter API Key"),
+                QStringLiteral("Enter your itch.io API key:\n\n"
+                             "1. Visit https://itch.io/user/settings/api-keys\n"
+                             "2. Click \"Generate new API key\"\n"
+                             "3. Copy the key and paste it below"),
+                QString()
+            );
+
+            connect(inputModal, &InputModal::accepted, this, [this, inputModal, updateStatus]() {
+                QString apiKey = inputModal->textValue().trimmed();
+                if (!apiKey.isEmpty()) {
+                    if (m_itchClient) {
+                        m_itchClient->setApiKey(apiKey);
+                        updateStatus();
+                        if (m_modalManager) {
+                            MessageModal::information(m_modalManager,
+                                                   QStringLiteral("Success"),
+                                                   QStringLiteral("API key saved successfully!"));
+                        }
+                    }
+                }
+            });
+
+            m_modalManager->showModal(inputModal);
+        });
+    }
+
+    if (m_itchClearButton) {
+        connect(m_itchClearButton, &QPushButton::clicked, this, [this, updateStatus]() {
+            if (!m_modalManager) {
+                return;
+            }
+
+            auto *modal = new MessageModal(
+                QStringLiteral("Clear API Key"),
+                QStringLiteral("Are you sure you want to clear your itch.io API key?"),
+                MessageModal::Question,
+                MessageModal::Yes | MessageModal::No
+            );
+
+            connect(modal, &MessageModal::finished, this, [this, modal, updateStatus]() {
+                if (modal->clickedButton() == MessageModal::Yes && m_itchClient) {
+                    m_itchClient->clearApiKey();
+                    updateStatus();
+                }
+            });
+
             m_modalManager->showModal(modal);
         });
     }

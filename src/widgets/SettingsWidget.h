@@ -7,6 +7,8 @@
 class UpdaterService;
 class NexusModsClient;
 class NexusModsAuth;
+class ItchClient;
+class ItchAuth;
 class ModalManager;
 class PanelFrame;
 class GradientFrame;
@@ -29,6 +31,7 @@ public:
     void setCurrentVersion(const QString &version);
     void setCheckStatus(const QString &status);
     void setNexusServices(NexusModsClient *client, NexusModsAuth *auth);
+    void setItchServices(ItchClient *client, ItchAuth *auth);
     void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
 
 signals:
@@ -45,6 +48,8 @@ private:
     QPointer<UpdaterService> m_updater;
     QPointer<NexusModsClient> m_nexusClient;
     QPointer<NexusModsAuth> m_nexusAuth;
+    QPointer<ItchClient> m_itchClient;
+    QPointer<ItchAuth> m_itchAuth;
     ModalManager *m_modalManager = nullptr;
     PanelFrame *m_panel = nullptr;
     GradientFrame *m_container = nullptr;
@@ -62,6 +67,9 @@ private:
     QLabel *m_nexusStatusLabel = nullptr;
     QPushButton *m_nexusAuthButton = nullptr;
     QPushButton *m_nexusClearButton = nullptr;
+    QLabel *m_itchStatusLabel = nullptr;
+    QPushButton *m_itchAuthButton = nullptr;
+    QPushButton *m_itchClearButton = nullptr;
 };
 
 #endif // SETTINGSWIDGET_H

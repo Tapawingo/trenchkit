@@ -303,6 +303,7 @@ void MainWindow::setupSettingsOverlay() {
     }
     m_settingsWidget = new SettingsWidget(m_settingsPage, m_updater);
     m_settingsWidget->setNexusServices(m_nexusClient, m_nexusAuth);
+    m_settingsWidget->setItchServices(m_itchClient, m_itchAuth);
     m_settingsWidget->setModalManager(m_modalManager);
     overlayLayout->addWidget(m_settingsWidget);
 
