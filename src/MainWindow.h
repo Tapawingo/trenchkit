@@ -11,6 +11,7 @@
 #include "utils/ItchAuth.h"
 #include "utils/ModUpdateService.h"
 #include "utils/ItchModUpdateService.h"
+#include "modals/ModalManager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -33,6 +34,8 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+    ModalManager* modalManager() { return m_modalManager; }
 
 protected:
     void showEvent(QShowEvent *event) override;
@@ -97,6 +100,7 @@ private:
     qint64 m_pendingUpdateSize = -1;
     QWidget *m_settingsPage = nullptr;
     SettingsWidget *m_settingsWidget = nullptr;
+    ModalManager *m_modalManager = nullptr;
 
     QPixmap m_backgroundTexture;
     QPixmap m_cachedScaledTexture;

@@ -1,28 +1,30 @@
-#ifndef ADDMODDIALOG_H
-#define ADDMODDIALOG_H
+#ifndef ADDMODMODALCONTENT_H
+#define ADDMODMODALCONTENT_H
 
-#include <QDialog>
+#include "../BaseModalContent.h"
+#include "../../utils/ItchUploadInfo.h"
 #include <QString>
 #include <QDateTime>
 
-class QPushButton;
-class QDialogButtonBox;
 class ModManager;
 class NexusModsClient;
 class NexusModsAuth;
 class ItchClient;
 class ItchAuth;
+class ModalManager;
+class QPushButton;
 
-class AddModDialog : public QDialog {
+class AddModModalContent : public BaseModalContent {
     Q_OBJECT
 
 public:
-    explicit AddModDialog(ModManager *modManager,
-                         NexusModsClient *nexusClient,
-                         NexusModsAuth *nexusAuth,
-                         ItchClient *itchClient,
-                         ItchAuth *itchAuth,
-                         QWidget *parent = nullptr);
+    explicit AddModModalContent(ModManager *modManager,
+                               NexusModsClient *nexusClient,
+                               NexusModsAuth *nexusAuth,
+                               ItchClient *itchClient,
+                               ItchAuth *itchAuth,
+                               ModalManager *modalManager,
+                               QWidget *parent = nullptr);
 
 signals:
     void modAdded(const QString &modName);
@@ -46,10 +48,10 @@ private:
     NexusModsAuth *m_nexusAuth;
     ItchClient *m_itchClient;
     ItchAuth *m_itchAuth;
+    ModalManager *m_modalManager;
     QPushButton *m_fromFileButton;
     QPushButton *m_fromNexusButton;
     QPushButton *m_fromItchButton;
-    QDialogButtonBox *m_buttonBox;
 };
 
-#endif // ADDMODDIALOG_H
+#endif // ADDMODMODALCONTENT_H

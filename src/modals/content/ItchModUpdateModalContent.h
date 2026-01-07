@@ -1,27 +1,28 @@
-#pragma once
+#ifndef ITCHMODUPDATEMODALCONTENT_H
+#define ITCHMODUPDATEMODALCONTENT_H
 
-#include <QDialog>
+#include "../BaseModalContent.h"
+#include "../../utils/ModInfo.h"
+#include "../../utils/ItchUpdateInfo.h"
 #include <QString>
-#include "../utils/ModInfo.h"
-#include "../utils/ItchUpdateInfo.h"
 
 class ModManager;
 class ItchClient;
+class ModalManager;
 class QLabel;
 class QProgressBar;
 class QPushButton;
-class QDialogButtonBox;
 
-class ItchModUpdateDialog : public QDialog {
+class ItchModUpdateModalContent : public BaseModalContent {
     Q_OBJECT
 
 public:
-    explicit ItchModUpdateDialog(const ModInfo &mod,
-                                const ItchUpdateInfo &updateInfo,
-                                ModManager *modManager,
-                                ItchClient *itchClient,
-                                QWidget *parent = nullptr);
-    ~ItchModUpdateDialog() override = default;
+    explicit ItchModUpdateModalContent(const ModInfo &mod,
+                                      const ItchUpdateInfo &updateInfo,
+                                      ModManager *modManager,
+                                      ItchClient *itchClient,
+                                      ModalManager *modalManager,
+                                      QWidget *parent = nullptr);
 
 private slots:
     void onDownloadLinkReceived(const QString &url);
@@ -39,12 +40,15 @@ private:
     ItchUpdateInfo m_updateInfo;
     ModManager *m_modManager;
     ItchClient *m_itchClient;
+    ModalManager *m_modalManager;
 
     QLabel *m_titleLabel;
     QLabel *m_versionLabel;
     QProgressBar *m_progressBar;
     QLabel *m_statusLabel;
-    QDialogButtonBox *m_buttonBox;
+    QPushButton *m_cancelButton;
 
     QString m_downloadedPath;
 };
+
+#endif // ITCHMODUPDATEMODALCONTENT_H

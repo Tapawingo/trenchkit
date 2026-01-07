@@ -33,16 +33,10 @@ qt_add_executable(TrenchKit
   widgets/ActivityLogWidget.cpp
   widgets/LaunchWidget.h
   widgets/LaunchWidget.cpp
-  widgets/ModMetadataDialog.h
-  widgets/ModMetadataDialog.cpp
   widgets/ProfileManagerWidget.h
   widgets/ProfileManagerWidget.cpp
   widgets/SettingsWidget.h
   widgets/SettingsWidget.cpp
-  widgets/FileSelectionDialog.h
-  widgets/FileSelectionDialog.cpp
-  widgets/AddModDialog.h
-  widgets/AddModDialog.cpp
 
   # Utilities
   utils/FoxholeDetector.h
@@ -88,19 +82,37 @@ qt_add_executable(TrenchKit
   utils/ItchModUpdateService.h
   utils/ItchModUpdateService.cpp
 
-  # Nexus Widgets
-  widgets/NexusFileSelectionDialog.h
-  widgets/NexusFileSelectionDialog.cpp
-  widgets/NexusDownloadDialog.h
-  widgets/NexusDownloadDialog.cpp
-  widgets/ItchFileSelectionDialog.h
-  widgets/ItchFileSelectionDialog.cpp
-  widgets/ItchDownloadDialog.h
-  widgets/ItchDownloadDialog.cpp
-  widgets/ModUpdateDialog.h
-  widgets/ModUpdateDialog.cpp
-  widgets/ItchModUpdateDialog.h
-  widgets/ItchModUpdateDialog.cpp
+  # Modals
+  modals/ModalManager.h
+  modals/ModalManager.cpp
+  modals/ModalOverlay.h
+  modals/ModalOverlay.cpp
+  modals/ModalContainer.h
+  modals/ModalContainer.cpp
+  modals/BaseModalContent.h
+  modals/BaseModalContent.cpp
+  modals/MessageModal.h
+  modals/MessageModal.cpp
+  modals/InputModal.h
+  modals/InputModal.cpp
+  modals/ProgressModal.h
+  modals/ProgressModal.cpp
+  modals/content/FileSelectionModalContent.h
+  modals/content/FileSelectionModalContent.cpp
+  modals/content/BackupSelectionModalContent.h
+  modals/content/BackupSelectionModalContent.cpp
+  modals/content/ModMetadataModalContent.h
+  modals/content/ModMetadataModalContent.cpp
+  modals/content/ModUpdateModalContent.h
+  modals/content/ModUpdateModalContent.cpp
+  modals/content/ItchModUpdateModalContent.h
+  modals/content/ItchModUpdateModalContent.cpp
+  modals/content/NexusDownloadModalContent.h
+  modals/content/NexusDownloadModalContent.cpp
+  modals/content/ItchDownloadModalContent.h
+  modals/content/ItchDownloadModalContent.cpp
+  modals/content/AddModModalContent.h
+  modals/content/AddModModalContent.cpp
 
   resources.qrc
   app.rc

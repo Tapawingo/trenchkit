@@ -11,6 +11,7 @@ ModRowWidget::ModRowWidget(const ModInfo &mod, QWidget *parent)
     , m_modId(mod.id)
 {
     setAttribute(Qt::WA_StyledBackground, true);
+    setCursor(Qt::PointingHandCursor);
     setupUi(mod);
 }
 
@@ -54,6 +55,7 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     m_updateButton->setVisible(false);
     m_updateButton->setIcon(QIcon(":/icon_update.png"));
     m_updateButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    m_updateButton->setCursor(Qt::PointingHandCursor);
 
     mainLayout->addWidget(m_updateButton);
 

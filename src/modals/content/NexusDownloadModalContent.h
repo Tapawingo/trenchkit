@@ -1,41 +1,37 @@
-#pragma once
+#ifndef NEXUSDOWNLOADMODALCONTENT_H
+#define NEXUSDOWNLOADMODALCONTENT_H
 
-#include <QDialog>
+#include "../BaseModalContent.h"
+#include "../../utils/NexusFileInfo.h"
 #include <QString>
-#include <QPointer>
-#include "../utils/NexusFileInfo.h"
+#include <QList>
 
 class NexusModsClient;
 class NexusModsAuth;
+class ModalManager;
 class QLineEdit;
 class QPushButton;
 class QProgressBar;
 class QLabel;
 class QStackedWidget;
-class QVBoxLayout;
 
-class NexusDownloadDialog : public QDialog {
+class NexusDownloadModalContent : public BaseModalContent {
     Q_OBJECT
 
 public:
-    explicit NexusDownloadDialog(NexusModsClient *client,
-                                 NexusModsAuth *auth,
-                                 QWidget *parent = nullptr);
-    ~NexusDownloadDialog() override = default;
+    explicit NexusDownloadModalContent(NexusModsClient *client,
+                                      NexusModsAuth *auth,
+                                      ModalManager *modalManager,
+                                      QWidget *parent = nullptr);
 
-    QString getDownloadedFilePath() const { return m_downloadedPath; }
+    QStringList getDownloadedFilePaths() const { return m_downloadedFilePaths; }
+    QList<NexusFileInfo> getDownloadedFiles() const { return m_downloadedFiles; }
     QString getModId() const { return m_currentModId; }
-    QString getFileId() const { return m_currentFileId; }
     QString getAuthor() const { return m_author; }
     QString getDescription() const { return m_description; }
-    QString getVersion() const { return m_version; }
-
-signals:
-    void downloadComplete(QString filePath);
 
 private slots:
     void onDownloadClicked();
-    void onCancelClicked();
     void onAuthenticateClicked();
     void onAuthStarted(const QString &browserUrl);
     void onAuthComplete(const QString &apiKey);
@@ -56,27 +52,37 @@ private:
     void showAuthPage();
     void showDownloadPage();
     void startDownloadProcess();
+    void startNextDownload();
     QString generateTempPath(const QString &fileName) const;
+    void updateFooterButtons();
+    QString formatFileSize(qint64 bytes) const;
 
     NexusModsClient *m_client;
     NexusModsAuth *m_auth;
+    ModalManager *m_modalManager;
 
     QStackedWidget *m_stack;
     QLineEdit *m_urlEdit;
     QPushButton *m_downloadButton;
-    QPushButton *m_cancelButton;
     QPushButton *m_authenticateButton;
+    QPushButton *m_cancelButton;
     QProgressBar *m_progressBar;
     QLabel *m_statusLabel;
     QLabel *m_authStatusLabel;
 
-    QString m_downloadedPath;
+    QStringList m_selectedFileIds;
+    QList<NexusFileInfo> m_selectedFiles;
+    QStringList m_downloadedFilePaths;
+    QList<NexusFileInfo> m_downloadedFiles;
+    int m_currentDownloadIndex;
+
     QString m_currentModId;
     QString m_currentFileId;
     QString m_pendingUrl;
     QString m_author;
     QString m_description;
-    QString m_version;
 
     enum Page { InputPage, AuthPage, DownloadPage };
 };
+
+#endif // NEXUSDOWNLOADMODALCONTENT_H

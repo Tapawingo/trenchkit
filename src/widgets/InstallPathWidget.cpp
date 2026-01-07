@@ -48,6 +48,7 @@ void InstallPathWidget::setupUi() {
     m_browseButton->setIcon(browseIcon);
     m_browseButton->setFixedSize(32, 32);
     m_browseButton->setIconSize(QSize(16, 16));
+    m_browseButton->setCursor(Qt::PointingHandCursor);
 
     // Status label
     m_statusLabel->setText("");

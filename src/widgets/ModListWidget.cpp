@@ -1,11 +1,13 @@
 #include "ModListWidget.h"
 #include "ModRowWidget.h"
-#include "ModMetadataDialog.h"
 #include "GradientFrame.h"
-#include "AddModDialog.h"
-#include "ModUpdateDialog.h"
-#include "ItchModUpdateDialog.h"
-#include "FileSelectionDialog.h"
+#include "../modals/ModalManager.h"
+#include "../modals/MessageModal.h"
+#include "../modals/InputModal.h"
+#include "../modals/content/AddModModalContent.h"
+#include "../modals/content/ModMetadataModalContent.h"
+#include "../modals/content/ModUpdateModalContent.h"
+#include "../modals/content/ItchModUpdateModalContent.h"
 #include "../utils/Theme.h"
 #include "../utils/ArchiveExtractor.h"
 #include "../utils/ModUpdateService.h"
@@ -13,7 +15,6 @@
 #include "../utils/ItchModUpdateService.h"
 #include "../utils/ItchUpdateInfo.h"
 #include <QFileDialog>
-#include <QMessageBox>
 #include <QInputDialog>
 #include <QHBoxLayout>
 #include <QListWidgetItem>
@@ -48,8 +49,10 @@ void ModListWidget::setModManager(ModManager *modManager) {
         connect(m_modManager, &ModManager::modsChanged,
                 this, &ModListWidget::onModsChanged);
         connect(m_modManager, &ModManager::errorOccurred,
-                this, [](const QString &error) {
-            QMessageBox::warning(nullptr, "Error", error);
+                this, [this](const QString &error) {
+            if (m_modalManager) {
+                MessageModal::warning(m_modalManager, "Error", error);
+            }
         });
 
         refreshModList();
@@ -72,6 +75,7 @@ void ModListWidget::setupUi() {
 
     m_checkUpdatesButton = new QPushButton("Check for Updates", this);
     m_checkUpdatesButton->setObjectName("checkUpdatesButton");
+    m_checkUpdatesButton->setCursor(Qt::PointingHandCursor);
 
     titleLayout->addWidget(titleLabel);
     titleLayout->addWidget(m_modCountLabel);
@@ -183,17 +187,17 @@ void ModListWidget::onModEnabledChanged(const QString &modId, bool enabled) {
 }
 
 void ModListWidget::onAddModClicked() {
-    if (!m_modManager) {
+    if (!m_modManager || !m_modalManager) {
         return;
     }
 
-    AddModDialog dialog(m_modManager, m_nexusClient, m_nexusAuth, m_itchClient, m_itchAuth, this);
-    connect(&dialog, &AddModDialog::modAdded, this, &ModListWidget::modAdded);
-    dialog.exec();
+    auto *modal = new AddModModalContent(m_modManager, m_nexusClient, m_nexusAuth, m_itchClient, m_itchAuth, m_modalManager);
+    connect(modal, &AddModModalContent::modAdded, this, &ModListWidget::modAdded);
+    m_modalManager->showModal(modal);
 }
 
 void ModListWidget::onRemoveModClicked() {
-    if (!m_modManager) {
+    if (!m_modManager || !m_modalManager) {
         return;
     }
 
@@ -203,21 +207,23 @@ void ModListWidget::onRemoveModClicked() {
     }
 
     ModInfo mod = m_modManager->getMod(modId);
-    auto reply = QMessageBox::question(
-        this,
+    auto *modal = new MessageModal(
         "Remove Mod",
         QString("Are you sure you want to remove '%1'?").arg(mod.name),
-        QMessageBox::Yes | QMessageBox::No
+        MessageModal::Question,
+        MessageModal::Yes | MessageModal::No
     );
-
-    if (reply == QMessageBox::Yes) {
-        QString modName = mod.name;
-        if (!m_modManager->removeMod(modId)) {
-            QMessageBox::warning(this, "Error", "Failed to remove mod");
-        } else {
-            emit modRemoved(modName);
+    connect(modal, &MessageModal::finished, this, [this, modal, modId, mod]() {
+        if (modal->clickedButton() == MessageModal::Yes) {
+            QString modName = mod.name;
+            if (!m_modManager->removeMod(modId)) {
+                MessageModal::warning(m_modalManager, "Error", "Failed to remove mod");
+            } else {
+                emit modRemoved(modName);
+            }
         }
-    }
+    });
+    m_modalManager->showModal(modal);
 }
 
 void ModListWidget::onMoveUpClicked() {
@@ -368,20 +374,16 @@ void ModListWidget::onRenameRequested(const QString &modId) {
         return;
     }
 
-    bool ok;
-    QString newName = QInputDialog::getText(
-        this,
-        "Rename Mod",
-        "Enter new name:",
-        QLineEdit::Normal,
-        mod.name,
-        &ok
-    );
-
-    if (ok && !newName.isEmpty() && newName != mod.name) {
-        mod.name = newName;
-        m_modManager->updateModMetadata(mod);
-    }
+    auto *modal = new InputModal("Rename Mod", "Enter new name:", mod.name);
+    connect(modal, &InputModal::accepted, this, [this, modal, modId, mod]() {
+        QString newName = modal->textValue();
+        if (!newName.isEmpty() && newName != mod.name) {
+            ModInfo updatedMod = mod;
+            updatedMod.name = newName;
+            m_modManager->updateModMetadata(updatedMod);
+        }
+    });
+    m_modalManager->showModal(modal);
 }
 
 void ModListWidget::onEditMetaRequested(const QString &modId) {
@@ -394,34 +396,37 @@ void ModListWidget::onEditMetaRequested(const QString &modId) {
         return;
     }
 
-    ModMetadataDialog dialog(mod, this);
-    if (dialog.exec() == QDialog::Accepted) {
-        ModInfo updatedMod = dialog.getModInfo();
+    auto *modal = new ModMetadataModalContent(mod);
+    connect(modal, &ModMetadataModalContent::accepted, this, [this, modal]() {
+        ModInfo updatedMod = modal->getModInfo();
         m_modManager->updateModMetadata(updatedMod);
-    }
+    });
+    m_modalManager->showModal(modal);
 }
 
 void ModListWidget::onRemoveRequested(const QString &modId) {
-    if (!m_modManager) {
+    if (!m_modManager || !m_modalManager) {
         return;
     }
 
     ModInfo mod = m_modManager->getMod(modId);
-    auto reply = QMessageBox::question(
-        this,
+    auto *modal = new MessageModal(
         "Remove Mod",
         QString("Are you sure you want to remove '%1'?").arg(mod.name),
-        QMessageBox::Yes | QMessageBox::No
+        MessageModal::Question,
+        MessageModal::Yes | MessageModal::No
     );
-
-    if (reply == QMessageBox::Yes) {
-        QString modName = mod.name;
-        if (!m_modManager->removeMod(modId)) {
-            QMessageBox::warning(this, "Error", "Failed to remove mod");
-        } else {
-            emit modRemoved(modName);
+    connect(modal, &MessageModal::finished, this, [this, modal, modId, mod]() {
+        if (modal->clickedButton() == MessageModal::Yes) {
+            QString modName = mod.name;
+            if (!m_modManager->removeMod(modId)) {
+                MessageModal::warning(m_modalManager, "Error", "Failed to remove mod");
+            } else {
+                emit modRemoved(modName);
+            }
         }
-    }
+    });
+    m_modalManager->showModal(modal);
 }
 
 void ModListWidget::setNexusServices(NexusModsClient *client, NexusModsAuth *auth) {
@@ -523,19 +528,7 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
         return;
     }
 
-    bool dialogExecuted = false;
-
-    if (!mod.nexusModId.isEmpty() && m_nexusClient && m_updateService && m_updateService->hasUpdate(modId)) {
-        ModUpdateInfo updateInfo = m_updateService->getUpdateInfo(modId);
-        ModUpdateDialog dialog(mod, updateInfo, m_modManager, m_nexusClient, this);
-        dialogExecuted = (dialog.exec() == QDialog::Accepted);
-    } else if (!mod.itchGameId.isEmpty() && m_itchClient && m_itchUpdateService && m_itchUpdateService->hasUpdate(modId)) {
-        ItchUpdateInfo updateInfo = m_itchUpdateService->getUpdateInfo(modId);
-        ItchModUpdateDialog dialog(mod, updateInfo, m_modManager, m_itchClient, this);
-        dialogExecuted = (dialog.exec() == QDialog::Accepted);
-    }
-
-    if (dialogExecuted) {
+    auto hideUpdateButton = [this, modId]() {
         for (int i = 0; i < m_modList->count(); ++i) {
             QListWidgetItem *item = m_modList->item(i);
             if (item && item->data(Qt::UserRole).toString() == modId) {
@@ -546,5 +539,17 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
                 break;
             }
         }
+    };
+
+    if (!mod.nexusModId.isEmpty() && m_nexusClient && m_updateService && m_updateService->hasUpdate(modId)) {
+        ModUpdateInfo updateInfo = m_updateService->getUpdateInfo(modId);
+        auto *modal = new ModUpdateModalContent(mod, updateInfo, m_modManager, m_nexusClient, m_modalManager);
+        connect(modal, &ModUpdateModalContent::accepted, this, hideUpdateButton);
+        m_modalManager->showModal(modal);
+    } else if (!mod.itchGameId.isEmpty() && m_itchClient && m_itchUpdateService && m_itchUpdateService->hasUpdate(modId)) {
+        ItchUpdateInfo updateInfo = m_itchUpdateService->getUpdateInfo(modId);
+        auto *modal = new ItchModUpdateModalContent(mod, updateInfo, m_modManager, m_itchClient, m_modalManager);
+        connect(modal, &ItchModUpdateModalContent::accepted, this, hideUpdateButton);
+        m_modalManager->showModal(modal);
     }
 }

@@ -1,20 +1,19 @@
 #include "BackupWidget.h"
 #include "GradientFrame.h"
+#include "../modals/ModalManager.h"
+#include "../modals/MessageModal.h"
+#include "../modals/content/BackupSelectionModalContent.h"
 #include "../utils/ModManager.h"
 #include "../utils/Theme.h"
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QLabel>
-#include <QMessageBox>
 #include <QDir>
 #include <QFile>
 #include <QDateTime>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
-#include <QListWidget>
-#include <QDialog>
-#include <QDialogButtonBox>
 
 BackupWidget::BackupWidget(QWidget *parent)
     : QWidget(parent)
@@ -48,6 +47,8 @@ void BackupWidget::setupUi() {
     titleLabel->setObjectName("backupTitle");
     frameLayout->addWidget(titleLabel);
 
+    m_createBackupButton->setCursor(Qt::PointingHandCursor);
+    m_restoreBackupButton->setCursor(Qt::PointingHandCursor);
     frameLayout->addWidget(m_createBackupButton);
     frameLayout->addWidget(m_restoreBackupButton);
 
@@ -62,6 +63,10 @@ void BackupWidget::setupConnections() {
 void BackupWidget::onCreateBackupClicked() {
     if (!m_modManager) {
         emit errorOccurred("Mod manager not initialized");
+        return;
+    }
+
+    if (!m_modalManager) {
         return;
     }
 
@@ -97,12 +102,16 @@ void BackupWidget::onCreateBackupClicked() {
     }
 
     emit backupCreated(modCount);
-    QMessageBox::information(this, "Success", "Backup created successfully at:\n" + backupDir);
+    MessageModal::information(m_modalManager, "Success", "Backup created successfully at:\n" + backupDir);
 }
 
 void BackupWidget::onRestoreBackupClicked() {
     if (!m_modManager) {
         emit errorOccurred("Mod manager not initialized");
+        return;
+    }
+
+    if (!m_modalManager) {
         return;
     }
 
@@ -121,16 +130,7 @@ void BackupWidget::onRestoreBackupClicked() {
         return;
     }
 
-    QDialog dialog(this);
-    dialog.setWindowTitle("Restore Backup");
-    dialog.setMinimumWidth(400);
-
-    auto *layout = new QVBoxLayout(&dialog);
-
-    auto *label = new QLabel("Select a backup to restore:", &dialog);
-    layout->addWidget(label);
-
-    auto *listWidget = new QListWidget(&dialog);
+    QStringList displayNames;
     for (const QString &backup : backups) {
         QString infoPath = backupsPath + "/" + backup + "/backup_info.json";
         QString displayText = backup;
@@ -146,48 +146,46 @@ void BackupWidget::onRestoreBackupClicked() {
             infoFile.close();
         }
 
-        listWidget->addItem(displayText);
-    }
-    layout->addWidget(listWidget);
-
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-    layout->addWidget(buttonBox);
-
-    if (dialog.exec() != QDialog::Accepted || !listWidget->currentItem()) {
-        return;
+        displayNames.append(displayText);
     }
 
-    int selectedIndex = listWidget->currentRow();
-    QString selectedBackup = backups[selectedIndex];
+    auto *selectionModal = new BackupSelectionModalContent(backups, displayNames);
+    connect(selectionModal, &BackupSelectionModalContent::accepted, this, [this, selectionModal, backupsPath]() {
+        QString selectedBackup = selectionModal->getSelectedBackup();
+        if (selectedBackup.isEmpty()) {
+            return;
+        }
 
-    auto reply = QMessageBox::question(
-        this,
-        "Confirm Restore",
-        "This will replace your current mod configuration. Continue?",
-        QMessageBox::Yes | QMessageBox::No
-    );
+        auto *confirmModal = new MessageModal(
+            "Confirm Restore",
+            "This will replace your current mod configuration. Continue?",
+            MessageModal::Question,
+            MessageModal::Yes | MessageModal::No
+        );
+        connect(confirmModal, &MessageModal::finished, this, [this, confirmModal, backupsPath, selectedBackup]() {
+            if (confirmModal->clickedButton() != MessageModal::Yes) {
+                return;
+            }
 
-    if (reply != QMessageBox::Yes) {
-        return;
-    }
+            QString backupPath = backupsPath + "/" + selectedBackup + "/mods.json";
+            QString modsStoragePath = m_modManager->getModsStoragePath();
+            QString destPath = modsStoragePath + "/mods.json";
 
-    QString backupPath = backupsPath + "/" + selectedBackup + "/mods.json";
-    QString modsStoragePath = m_modManager->getModsStoragePath();
-    QString destPath = modsStoragePath + "/mods.json";
+            QFile::remove(destPath);
 
-    QFile::remove(destPath);
+            if (!QFile::copy(backupPath, destPath)) {
+                emit errorOccurred("Failed to restore backup");
+                return;
+            }
 
-    if (!QFile::copy(backupPath, destPath)) {
-        emit errorOccurred("Failed to restore backup");
-        return;
-    }
+            m_modManager->loadMods();
 
-    m_modManager->loadMods();
-
-    emit backupRestored(selectedBackup);
-    QMessageBox::information(this, "Success", "Backup restored successfully");
+            emit backupRestored(selectedBackup);
+            MessageModal::information(m_modalManager, "Success", "Backup restored successfully");
+        });
+        m_modalManager->showModal(confirmModal);
+    });
+    m_modalManager->showModal(selectionModal);
 }
 
 QString BackupWidget::getBackupsPath() const {

@@ -47,6 +47,7 @@ void TitleBar::setupUi() {
     m_updateButton->setObjectName("updateButton");
     m_updateButton->setFocusPolicy(Qt::NoFocus);
     m_updateButton->setVisible(false);
+    m_updateButton->setCursor(Qt::PointingHandCursor);
 
     QIcon settingsIcon(":/icon_settings.png");
     m_settingsButton->setText("");
@@ -54,16 +55,19 @@ void TitleBar::setupUi() {
     m_settingsButton->setFixedSize(48, 48);
     m_settingsButton->setObjectName("settingsButton");
     m_settingsButton->setFocusPolicy(Qt::NoFocus);
+    m_settingsButton->setCursor(Qt::PointingHandCursor);
 
     m_minimizeButton->setText("−");
     m_minimizeButton->setFixedSize(48, 48);
     m_minimizeButton->setObjectName("minimizeButton");
     m_minimizeButton->setFocusPolicy(Qt::NoFocus);
+    m_minimizeButton->setCursor(Qt::PointingHandCursor);
 
     m_closeButton->setText("×");
     m_closeButton->setFixedSize(48, 48);
     m_closeButton->setObjectName("closeButton");
     m_closeButton->setFocusPolicy(Qt::NoFocus);
+    m_closeButton->setCursor(Qt::PointingHandCursor);
 
     m_layout->setContentsMargins(
         Theme::Spacing::TITLE_BAR_MARGIN_LEFT, 

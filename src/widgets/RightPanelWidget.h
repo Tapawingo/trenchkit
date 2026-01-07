@@ -5,6 +5,7 @@
 #include <QString>
 
 class ModManager;
+class ModalManager;
 class ActionsWidget;
 class BackupWidget;
 class LaunchWidget;
@@ -18,6 +19,7 @@ public:
     ~RightPanelWidget() override = default;
 
     void setModManager(ModManager *modManager);
+    void setModalManager(ModalManager *modalManager);
     void setFoxholeInstallPath(const QString &path);
 
     ActivityLogWidget* getActivityLog() const { return m_activityLogWidget; }

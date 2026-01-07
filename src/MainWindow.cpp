@@ -13,6 +13,7 @@
 #include "utils/ModManager.h"
 #include "utils/ProfileManager.h"
 #include "utils/Theme.h"
+#include "modals/MessageModal.h"
 #include <QMessageBox>
 #include <QSettings>
 #include <QShowEvent>
@@ -59,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_itchAuth(new ItchAuth(this))
     , m_modUpdateService(new ModUpdateService(m_modManager, m_nexusClient, this))
     , m_itchUpdateService(new ItchModUpdateService(m_modManager, m_itchClient, this))
+    , m_modalManager(new ModalManager(this))
 {
     ui->setupUi(this);
 
@@ -200,6 +202,7 @@ void MainWindow::setupInstallPath() {
 void MainWindow::setupProfileManager() {
     m_profileManager->setModManager(m_modManager);
     m_profileManagerWidget->setProfileManager(m_profileManager);
+    m_profileManagerWidget->setModalManager(m_modalManager);
     ui->leftBox->addWidget(m_profileManagerWidget);
 
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
@@ -211,14 +214,15 @@ void MainWindow::setupProfileManager() {
     });
 
     connect(m_profileManager, &ProfileManager::errorOccurred,
-            this, [](const QString &error) {
-        QMessageBox::warning(nullptr, "Profile Error", error);
+            this, [this](const QString &error) {
+        MessageModal::warning(m_modalManager, "Profile Error", error);
     });
 }
 
 void MainWindow::setupModList() {
     ui->middleBox->addWidget(m_modListWidget);
     m_modListWidget->setModManager(m_modManager);
+    m_modListWidget->setModalManager(m_modalManager);
     m_modListWidget->setNexusServices(m_nexusClient, m_nexusAuth);
     m_modListWidget->setItchServices(m_itchClient, m_itchAuth);
     m_modListWidget->setUpdateService(m_modUpdateService);
@@ -228,6 +232,7 @@ void MainWindow::setupModList() {
 void MainWindow::setupRightPanel() {
     ui->rightBox->addWidget(m_rightPanelWidget);
     m_rightPanelWidget->setModManager(m_modManager);
+    m_rightPanelWidget->setModalManager(m_modalManager);
 
     connect(m_modListWidget, &ModListWidget::modSelectionChanged,
             m_rightPanelWidget, &RightPanelWidget::onModSelectionChanged);
@@ -245,8 +250,8 @@ void MainWindow::setupRightPanel() {
             m_rightPanelWidget, &RightPanelWidget::setFoxholeInstallPath);
 
     connect(m_rightPanelWidget, &RightPanelWidget::errorOccurred,
-            this, [](const QString &error) {
-        QMessageBox::warning(nullptr, "Error", error);
+            this, [this](const QString &error) {
+        MessageModal::warning(m_modalManager, "Error", error);
     });
 
     // Connect activity log
@@ -298,6 +303,7 @@ void MainWindow::setupSettingsOverlay() {
     }
     m_settingsWidget = new SettingsWidget(m_settingsPage, m_updater);
     m_settingsWidget->setNexusServices(m_nexusClient, m_nexusAuth);
+    m_settingsWidget->setModalManager(m_modalManager);
     overlayLayout->addWidget(m_settingsWidget);
 
     connect(m_settingsWidget, &SettingsWidget::cancelRequested,
@@ -429,7 +435,7 @@ void MainWindow::onSettingsApplied(bool autoCheck) {
 
 void MainWindow::onUpdateClicked() {
     if (!m_updateAvailable) {
-        QMessageBox::information(this, "Up To Date", "No updates are available.");
+        MessageModal::information(m_modalManager, "Up To Date", "No updates are available.");
         return;
     }
     beginUpdateDownload();
@@ -444,7 +450,7 @@ void MainWindow::onUpdateCheckError(const QString &message) {
     }
     if (m_updateDialog) {
         closeUpdateDialog();
-        QMessageBox::warning(this, "Update Error", message);
+        MessageModal::warning(m_modalManager, "Update Error", message);
     }
 }
 
@@ -518,7 +524,7 @@ void MainWindow::onUpdateDownloadFinished(const QString &savePath) {
 
     QString error;
     if (!stageUpdate(savePath, version, updatesDir, &error)) {
-        QMessageBox::warning(this, "Update Error", error);
+        MessageModal::warning(m_modalManager, "Update Error", error);
         return;
     }
 
@@ -530,7 +536,7 @@ void MainWindow::onUpdateDownloadFinished(const QString &savePath) {
 void MainWindow::beginUpdateDownload() {
     const QString assetName = selectUpdateAssetName();
     if (assetName.isEmpty()) {
-        QMessageBox::warning(this, "Update Error", "No compatible update asset was found.");
+        MessageModal::warning(m_modalManager, "Update Error", "No compatible update asset was found.");
         return;
     }
 
@@ -544,7 +550,7 @@ void MainWindow::beginUpdateDownload() {
         }
     }
     if (!found) {
-        QMessageBox::warning(this, "Update Error", "No compatible update asset was found.");
+        MessageModal::warning(m_modalManager, "Update Error", "No compatible update asset was found.");
         return;
     }
 
@@ -659,7 +665,7 @@ void MainWindow::launchUpdater(const QString &stagingDir, const QString &updates
 #endif
 
     if (!QFileInfo::exists(updaterExe)) {
-        QMessageBox::warning(this, "Update Error", "Updater helper was not found.");
+        MessageModal::warning(m_modalManager, "Update Error", "Updater helper was not found.");
         return;
     }
 
@@ -674,7 +680,7 @@ void MainWindow::launchUpdater(const QString &stagingDir, const QString &updates
     qint64 pid = 0;
     const bool started = QProcess::startDetached(updaterExe, args, appDir, &pid);
     if (!started) {
-        QMessageBox::warning(this, "Update Error", "Failed to launch updater helper.");
+        MessageModal::warning(m_modalManager, "Update Error", "Failed to launch updater helper.");
         return;
     }
     QCoreApplication::quit();

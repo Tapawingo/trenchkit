@@ -15,6 +15,7 @@ class ItchClient;
 class ItchAuth;
 class ModUpdateService;
 class ItchModUpdateService;
+class ModalManager;
 struct ModUpdateInfo;
 struct ItchUpdateInfo;
 
@@ -30,6 +31,7 @@ public:
     void setItchServices(ItchClient *client, ItchAuth *auth);
     void setUpdateService(ModUpdateService *service);
     void setItchUpdateService(ItchModUpdateService *service);
+    void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
     void refreshModList();
     void setLoadingState(bool loading, const QString &message = "Loading mods");
 
@@ -72,6 +74,7 @@ private:
     ItchAuth *m_itchAuth = nullptr;
     ModUpdateService *m_updateService = nullptr;
     ItchModUpdateService *m_itchUpdateService = nullptr;
+    ModalManager *m_modalManager = nullptr;
     DraggableModList *m_modList;
 
     QLabel *m_loadingLabel;

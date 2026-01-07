@@ -1,41 +1,42 @@
-#pragma once
+#ifndef ITCHDOWNLOADMODALCONTENT_H
+#define ITCHDOWNLOADMODALCONTENT_H
 
-#include <QDialog>
+#include "../BaseModalContent.h"
+#include "../../utils/ItchUploadInfo.h"
 #include <QString>
-#include <QPointer>
-#include "../utils/ItchUploadInfo.h"
+#include <QStringList>
+#include <QList>
 
 class ItchClient;
 class ItchAuth;
+class ModalManager;
 class QLineEdit;
 class QPushButton;
 class QProgressBar;
 class QLabel;
 class QStackedWidget;
-class QVBoxLayout;
 
-class ItchDownloadDialog : public QDialog {
+class ItchDownloadModalContent : public BaseModalContent {
     Q_OBJECT
 
 public:
-    explicit ItchDownloadDialog(ItchClient *client,
-                               ItchAuth *auth,
-                               QWidget *parent = nullptr);
-    ~ItchDownloadDialog() override = default;
+    explicit ItchDownloadModalContent(ItchClient *client,
+                                     ItchAuth *auth,
+                                     ModalManager *modalManager,
+                                     QWidget *parent = nullptr);
 
     QString getDownloadedFilePath() const { return m_downloadedPath; }
     QStringList getDownloadedFilePaths() const { return m_downloadedPaths; }
-    QList<ItchUploadInfo> getPendingUploads() const { return m_pendingUploads; }
     QString getGameId() const { return m_currentGameId; }
-    QString getAuthor() const { return m_author; }
     QString getGameTitle() const { return m_gameTitle; }
+    QString getAuthor() const { return m_author; }
+    QList<ItchUploadInfo> getDownloadedUploads() const { return m_pendingUploads; }
 
 signals:
     void downloadComplete(QString filePath);
 
 private slots:
     void onDownloadClicked();
-    void onCancelClicked();
     void onApiKeySubmit();
     void onGameIdReceived(const QString &gameId, const QString &title, const QString &author);
     void onUploadsReceived(const QList<ItchUploadInfo> &uploads);
@@ -55,31 +56,36 @@ private:
     void startDownloadProcess();
     void startNextDownload();
     QString generateTempPath(const QString &fileName) const;
+    void updateFooterButtons();
+    QString formatFileSize(qint64 bytes) const;
 
     ItchClient *m_client;
     ItchAuth *m_auth;
+    ModalManager *m_modalManager;
 
     QStackedWidget *m_stack;
     QLineEdit *m_urlEdit;
     QLineEdit *m_apiKeyEdit;
     QPushButton *m_downloadButton;
-    QPushButton *m_cancelButton;
     QPushButton *m_submitApiKeyButton;
+    QPushButton *m_cancelButton;
     QProgressBar *m_progressBar;
     QLabel *m_statusLabel;
     QLabel *m_authInstructionLabel;
 
     QString m_downloadedPath;
+    QStringList m_downloadedPaths;
     QString m_currentGameId;
     QString m_currentUploadId;
+    QString m_gameTitle;
+    QString m_author;
     QString m_pendingCreator;
     QString m_pendingGameName;
-    QString m_author;
-    QString m_gameTitle;
 
     QList<ItchUploadInfo> m_pendingUploads;
-    int m_currentDownloadIndex;
-    QStringList m_downloadedPaths;
+    int m_currentDownloadIndex = 0;
 
     enum Page { InputPage, AuthPage, DownloadPage };
 };
+
+#endif // ITCHDOWNLOADMODALCONTENT_H

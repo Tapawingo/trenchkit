@@ -23,6 +23,11 @@ void RightPanelWidget::setModManager(ModManager *modManager) {
     m_launchWidget->setModManager(modManager);
 }
 
+void RightPanelWidget::setModalManager(ModalManager *modalManager) {
+    m_backupWidget->setModalManager(modalManager);
+    m_launchWidget->setModalManager(modalManager);
+}
+
 void RightPanelWidget::setFoxholeInstallPath(const QString &path) {
     m_foxholeInstallPath = path;
     m_actionsWidget->setFoxholeInstallPath(path);
