@@ -41,6 +41,7 @@ void ProfileManagerWidget::setupUi() {
     m_importIconButton->setFixedSize(28, 28);
     m_importIconButton->setToolTip("Import Profile");
     m_importIconButton->setObjectName("importIconButton");
+    m_importIconButton->setCursor(Qt::PointingHandCursor);
 
     titleLayout->addWidget(m_titleLabel);
     titleLayout->addStretch();
@@ -52,14 +53,17 @@ void ProfileManagerWidget::setupUi() {
 
     m_createButton->setText("New Profile");
     m_createButton->setObjectName("profileButton");
+    m_createButton->setCursor(Qt::PointingHandCursor);
 
     m_loadButton->setText("Select Profile");
     m_loadButton->setObjectName("profileButton");
     m_loadButton->setEnabled(false);
+    m_loadButton->setCursor(Qt::PointingHandCursor);
 
     m_updateButton->setText("Update Selected");
     m_updateButton->setObjectName("profileButton");
     m_updateButton->setEnabled(false);
+    m_updateButton->setCursor(Qt::PointingHandCursor);
 
 
     frameLayout->addLayout(titleLayout);

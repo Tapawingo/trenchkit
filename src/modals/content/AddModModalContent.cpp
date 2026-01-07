@@ -51,22 +51,26 @@ void AddModModalContent::setupUi() {
 
     m_fromFileButton = new QPushButton("From File", this);
     m_fromFileButton->setMinimumHeight(40);
+    m_fromFileButton->setCursor(Qt::PointingHandCursor);
     connect(m_fromFileButton, &QPushButton::clicked, this, &AddModModalContent::onFromFileClicked);
     bodyLayout()->addWidget(m_fromFileButton);
 
     m_fromNexusButton = new QPushButton("From Nexus Mods", this);
     m_fromNexusButton->setMinimumHeight(40);
+    m_fromNexusButton->setCursor(Qt::PointingHandCursor);
     connect(m_fromNexusButton, &QPushButton::clicked, this, &AddModModalContent::onFromNexusClicked);
     bodyLayout()->addWidget(m_fromNexusButton);
 
     m_fromItchButton = new QPushButton("From itch.io", this);
     m_fromItchButton->setMinimumHeight(40);
+    m_fromItchButton->setCursor(Qt::PointingHandCursor);
     connect(m_fromItchButton, &QPushButton::clicked, this, &AddModModalContent::onFromItchClicked);
     bodyLayout()->addWidget(m_fromItchButton);
 
     bodyLayout()->addStretch();
 
     auto *cancelButton = new QPushButton("Cancel", this);
+    cancelButton->setCursor(Qt::PointingHandCursor);
     connect(cancelButton, &QPushButton::clicked, this, &AddModModalContent::reject);
     footerLayout()->addWidget(cancelButton);
 }

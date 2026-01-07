@@ -73,6 +73,7 @@ void ModUpdateModalContent::setupUi() {
     bodyLayout()->addStretch();
 
     m_cancelButton = new QPushButton("Cancel", this);
+    m_cancelButton->setCursor(Qt::PointingHandCursor);
     connect(m_cancelButton, &QPushButton::clicked, this, &ModUpdateModalContent::onCancelClicked);
     footerLayout()->addWidget(m_cancelButton);
 }

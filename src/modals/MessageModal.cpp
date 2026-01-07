@@ -40,6 +40,7 @@ void MessageModal::setupUi(const QString &text, Icon icon, StandardButtons butto
 
     if (buttons & Yes) {
         auto *yesButton = new QPushButton("Yes", this);
+        yesButton->setCursor(Qt::PointingHandCursor);
         connect(yesButton, &QPushButton::clicked, this, [this]() {
             m_clickedButton = Yes;
             accept();
@@ -49,6 +50,7 @@ void MessageModal::setupUi(const QString &text, Icon icon, StandardButtons butto
 
     if (buttons & No) {
         auto *noButton = new QPushButton("No", this);
+        noButton->setCursor(Qt::PointingHandCursor);
         connect(noButton, &QPushButton::clicked, this, [this]() {
             m_clickedButton = No;
             reject();
@@ -58,6 +60,7 @@ void MessageModal::setupUi(const QString &text, Icon icon, StandardButtons butto
 
     if (buttons & Ok) {
         auto *okButton = new QPushButton("OK", this);
+        okButton->setCursor(Qt::PointingHandCursor);
         connect(okButton, &QPushButton::clicked, this, [this]() {
             m_clickedButton = Ok;
             accept();
@@ -67,6 +70,7 @@ void MessageModal::setupUi(const QString &text, Icon icon, StandardButtons butto
 
     if (buttons & Cancel) {
         auto *cancelButton = new QPushButton("Cancel", this);
+        cancelButton->setCursor(Qt::PointingHandCursor);
         connect(cancelButton, &QPushButton::clicked, this, [this]() {
             m_clickedButton = Cancel;
             reject();

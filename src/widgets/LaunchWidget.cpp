@@ -41,6 +41,7 @@ void LaunchWidget::setupUi() {
     m_launchButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_launchButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
     m_launchButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_launchButton->setCursor(Qt::PointingHandCursor);
 
     QMenu *menu = new QMenu(this);
     QAction *playWithMods = menu->addAction("Play with mods");

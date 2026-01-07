@@ -75,6 +75,7 @@ void ModListWidget::setupUi() {
 
     m_checkUpdatesButton = new QPushButton("Check for Updates", this);
     m_checkUpdatesButton->setObjectName("checkUpdatesButton");
+    m_checkUpdatesButton->setCursor(Qt::PointingHandCursor);
 
     titleLayout->addWidget(titleLabel);
     titleLayout->addWidget(m_modCountLabel);

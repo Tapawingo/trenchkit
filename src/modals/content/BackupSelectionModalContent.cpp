@@ -59,10 +59,12 @@ void BackupSelectionModalContent::setupUi(const QStringList &displayNames) {
     bodyLayout()->addWidget(m_listWidget);
 
     auto *okButton = new QPushButton("OK", this);
+    okButton->setCursor(Qt::PointingHandCursor);
     connect(okButton, &QPushButton::clicked, this, &BackupSelectionModalContent::accept);
     footerLayout()->addWidget(okButton);
 
     auto *cancelButton = new QPushButton("Cancel", this);
+    cancelButton->setCursor(Qt::PointingHandCursor);
     connect(cancelButton, &QPushButton::clicked, this, &BackupSelectionModalContent::reject);
     footerLayout()->addWidget(cancelButton);
 

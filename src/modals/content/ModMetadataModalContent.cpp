@@ -88,10 +88,12 @@ void ModMetadataModalContent::setupUi(const ModInfo &mod) {
     bodyLayout()->addWidget(scrollArea);
 
     auto *okButton = new QPushButton("OK", this);
+    okButton->setCursor(Qt::PointingHandCursor);
     connect(okButton, &QPushButton::clicked, this, &ModMetadataModalContent::accept);
     footerLayout()->addWidget(okButton);
 
     auto *cancelButton = new QPushButton("Cancel", this);
+    cancelButton->setCursor(Qt::PointingHandCursor);
     connect(cancelButton, &QPushButton::clicked, this, &ModMetadataModalContent::reject);
     footerLayout()->addWidget(cancelButton);
 }

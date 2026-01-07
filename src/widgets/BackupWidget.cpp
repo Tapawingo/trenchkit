@@ -47,6 +47,8 @@ void BackupWidget::setupUi() {
     titleLabel->setObjectName("backupTitle");
     frameLayout->addWidget(titleLabel);
 
+    m_createBackupButton->setCursor(Qt::PointingHandCursor);
+    m_restoreBackupButton->setCursor(Qt::PointingHandCursor);
     frameLayout->addWidget(m_createBackupButton);
     frameLayout->addWidget(m_restoreBackupButton);
 

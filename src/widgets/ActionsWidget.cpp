@@ -56,18 +56,23 @@ void ActionsWidget::setupUi() {
     titleLabel->setObjectName("modActionsTitle");
     frameLayout->addWidget(titleLabel);
 
+    m_addButton->setCursor(Qt::PointingHandCursor);
     m_removeButton->setEnabled(false);
+    m_removeButton->setCursor(Qt::PointingHandCursor);
     frameLayout->addWidget(m_addButton);
     frameLayout->addWidget(m_removeButton);
 
     m_moveUpButton->setEnabled(false);
+    m_moveUpButton->setCursor(Qt::PointingHandCursor);
     frameLayout->addWidget(m_moveUpButton);
 
     m_moveDownButton->setEnabled(false);
+    m_moveDownButton->setCursor(Qt::PointingHandCursor);
     frameLayout->addWidget(m_moveDownButton);
 
     frameLayout->addWidget(createSeparator());
 
+    m_exploreFolderButton->setCursor(Qt::PointingHandCursor);
     frameLayout->addWidget(m_exploreFolderButton);
 
     setLayout(layout);

@@ -77,10 +77,12 @@ void FileSelectionModalContent::setupUi(const QString &headerText) {
     bodyLayout()->addWidget(m_fileList);
 
     m_okButton = new QPushButton("OK", this);
+    m_okButton->setCursor(Qt::PointingHandCursor);
     connect(m_okButton, &QPushButton::clicked, this, &FileSelectionModalContent::accept);
     footerLayout()->addWidget(m_okButton);
 
     auto *cancelButton = new QPushButton("Cancel", this);
+    cancelButton->setCursor(Qt::PointingHandCursor);
     connect(cancelButton, &QPushButton::clicked, this, &FileSelectionModalContent::reject);
     footerLayout()->addWidget(cancelButton);
 

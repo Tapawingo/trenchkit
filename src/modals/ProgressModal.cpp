@@ -29,6 +29,7 @@ void ProgressModal::setupUi(const QString &labelText, const QString &cancelButto
 
     if (!cancelButtonText.isEmpty()) {
         m_cancelButton = new QPushButton(cancelButtonText, this);
+        m_cancelButton->setCursor(Qt::PointingHandCursor);
         connect(m_cancelButton, &QPushButton::clicked, this, [this]() {
             emit canceled();
             reject();

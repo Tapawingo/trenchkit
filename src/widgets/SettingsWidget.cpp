@@ -169,6 +169,7 @@ void SettingsWidget::buildUi() {
     m_downloadDirEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_downloadBrowseButton = new QPushButton("Browse...", m_panel);
     m_downloadBrowseButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_downloadBrowseButton->setCursor(Qt::PointingHandCursor);
     downloadRow->addWidget(m_downloadDirEdit);
     downloadRow->addWidget(m_downloadBrowseButton);
     containerLayout->addLayout(downloadRow, 6, 1);
@@ -180,6 +181,7 @@ void SettingsWidget::buildUi() {
 
     m_checkNowButton = new QPushButton("Check now", m_panel);
     m_checkNowButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    m_checkNowButton->setCursor(Qt::PointingHandCursor);
     containerLayout->addWidget(m_checkNowButton, 7, 1);
 
     m_checkStatusLabel = new QLabel("Idle", m_panel);
@@ -209,8 +211,10 @@ void SettingsWidget::buildUi() {
     auto *nexusButtonRow = new QHBoxLayout();
     m_nexusAuthButton = new QPushButton("Add API Key", m_panel);
     m_nexusAuthButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_nexusAuthButton->setCursor(Qt::PointingHandCursor);
     m_nexusClearButton = new QPushButton("Clear API Key", m_panel);
     m_nexusClearButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_nexusClearButton->setCursor(Qt::PointingHandCursor);
     nexusButtonRow->addWidget(m_nexusAuthButton);
     nexusButtonRow->addWidget(m_nexusClearButton);
     nexusButtonRow->addStretch();
@@ -232,7 +236,9 @@ void SettingsWidget::buildUi() {
     footerLayout->setSpacing(0);
 
     m_settingsCancelButton = new QPushButton("Cancel", m_footer);
+    m_settingsCancelButton->setCursor(Qt::PointingHandCursor);
     m_settingsSaveButton = new QPushButton("Save", m_footer);
+    m_settingsSaveButton->setCursor(Qt::PointingHandCursor);
     footerLayout->addWidget(m_settingsCancelButton, 0, Qt::AlignLeft);
     footerLayout->addStretch();
     footerLayout->addWidget(m_settingsSaveButton, 0, Qt::AlignRight);

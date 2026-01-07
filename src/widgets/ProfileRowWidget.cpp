@@ -12,6 +12,7 @@ ProfileRowWidget::ProfileRowWidget(const QString &profileId, const QString &prof
     , m_profileId(profileId)
 {
     setAttribute(Qt::WA_StyledBackground, true);
+    setCursor(Qt::PointingHandCursor);
     setupUi(profileName);
 }
 
