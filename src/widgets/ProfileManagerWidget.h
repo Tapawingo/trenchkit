@@ -11,6 +11,7 @@ class QPushButton;
 class QToolButton;
 class QVBoxLayout;
 class ProfileManager;
+class ModalManager;
 
 class ProfileManagerWidget : public QWidget {
     Q_OBJECT
@@ -20,6 +21,7 @@ public:
     ~ProfileManagerWidget() override = default;
 
     void setProfileManager(ProfileManager *profileManager);
+    void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
     void refreshProfileList();
 
 signals:
@@ -56,6 +58,7 @@ private:
     QVBoxLayout *m_layout;
 
     ProfileManager *m_profileManager = nullptr;
+    ModalManager *m_modalManager = nullptr;
 };
 
 #endif // PROFILEMANAGERWIDGET_H

@@ -1,6 +1,9 @@
 #include "ProfileManagerWidget.h"
 #include "ProfileRowWidget.h"
 #include "GradientFrame.h"
+#include "../modals/ModalManager.h"
+#include "../modals/MessageModal.h"
+#include "../modals/InputModal.h"
 #include "../utils/ProfileManager.h"
 #include "../utils/Theme.h"
 #include <QLabel>
@@ -10,7 +13,6 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QInputDialog>
-#include <QMessageBox>
 #include <QFileDialog>
 
 ProfileManagerWidget::ProfileManagerWidget(QWidget *parent)
@@ -146,17 +148,21 @@ void ProfileManagerWidget::refreshProfileList() {
 }
 
 void ProfileManagerWidget::onCreateClicked() {
-    bool ok;
-    QString name = QInputDialog::getText(this, "Create Profile",
-                                        "Profile name:", QLineEdit::Normal,
-                                        "", &ok);
-
-    if (ok && !name.isEmpty()) {
-        if (m_profileManager->createProfile(name)) {
-            QMessageBox::information(this, "Success",
-                "Profile '" + name + "' created successfully!");
-        }
+    if (!m_modalManager) {
+        return;
     }
+
+    auto *modal = new InputModal("Create Profile", "Profile name:", "");
+    connect(modal, &InputModal::accepted, this, [this, modal]() {
+        QString name = modal->textValue();
+        if (!name.isEmpty()) {
+            if (m_profileManager->createProfile(name)) {
+                MessageModal::information(m_modalManager, "Success",
+                    "Profile '" + name + "' created successfully!");
+            }
+        }
+    });
+    m_modalManager->showModal(modal);
 }
 
 void ProfileManagerWidget::onLoadClicked() {
@@ -169,6 +175,10 @@ void ProfileManagerWidget::onLoadClicked() {
 }
 
 void ProfileManagerWidget::onUpdateClicked() {
+    if (!m_modalManager) {
+        return;
+    }
+
     QString profileId = getSelectedProfileId();
     if (profileId.isEmpty()) {
         return;
@@ -176,19 +186,27 @@ void ProfileManagerWidget::onUpdateClicked() {
 
     ProfileInfo profile = m_profileManager->getProfile(profileId);
 
-    QMessageBox::StandardButton reply = QMessageBox::question(this,
+    auto *modal = new MessageModal(
         "Update Profile",
         "Update profile '" + profile.name + "' with current mod configuration?",
-        QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::Yes) {
-        if (m_profileManager->updateProfile(profileId)) {
-            QMessageBox::information(this, "Success", "Profile updated successfully!");
+        MessageModal::Question,
+        MessageModal::Yes | MessageModal::No
+    );
+    connect(modal, &MessageModal::finished, this, [this, modal, profileId]() {
+        if (modal->clickedButton() == MessageModal::Yes) {
+            if (m_profileManager->updateProfile(profileId)) {
+                MessageModal::information(m_modalManager, "Success", "Profile updated successfully!");
+            }
         }
-    }
+    });
+    m_modalManager->showModal(modal);
 }
 
 void ProfileManagerWidget::onRenameClicked(const QString &profileId) {
+    if (!m_modalManager) {
+        return;
+    }
+
     QString targetProfileId = profileId.isEmpty() ? getSelectedProfileId() : profileId;
     if (targetProfileId.isEmpty()) {
         return;
@@ -196,20 +214,24 @@ void ProfileManagerWidget::onRenameClicked(const QString &profileId) {
 
     ProfileInfo profile = m_profileManager->getProfile(targetProfileId);
 
-    bool ok;
-    QString newName = QInputDialog::getText(this, "Rename Profile",
-                                           "Enter new name:", QLineEdit::Normal,
-                                           profile.name, &ok);
-
-    if (ok && !newName.isEmpty() && newName != profile.name) {
-        if (m_profileManager->renameProfile(targetProfileId, newName)) {
-            QMessageBox::information(this, "Success",
-                "Profile renamed successfully!");
+    auto *modal = new InputModal("Rename Profile", "Enter new name:", profile.name);
+    connect(modal, &InputModal::accepted, this, [this, modal, targetProfileId, profile]() {
+        QString newName = modal->textValue();
+        if (!newName.isEmpty() && newName != profile.name) {
+            if (m_profileManager->renameProfile(targetProfileId, newName)) {
+                MessageModal::information(m_modalManager, "Success",
+                    "Profile renamed successfully!");
+            }
         }
-    }
+    });
+    m_modalManager->showModal(modal);
 }
 
 void ProfileManagerWidget::onExportClicked(const QString &profileId) {
+    if (!m_modalManager) {
+        return;
+    }
+
     QString targetProfileId = profileId.isEmpty() ? getSelectedProfileId() : profileId;
     if (targetProfileId.isEmpty()) {
         return;
@@ -223,34 +245,46 @@ void ProfileManagerWidget::onExportClicked(const QString &profileId) {
 
     if (!filePath.isEmpty()) {
         if (m_profileManager->exportProfile(targetProfileId, filePath)) {
-            QMessageBox::information(this, "Success",
+            MessageModal::information(m_modalManager, "Success",
                 "Profile exported to: " + filePath);
         }
     }
 }
 
 void ProfileManagerWidget::onImportClicked() {
+    if (!m_modalManager) {
+        return;
+    }
+
     QString filePath = QFileDialog::getOpenFileName(this, "Import Profile",
         "", "JSON Files (*.json)");
 
     if (!filePath.isEmpty()) {
         QString importedProfileId;
         if (m_profileManager->importProfile(filePath, importedProfileId)) {
-            QMessageBox::information(this, "Success", "Profile imported successfully!");
+            MessageModal::information(m_modalManager, "Success", "Profile imported successfully!");
 
-            QMessageBox::StandardButton reply = QMessageBox::question(this,
+            auto *modal = new MessageModal(
                 "Load Profile",
                 "Would you like to load the imported profile now?",
-                QMessageBox::Yes | QMessageBox::No);
-
-            if (reply == QMessageBox::Yes) {
-                showValidationDialog(importedProfileId);
-            }
+                MessageModal::Question,
+                MessageModal::Yes | MessageModal::No
+            );
+            connect(modal, &MessageModal::finished, this, [this, modal, importedProfileId]() {
+                if (modal->clickedButton() == MessageModal::Yes) {
+                    showValidationDialog(importedProfileId);
+                }
+            });
+            m_modalManager->showModal(modal);
         }
     }
 }
 
 void ProfileManagerWidget::onDeleteClicked(const QString &profileId) {
+    if (!m_modalManager) {
+        return;
+    }
+
     QString targetProfileId = profileId.isEmpty() ? getSelectedProfileId() : profileId;
     if (targetProfileId.isEmpty()) {
         return;
@@ -258,14 +292,18 @@ void ProfileManagerWidget::onDeleteClicked(const QString &profileId) {
 
     ProfileInfo profile = m_profileManager->getProfile(targetProfileId);
 
-    QMessageBox::StandardButton reply = QMessageBox::question(this,
+    auto *modal = new MessageModal(
         "Delete Profile",
         "Are you sure you want to delete profile '" + profile.name + "'?",
-        QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::Yes) {
-        m_profileManager->deleteProfile(targetProfileId);
-    }
+        MessageModal::Question,
+        MessageModal::Yes | MessageModal::No
+    );
+    connect(modal, &MessageModal::finished, this, [this, modal, targetProfileId]() {
+        if (modal->clickedButton() == MessageModal::Yes) {
+            m_profileManager->deleteProfile(targetProfileId);
+        }
+    });
+    m_modalManager->showModal(modal);
 }
 
 void ProfileManagerWidget::onProfilesChanged() {
@@ -326,7 +364,7 @@ void ProfileManagerWidget::onProfileRowClicked(const QString &profileId) {
 }
 
 void ProfileManagerWidget::showValidationDialog(const QString &profileId) {
-    if (!m_profileManager) {
+    if (!m_profileManager || !m_modalManager) {
         return;
     }
 
@@ -347,19 +385,24 @@ void ProfileManagerWidget::showValidationDialog(const QString &profileId) {
 
         message += "\nDo you want to load the profile anyway with available mods only?";
 
-        QMessageBox::StandardButton reply = QMessageBox::warning(this,
-            "Missing Mods", message,
-            QMessageBox::Yes | QMessageBox::No);
-
-        if (reply == QMessageBox::Yes) {
-            if (m_profileManager->applyProfile(profileId, true)) {
-                emit profileLoadRequested(profileId);
+        auto *modal = new MessageModal(
+            "Missing Mods",
+            message,
+            MessageModal::Warning,
+            MessageModal::Yes | MessageModal::No
+        );
+        connect(modal, &MessageModal::finished, this, [this, modal, profileId]() {
+            if (modal->clickedButton() == MessageModal::Yes) {
+                if (m_profileManager->applyProfile(profileId, true)) {
+                    emit profileLoadRequested(profileId);
+                }
             }
-        }
+        });
+        m_modalManager->showModal(modal);
     } else {
         if (m_profileManager->applyProfile(profileId, false)) {
             emit profileLoadRequested(profileId);
-            QMessageBox::information(this, "Success",
+            MessageModal::information(m_modalManager, "Success",
                 "Profile '" + profile.name + "' loaded successfully!");
         }
     }

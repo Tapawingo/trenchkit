@@ -8,6 +8,7 @@
 
 class QToolButton;
 class ModManager;
+class ModalManager;
 
 class LaunchWidget : public QWidget {
     Q_OBJECT
@@ -17,6 +18,7 @@ public:
     ~LaunchWidget() override = default;
 
     void setModManager(ModManager *modManager);
+    void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
     void setFoxholeInstallPath(const QString &path);
 
 signals:
@@ -35,6 +37,7 @@ private:
     QString getFoxholeExecutablePath() const;
 
     ModManager *m_modManager = nullptr;
+    ModalManager *m_modalManager = nullptr;
     QString m_foxholeInstallPath;
     QProcess *m_gameProcess = nullptr;
     QStringList m_modsToRestore;

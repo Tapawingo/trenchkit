@@ -1,5 +1,4 @@
 #include "InputModal.h"
-#include "ModalManager.h"
 #include "../utils/Theme.h"
 #include <QLabel>
 #include <QLineEdit>
@@ -25,43 +24,21 @@ void InputModal::setupUi(const QString &label, const QString &defaultValue) {
 
     m_lineEdit = new QLineEdit(this);
     m_lineEdit->setText(defaultValue);
+    m_lineEdit->setMinimumHeight(32);
+    connect(m_lineEdit, &QLineEdit::returnPressed, this, &InputModal::accept);
     bodyLayout()->addWidget(m_lineEdit);
 
     auto *okButton = new QPushButton("OK", this);
+    okButton->setDefault(true);
     connect(okButton, &QPushButton::clicked, this, &InputModal::accept);
     footerLayout()->addWidget(okButton);
 
     auto *cancelButton = new QPushButton("Cancel", this);
+    cancelButton->setAutoDefault(false);
     connect(cancelButton, &QPushButton::clicked, this, &InputModal::reject);
     footerLayout()->addWidget(cancelButton);
 }
 
 QString InputModal::textValue() const {
     return m_lineEdit->text();
-}
-
-QString InputModal::getText(ModalManager *manager,
-                           const QString &title,
-                           const QString &label,
-                           const QString &defaultValue,
-                           bool *ok) {
-    if (!manager) {
-        if (ok) *ok = false;
-        return QString();
-    }
-
-    QString result;
-    bool accepted = false;
-
-    auto *modal = new InputModal(title, label, defaultValue);
-
-    QObject::connect(modal, &InputModal::accepted, [&result, &accepted, modal]() {
-        result = modal->textValue();
-        accepted = true;
-    });
-
-    if (ok) *ok = accepted;
-    manager->showModal(modal);
-
-    return result;
 }

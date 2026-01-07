@@ -1,27 +1,28 @@
-#pragma once
+#ifndef MODUPDATEMODALCONTENT_H
+#define MODUPDATEMODALCONTENT_H
 
-#include <QDialog>
+#include "../BaseModalContent.h"
+#include "../../utils/ModInfo.h"
+#include "../../utils/ModUpdateInfo.h"
 #include <QString>
-#include "../utils/ModInfo.h"
-#include "../utils/ModUpdateInfo.h"
 
 class ModManager;
 class NexusModsClient;
+class ModalManager;
 class QLabel;
 class QProgressBar;
 class QPushButton;
-class QDialogButtonBox;
 
-class ModUpdateDialog : public QDialog {
+class ModUpdateModalContent : public BaseModalContent {
     Q_OBJECT
 
 public:
-    explicit ModUpdateDialog(const ModInfo &mod,
-                            const ModUpdateInfo &updateInfo,
-                            ModManager *modManager,
-                            NexusModsClient *nexusClient,
-                            QWidget *parent = nullptr);
-    ~ModUpdateDialog() override = default;
+    explicit ModUpdateModalContent(const ModInfo &mod,
+                                  const ModUpdateInfo &updateInfo,
+                                  ModManager *modManager,
+                                  NexusModsClient *nexusClient,
+                                  ModalManager *modalManager,
+                                  QWidget *parent = nullptr);
 
 private slots:
     void onDownloadLinkReceived(const QString &url);
@@ -39,12 +40,15 @@ private:
     ModUpdateInfo m_updateInfo;
     ModManager *m_modManager;
     NexusModsClient *m_nexusClient;
+    ModalManager *m_modalManager;
 
     QLabel *m_titleLabel;
     QLabel *m_versionLabel;
     QProgressBar *m_progressBar;
     QLabel *m_statusLabel;
-    QDialogButtonBox *m_buttonBox;
+    QPushButton *m_cancelButton;
 
     QString m_downloadedPath;
 };
+
+#endif // MODUPDATEMODALCONTENT_H

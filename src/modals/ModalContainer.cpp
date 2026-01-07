@@ -4,19 +4,18 @@
 #include <QVBoxLayout>
 #include <QPainter>
 #include <QPainterPath>
-#include <QGraphicsDropShadowEffect>
+#include <QLinearGradient>
+#include <QBrush>
+#include <QPixmap>
+#include <QResizeEvent>
 
 ModalContainer::ModalContainer(BaseModalContent *content, QWidget *parent)
     : QWidget(parent)
     , m_content(content)
 {
-    setupLayout();
+    setAttribute(Qt::WA_OpaquePaintEvent);
 
-    auto *shadow = new QGraphicsDropShadowEffect(this);
-    shadow->setBlurRadius(20);
-    shadow->setOffset(0, 4);
-    shadow->setColor(QColor(0, 0, 0, 100));
-    setGraphicsEffect(shadow);
+    setupLayout();
 
     setMinimumWidth(400);
     setMaximumWidth(800);
@@ -49,19 +48,64 @@ void ModalContainer::setContent(BaseModalContent *content) {
     }
 }
 
+const QPixmap& ModalContainer::getTexture() {
+    static QPixmap texture(":/tex_container.png");
+    return texture;
+}
+
+void ModalContainer::updateBackgroundCache() {
+    if (size() == m_lastSize && !m_cachedBackground.isNull()) {
+        return;
+    }
+
+    m_lastSize = size();
+    m_cachedBackground = QPixmap(size());
+    m_cachedBackground.fill(Qt::transparent);
+
+    QPainter painter(&m_cachedBackground);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QRectF rect = QRectF(0, 0, width(), height());
+
+    QPainterPath backgroundPath;
+    backgroundPath.addRoundedRect(rect, BORDER_RADIUS, BORDER_RADIUS);
+
+    QBrush textureBrush(getTexture());
+    painter.fillPath(backgroundPath, textureBrush);
+
+    QRectF borderRect = rect.adjusted(
+        BORDER_WIDTH / 2.0,
+        BORDER_WIDTH / 2.0,
+        -BORDER_WIDTH / 2.0,
+        -BORDER_WIDTH / 2.0
+    );
+
+    QLinearGradient gradient(
+        borderRect.topRight(),
+        borderRect.bottomLeft()
+    );
+    gradient.setColorAt(0.0, QColor(GRADIENT_LIGHT));
+    gradient.setColorAt(1.0, QColor(GRADIENT_DARK));
+
+    QPen pen(QBrush(gradient), BORDER_WIDTH);
+    pen.setJoinStyle(Qt::RoundJoin);
+    painter.setPen(pen);
+
+    QPainterPath borderPath;
+    borderPath.addRoundedRect(borderRect, BORDER_RADIUS, BORDER_RADIUS);
+    painter.drawPath(borderPath);
+}
+
 void ModalContainer::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event);
 
+    updateBackgroundCache();
+
     QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
+    painter.drawPixmap(0, 0, m_cachedBackground);
+}
 
-    QPainterPath path;
-    path.addRoundedRect(rect(), 8, 8);
-
-    painter.fillPath(path, QColor(Theme::Colors::BACKGROUND_SECONDARY));
-
-    QPen pen(QColor(Theme::Colors::BORDER_PRIMARY));
-    pen.setWidth(1);
-    painter.setPen(pen);
-    painter.drawPath(path);
+void ModalContainer::resizeEvent(QResizeEvent *event) {
+    QWidget::resizeEvent(event);
+    m_lastSize = QSize(-1, -1);
 }

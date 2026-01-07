@@ -7,6 +7,7 @@
 class UpdaterService;
 class NexusModsClient;
 class NexusModsAuth;
+class ModalManager;
 class PanelFrame;
 class GradientFrame;
 class QLineEdit;
@@ -28,6 +29,7 @@ public:
     void setCurrentVersion(const QString &version);
     void setCheckStatus(const QString &status);
     void setNexusServices(NexusModsClient *client, NexusModsAuth *auth);
+    void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
 
 signals:
     void cancelRequested();
@@ -43,6 +45,7 @@ private:
     QPointer<UpdaterService> m_updater;
     QPointer<NexusModsClient> m_nexusClient;
     QPointer<NexusModsAuth> m_nexusAuth;
+    ModalManager *m_modalManager = nullptr;
     PanelFrame *m_panel = nullptr;
     GradientFrame *m_container = nullptr;
     GradientFrame *m_footer = nullptr;

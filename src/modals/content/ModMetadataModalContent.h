@@ -1,20 +1,18 @@
-#ifndef MODMETADATADIALOG_H
-#define MODMETADATADIALOG_H
+#ifndef MODMETADATAMODALCONTENT_H
+#define MODMETADATAMODALCONTENT_H
 
-#include "../utils/ModInfo.h"
-#include <QDialog>
+#include "../BaseModalContent.h"
+#include "../../utils/ModInfo.h"
 
 class QLineEdit;
 class QTextEdit;
 class QDateTimeEdit;
-class QDialogButtonBox;
 
-class ModMetadataDialog : public QDialog {
+class ModMetadataModalContent : public BaseModalContent {
     Q_OBJECT
 
 public:
-    explicit ModMetadataDialog(const ModInfo &mod, QWidget *parent = nullptr);
-    ~ModMetadataDialog() override = default;
+    explicit ModMetadataModalContent(const ModInfo &mod, QWidget *parent = nullptr);
 
     ModInfo getModInfo() const;
 
@@ -32,11 +30,10 @@ private:
     QLineEdit *m_authorEdit;
     QDateTimeEdit *m_installDateEdit;
     QDateTimeEdit *m_uploadDateEdit;
-    QDialogButtonBox *m_buttonBox;
 
     int m_priority;
     bool m_enabled;
     QString m_numberedFileName;
 };
 
-#endif // MODMETADATADIALOG_H
+#endif // MODMETADATAMODALCONTENT_H

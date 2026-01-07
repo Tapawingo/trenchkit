@@ -1,6 +1,8 @@
 #include "LaunchWidget.h"
 #include "../utils/ModManager.h"
 #include "../utils/Theme.h"
+#include "../modals/ModalManager.h"
+#include "../modals/MessageModal.h"
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QMenu>
@@ -106,49 +108,56 @@ void LaunchWidget::onLaunchWithoutMods() {
         }
     }
 
+    auto launchGame = [this, exePath, enabledModIds]() {
+        if (!enabledModIds.isEmpty()) {
+            m_modsToRestore = enabledModIds;
+            for (const QString &modId : enabledModIds) {
+                m_modManager->disableMod(modId);
+            }
+        }
+
+        if (m_gameProcess) {
+            m_gameProcess->deleteLater();
+        }
+
+        m_gameProcess = new QProcess(this);
+        m_gameProcess->setWorkingDirectory(m_foxholeInstallPath);
+        m_gameProcess->setProgram(exePath);
+
+        connect(m_gameProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, &LaunchWidget::onGameProcessFinished);
+
+        m_gameProcess->start();
+
+        if (!m_gameProcess->waitForStarted(5000)) {
+            emit errorOccurred("Failed to launch Foxhole");
+
+            for (const QString &modId : m_modsToRestore) {
+                m_modManager->enableMod(modId);
+            }
+            m_modsToRestore.clear();
+        } else {
+            emit gameLaunched(false);
+        }
+    };
+
     if (!enabledModIds.isEmpty()) {
-        auto reply = QMessageBox::question(
-            this,
+        auto *modal = new MessageModal(
             "Launch without mods",
             QString("This will temporarily disable %1 enabled mod(s).\n\n"
                     "They will be automatically restored when the game closes.\n\n"
                     "Continue?").arg(enabledModIds.count()),
-            QMessageBox::Yes | QMessageBox::No
+            MessageModal::Question,
+            MessageModal::Yes | MessageModal::No
         );
-
-        if (reply != QMessageBox::Yes) {
-            return;
-        }
-
-        m_modsToRestore = enabledModIds;
-
-        for (const QString &modId : enabledModIds) {
-            m_modManager->disableMod(modId);
-        }
-    }
-
-    if (m_gameProcess) {
-        m_gameProcess->deleteLater();
-    }
-
-    m_gameProcess = new QProcess(this);
-    m_gameProcess->setWorkingDirectory(m_foxholeInstallPath);
-    m_gameProcess->setProgram(exePath);
-
-    connect(m_gameProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, &LaunchWidget::onGameProcessFinished);
-
-    m_gameProcess->start();
-
-    if (!m_gameProcess->waitForStarted(5000)) {
-        emit errorOccurred("Failed to launch Foxhole");
-
-        for (const QString &modId : m_modsToRestore) {
-            m_modManager->enableMod(modId);
-        }
-        m_modsToRestore.clear();
+        connect(modal, &MessageModal::finished, this, [this, modal, launchGame]() {
+            if (modal->clickedButton() == MessageModal::Yes) {
+                launchGame();
+            }
+        });
+        m_modalManager->showModal(modal);
     } else {
-        emit gameLaunched(false);
+        launchGame();
     }
 }
 
@@ -164,7 +173,7 @@ void LaunchWidget::onGameProcessFinished(int exitCode, QProcess::ExitStatus exit
 
         emit modsRestored(modCount);
 
-        QMessageBox::information(this, "Mods Restored",
+        MessageModal::information(m_modalManager, "Mods Restored",
             QString("Restored %1 mod(s) that were disabled for vanilla gameplay.")
             .arg(modCount));
 

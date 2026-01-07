@@ -6,6 +6,7 @@
 
 class QPushButton;
 class ModManager;
+class ModalManager;
 
 class BackupWidget : public QWidget {
     Q_OBJECT
@@ -15,6 +16,7 @@ public:
     ~BackupWidget() override = default;
 
     void setModManager(ModManager *modManager);
+    void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
 
 signals:
     void errorOccurred(const QString &error);
@@ -31,6 +33,7 @@ private:
     QString getBackupsPath() const;
 
     ModManager *m_modManager = nullptr;
+    ModalManager *m_modalManager = nullptr;
 
     QPushButton *m_createBackupButton;
     QPushButton *m_restoreBackupButton;

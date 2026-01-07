@@ -44,7 +44,7 @@ void ModalOverlay::close() {
 
 void ModalOverlay::fadeIn() {
     m_fadeAnimation->stop();
-    m_fadeAnimation->setDuration(150);
+    m_fadeAnimation->setDuration(100);
     m_fadeAnimation->setStartValue(0.0);
     m_fadeAnimation->setEndValue(1.0);
     m_fadeAnimation->start();
@@ -52,7 +52,7 @@ void ModalOverlay::fadeIn() {
 
 void ModalOverlay::fadeOut() {
     m_fadeAnimation->stop();
-    m_fadeAnimation->setDuration(100);
+    m_fadeAnimation->setDuration(75);
     m_fadeAnimation->setStartValue(m_opacity);
     m_fadeAnimation->setEndValue(0.0);
 
