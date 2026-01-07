@@ -143,8 +143,28 @@ target_include_directories(TrenchKit
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# Post-build: Copy Qt and MinGW runtime DLLs for Windows
-if(WIN32) 
+# Post-build: Copy platform-specific TLS backend
+set(QT_TLS_PLUGIN_DIR "${Qt6_DIR}/../../../plugins/tls")
+if(WIN32)
+    set(TLS_PLUGIN "qschannelbackend.dll")
+elseif(APPLE)
+    set(TLS_PLUGIN "libqsecuretransportbackend.dylib")
+else()
+    set(TLS_PLUGIN "libqopensslbackend.so")
+endif()
+
+if(EXISTS "${QT_TLS_PLUGIN_DIR}/${TLS_PLUGIN}")
+    add_custom_command(TARGET TrenchKit POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:TrenchKit>/tls
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${QT_TLS_PLUGIN_DIR}/${TLS_PLUGIN}"
+            $<TARGET_FILE_DIR:TrenchKit>/tls/
+    )
+endif()
+
+# Windows-specific runtime dependencies
+if(WIN32)
     add_dependencies(TrenchKit updater)
     add_custom_command(TARGET TrenchKit POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -152,18 +172,6 @@ if(WIN32)
             $<TARGET_FILE_DIR:TrenchKit>
         COMMENT "Copying updater helper to output directory"
     )
-
-    set(QT_TLS_PLUGIN_DIR "${Qt6_DIR}/../../../plugins/tls")
-    if(EXISTS "${QT_TLS_PLUGIN_DIR}/qschannelbackend.dll")
-        add_custom_command(TARGET TrenchKit POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory
-                $<TARGET_FILE_DIR:TrenchKit>/tls
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${QT_TLS_PLUGIN_DIR}/qschannelbackend.dll"
-                $<TARGET_FILE_DIR:TrenchKit>/tls/
-            COMMENT "Copying Qt TLS backend plugin to output directory"
-        )
-    endif()
 
     # Qt DLLs
     set(QT_BIN_DIR "${Qt6_DIR}/../../../bin")
