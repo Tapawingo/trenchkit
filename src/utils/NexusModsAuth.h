@@ -24,6 +24,7 @@ signals:
 private slots:
     void onConnected();
     void onTextMessageReceived(const QString &message);
+    void onDisconnected();
     void onError(QAbstractSocket::SocketError error);
 
 private:

@@ -14,6 +14,7 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -28,7 +29,6 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QStandardPaths>
-#include <QDesktopServices>
 
 SettingsWidget::SettingsWidget(QWidget *parent, UpdaterService *updater)
     : QWidget(parent),
@@ -211,7 +211,7 @@ void SettingsWidget::buildUi() {
     containerLayout->addWidget(nexusActionsLabel, 11, 0);
 
     auto *nexusButtonRow = new QHBoxLayout();
-    m_nexusAuthButton = new QPushButton("Add API Key", m_panel);
+    m_nexusAuthButton = new QPushButton("Authenticate (SSO)", m_panel);
     m_nexusAuthButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_nexusAuthButton->setCursor(Qt::PointingHandCursor);
     m_nexusClearButton = new QPushButton("Clear API Key", m_panel);
@@ -436,11 +436,14 @@ void SettingsWidget::setNexusServices(NexusModsClient *client, NexusModsAuth *au
     updateStatus();
 
     if (m_nexusAuth) {
-        connect(m_nexusAuth, &NexusModsAuth::authenticationStarted, this, [this](const QString &url) {
+        disconnect(m_nexusAuth, &NexusModsAuth::authenticationStarted, this, nullptr);
+        disconnect(m_nexusAuth, &NexusModsAuth::authenticationComplete, this, nullptr);
+        disconnect(m_nexusAuth, &NexusModsAuth::authenticationFailed, this, nullptr);
+
+        connect(m_nexusAuth, &NexusModsAuth::authenticationStarted, this, [this](const QString &) {
             if (m_nexusStatusLabel) {
-                m_nexusStatusLabel->setText(QStringLiteral("Authenticating..."));
+                m_nexusStatusLabel->setText(QStringLiteral("Authenticating... (check your browser)"));
             }
-            QDesktopServices::openUrl(QUrl(url));
         });
 
         connect(m_nexusAuth, &NexusModsAuth::authenticationComplete, this, [this, updateStatus](const QString &apiKey) {
@@ -466,48 +469,19 @@ void SettingsWidget::setNexusServices(NexusModsClient *client, NexusModsAuth *au
     }
 
     if (m_nexusAuthButton) {
-        connect(m_nexusAuthButton, &QPushButton::clicked, this, [this, updateStatus]() {
-            if (!m_modalManager) {
+        connect(m_nexusAuthButton, &QPushButton::clicked, this, [this]() {
+            if (!m_nexusAuth) {
                 return;
             }
 
-            auto *modal = new MessageModal(
-                QStringLiteral("Authentication Method"),
-                QStringLiteral("SSO authentication requires 'trenchkit' to be registered with Nexus Mods.\n\n"
-                             "Would you like to use SSO (if registered) or enter an API key manually?\n\n"
-                             "You can get a personal API key from: https://www.nexusmods.com/users/myaccount?tab=api+access"),
-                MessageModal::Question,
-                MessageModal::Yes | MessageModal::No
-            );
-            connect(modal, &MessageModal::finished, this, [this, modal, updateStatus]() {
-                if (modal->clickedButton() == MessageModal::Yes) {
-                    if (m_nexusAuth) {
-                        m_nexusAuth->startAuthentication();
-                    }
-                } else {
-                    auto *inputModal = new InputModal(
-                        QStringLiteral("Enter API Key"),
-                        QStringLiteral("Enter your Nexus Mods API key:\n"
-                                     "(Get it from: https://www.nexusmods.com/users/myaccount?tab=api+access)"),
-                        QString()
-                    );
-                    connect(inputModal, &InputModal::accepted, this, [this, inputModal, updateStatus]() {
-                        QString apiKey = inputModal->textValue();
-                        if (!apiKey.isEmpty()) {
-                            if (m_nexusClient) {
-                                m_nexusClient->setApiKey(apiKey);
-                                updateStatus();
-                                if (m_modalManager) {
-                                    MessageModal::information(m_modalManager, QStringLiteral("Success"),
-                                                           QStringLiteral("API key saved successfully!"));
-                                }
-                            }
-                        }
-                    });
-                    m_modalManager->showModal(inputModal);
-                }
+            // Create a one-time connection to open browser for Settings-initiated auth
+            QMetaObject::Connection *conn = new QMetaObject::Connection();
+            *conn = connect(m_nexusAuth, &NexusModsAuth::authenticationStarted, this, [conn](const QString &url) {
+                QDesktopServices::openUrl(QUrl(url));
+                QObject::disconnect(*conn);
+                delete conn;
             });
-            m_modalManager->showModal(modal);
+            m_nexusAuth->startAuthentication();
         });
     }
 
