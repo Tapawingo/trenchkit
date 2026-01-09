@@ -41,9 +41,9 @@ NexusDownloadModalContent::NexusDownloadModalContent(NexusModsClient *client,
     connect(m_client, &NexusModsClient::downloadFinished, this, &NexusDownloadModalContent::onDownloadFinished);
     connect(m_client, &NexusModsClient::errorOccurred, this, &NexusDownloadModalContent::onError);
 
-    connect(m_auth, &NexusModsAuth::authenticationStarted, this, &NexusDownloadModalContent::onAuthStarted);
-    connect(m_auth, &NexusModsAuth::authenticationComplete, this, &NexusDownloadModalContent::onAuthComplete);
-    connect(m_auth, &NexusModsAuth::authenticationFailed, this, &NexusDownloadModalContent::onAuthFailed);
+    connect(m_auth, &NexusModsAuth::authenticationStarted, this, &NexusDownloadModalContent::onAuthStarted, Qt::UniqueConnection);
+    connect(m_auth, &NexusModsAuth::authenticationComplete, this, &NexusDownloadModalContent::onAuthComplete, Qt::UniqueConnection);
+    connect(m_auth, &NexusModsAuth::authenticationFailed, this, &NexusDownloadModalContent::onAuthFailed, Qt::UniqueConnection);
 }
 
 void NexusDownloadModalContent::setupUi() {

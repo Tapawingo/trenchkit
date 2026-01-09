@@ -1,0 +1,37 @@
+# Simple Makefile wrapper for CMake/Ninja workflows
+
+BUILD_DIR_DEBUG=build/debug
+BUILD_DIR_RELEASE=build/release
+GENERATOR=Ninja
+
+.PHONY: all configure-debug configure-release build-debug build-release test test-debug run-debug run-release clean
+
+all: build-debug
+
+configure-debug:
+	cmake -S . -B $(BUILD_DIR_DEBUG) -G $(GENERATOR) -DCMAKE_BUILD_TYPE=Debug
+
+configure-release:
+	cmake -S . -B $(BUILD_DIR_RELEASE) -G $(GENERATOR) -DCMAKE_BUILD_TYPE=Release
+
+build-debug: configure-debug
+	cmake --build $(BUILD_DIR_DEBUG)
+
+build-release: configure-release
+	cmake --build $(BUILD_DIR_RELEASE)
+	python tools/package_release.py --build-dir $(BUILD_DIR_RELEASE)
+
+test: test-debug
+
+test-debug: build-debug
+	ctest --test-dir $(BUILD_DIR_DEBUG) --output-on-failure
+
+run-debug: build-debug
+	$(BUILD_DIR_DEBUG)/TrenchKit.exe
+
+run-release: build-release
+	$(BUILD_DIR_RELEASE)/TrenchKit.exe
+
+clean:
+	cmake --build $(BUILD_DIR_DEBUG) --target clean || true
+	cmake --build $(BUILD_DIR_RELEASE) --target clean || true

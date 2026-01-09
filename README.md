@@ -35,6 +35,49 @@
 - Install mod from Itch.io
 - Check for mod updates
 
+## Usage Guide
+
+### Installing Mods from NexusMods or Itch.io
+
+1. Click the **"Add Mod"** button
+2. Select **"Download from NexusMods"** or **"Download from Itch.io"**
+3. Authenticate with the platform (see Authentication section below)
+4. Enter the mod URL and follow the prompts
+
+**Why download through TrenchKit?** Mods downloaded using the Add Mod button automatically store metadata (mod ID, file ID, and source information) which enables the **Check for Updates** feature.
+
+### Checking for Mod Updates
+
+Click the **"Check for Updates"** button to see if newer versions are available for your installed mods.
+
+**Important:** The update checker only works for mods that have source metadata. This means:
+- ✅ Mods downloaded through the Add Mod button (NexusMods/Itch.io)
+- ✅ Manually installed mods with metadata added via "Edit Metadata" (right-click mod)
+- ❌ Manually installed `.pak` files without metadata
+
+To enable updates for manually installed mods, right-click the mod and select **"Edit Metadata"** to add the NexusMods or Itch.io information.
+
+### Authentication
+
+#### NexusMods (SSO)
+TrenchKit uses NexusMods Single Sign-On (SSO) authentication:
+1. Go to **Settings** → **NexusMods Integration**
+2. Click **"Authenticate (SSO)"**
+3. Your browser will open to the NexusMods authorization page
+4. Click **"Authorize"** to grant TrenchKit access
+5. The authentication will complete automatically
+
+#### Itch.io (API Key)
+To download mods from Itch.io, you need an API key:
+
+1. Visit [itch.io API Keys page](https://itch.io/user/settings/api-keys)
+2. Click **"Generate new API key"**
+3. Copy the generated key
+4. In TrenchKit, go to **Settings** → **Itch.io Integration**
+5. Click **"Add API Key"** and paste your key
+
+**Note:** Keep your API key private. It grants access to your itch.io account.
+
 ## Planned Features
 - Create mod development environment
 - Bundle mod development tools ([UE Viewer](https://github.com/gildor2/UEViewer))
