@@ -1,0 +1,62 @@
+name: ✨ Feature Request
+description: Suggest an idea or improvement for TrenchKit
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve TrenchKit!
+        Feature requests are welcome — especially if they improve mod safety, usability, or transparency.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem does this feature solve?
+      placeholder: "I'm frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like TrenchKit to do?
+      placeholder: "I would like TrenchKit to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative approaches you've thought about?
+    validations:
+      required: false
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / impact
+      description: |
+        Does this affect:
+        - Mod installation
+        - Update checking
+        - Profiles
+        - Backups
+        - UI / UX
+    validations:
+      required: false
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Are you willing to help implement this?
+      options:
+        - Yes, I can contribute code
+        - Maybe (with guidance)
+        - No, suggestion only
+    validations:
+      required: false
