@@ -550,7 +550,39 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
     } else if (!mod.itchGameId.isEmpty() && m_itchClient && m_itchUpdateService && m_itchUpdateService->hasUpdate(modId)) {
         ItchUpdateInfo updateInfo = m_itchUpdateService->getUpdateInfo(modId);
 
-        if (updateInfo.hasMultipleUploads()) {
+        // Check if any upload matches the current filename
+        ItchUploadInfo matchingUpload;
+        bool hasMatchingFilename = false;
+
+        if (!mod.fileName.isEmpty()) {
+            for (const ItchUploadInfo &upload : updateInfo.candidateUploads) {
+                if (upload.filename == mod.fileName) {
+                    matchingUpload = upload;
+                    hasMatchingFilename = true;
+                    break;
+                }
+            }
+        }
+
+        // If we found a matching filename, auto-select it and skip the file selection modal
+        if (hasMatchingFilename) {
+            ItchUpdateInfo selectedUpdateInfo = updateInfo;
+            selectedUpdateInfo.availableUploadId = matchingUpload.id;
+            selectedUpdateInfo.availableUploadDate =
+                matchingUpload.updatedAt.isValid() ? matchingUpload.updatedAt : matchingUpload.createdAt;
+            selectedUpdateInfo.availableVersion = extractVersionFromFilename(matchingUpload.filename);
+            if (selectedUpdateInfo.availableVersion.isEmpty()) {
+                selectedUpdateInfo.availableVersion = QString("Updated: %1")
+                    .arg(selectedUpdateInfo.availableUploadDate.toString("yyyy-MM-dd"));
+            }
+
+            auto *modal = new ItchModUpdateModalContent(
+                mod, selectedUpdateInfo, m_modManager, m_itchClient, m_modalManager);
+            connect(modal, &ItchModUpdateModalContent::accepted, this, hideUpdateButton);
+            m_modalManager->showModal(modal);
+        }
+        // If multiple uploads and no matching filename, show file selection modal
+        else if (updateInfo.hasMultipleUploads()) {
             QList<FileItem> fileItems;
             for (const ItchUploadInfo &upload : updateInfo.candidateUploads) {
                 fileItems.append({upload.id, upload.filename});
@@ -596,7 +628,9 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
             });
 
             m_modalManager->showModal(fileModal);
-        } else {
+        }
+        // Single upload, proceed directly
+        else {
             auto *modal = new ItchModUpdateModalContent(mod, updateInfo, m_modManager, m_itchClient, m_modalManager);
             connect(modal, &ItchModUpdateModalContent::accepted, this, hideUpdateButton);
             m_modalManager->showModal(modal);
