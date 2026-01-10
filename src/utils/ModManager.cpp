@@ -300,9 +300,11 @@ bool ModManager::updateModMetadata(const ModInfo &updatedMod) {
     it->description = updatedMod.description;
     it->nexusModId = updatedMod.nexusModId;
     it->nexusFileId = updatedMod.nexusFileId;
+    it->itchGameId = updatedMod.itchGameId;
     it->version = updatedMod.version;
     it->author = updatedMod.author;
     it->installDate = updatedMod.installDate;
+    it->uploadDate = updatedMod.uploadDate;
     it->fileName = updatedMod.fileName;
 
     if (fileNameChanged) {
