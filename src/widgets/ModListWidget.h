@@ -62,12 +62,15 @@ private slots:
     void onUpdateCheckComplete(int updatesFound);
     void onItchUpdateFound(const QString &modId, const ItchUpdateInfo &updateInfo);
     void onItchUpdateCheckComplete(int updatesFound);
+    void onFilesDropped(const QStringList &filePaths);
 
 private:
     void setupUi();
     QString getSelectedModId() const;
     int getSelectedRow() const;
     QString extractVersionFromFilename(const QString &filename) const;
+    void handlePakFile(const QString &pakPath);
+    void handleZipFile(const QString &zipPath);
 
     ModManager *m_modManager = nullptr;
     NexusModsClient *m_nexusClient = nullptr;
