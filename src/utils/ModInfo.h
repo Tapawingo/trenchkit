@@ -21,6 +21,7 @@ struct ModInfo {
     QString version;               // Optional mod version
     QString author;                // Optional mod author
     QString description;           // Optional mod description
+    QStringList ignoredItchUploadIds; // List of itch.io upload IDs that should be ignored for updates
 
     // Constructor
     ModInfo()

@@ -595,6 +595,19 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
                 false
             );
 
+            // If user cancels, mark all these uploads as ignored and hide the update button
+            connect(fileModal, &FileSelectionModalContent::rejected, this,
+                    [this, modId, updateInfo, hideUpdateButton]() {
+                if (m_itchUpdateService) {
+                    QStringList uploadIds;
+                    for (const ItchUploadInfo &upload : updateInfo.candidateUploads) {
+                        uploadIds.append(upload.id);
+                    }
+                    m_itchUpdateService->ignoreUpdatesForMod(modId, uploadIds);
+                }
+                hideUpdateButton();
+            });
+
             connect(fileModal, &FileSelectionModalContent::accepted, this,
                     [this, fileModal, mod, updateInfo, hideUpdateButton]() {
                 QStringList selectedIds = fileModal->getSelectedIds();
