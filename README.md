@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/ae56c5e2-79ef-431d-9382-4adcbc53401b" width="700">
+  <img src="extras/screenshots/screenshot_01.png" width="700">
 </p>
 
 ## Quick Start
