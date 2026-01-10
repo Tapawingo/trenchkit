@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QList>
 #include <QMap>
+#include <QMutex>
 #include <QString>
 
 class ModManager : public QObject {
@@ -71,6 +72,7 @@ private:
     QString m_foxholeInstallPath;
     QString m_modsStoragePath;
     QList<ModInfo> m_mods;
+    mutable QRecursiveMutex m_modsMutex;
 };
 
 #endif // MODMANAGER_H

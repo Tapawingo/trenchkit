@@ -196,7 +196,19 @@ void NexusModsClient::getDownloadLink(const QString &modId, const QString &fileI
                 clearApiKey();
                 emit errorOccurred(QStringLiteral("Invalid API key. Please authenticate again."));
             } else if (httpStatus == 403) {
-                emit errorOccurred(QStringLiteral("PREMIUM_REQUIRED"));
+                // Parse the error response to check if it's actually a premium requirement
+                QJsonDocument errorDoc = QJsonDocument::fromJson(body);
+                QString errorMessage = errorDoc.object()[QStringLiteral("message")].toString();
+
+                qDebug() << "403 error from Nexus Mods API. Response body:" << body;
+                qDebug() << "Error message:" << errorMessage;
+
+                // Only treat as premium requirement if the error message indicates it
+                if (errorMessage.contains("premium", Qt::CaseInsensitive)) {
+                    emit errorOccurred(QStringLiteral("PREMIUM_REQUIRED"));
+                } else {
+                    emit errorOccurred(formatNetworkError(QStringLiteral("Access denied"), reply, body));
+                }
             } else {
                 emit errorOccurred(formatNetworkError(QStringLiteral("Failed to get download link"), reply, body));
             }
