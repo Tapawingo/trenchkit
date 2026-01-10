@@ -57,6 +57,17 @@ Click the **"Check for Updates"** button to see if newer versions are available 
 
 To enable updates for manually installed mods, right-click the mod and select **"Edit Metadata"** to add the NexusMods or Itch.io information.
 
+## For Mod Makers
+
+Are you creating mods for Foxhole? Check out [MODMAKER.md](MODMAKER.md) for detailed guidance on:
+- How TrenchKit detects mod updates
+- Best practices for version numbering and file naming
+- Platform-specific recommendations (Nexus Mods vs Itch.io)
+- Edge cases and troubleshooting
+- Testing your integration with TrenchKit
+
+This guide helps ensure your users get a smooth update experience!
+
 ### Authentication
 
 #### NexusMods (SSO)
