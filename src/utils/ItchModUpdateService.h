@@ -45,6 +45,8 @@ private:
     void findLatestUpload(const QList<ItchUploadInfo> &uploads,
                          QString &latestVersion, QString &latestUploadId,
                          QDateTime &latestDate) const;
+    QList<ItchUploadInfo> findCandidateUploads(const QList<ItchUploadInfo> &uploads,
+                                               const QDateTime &currentDate) const;
     QString extractVersionFromFilename(const QString &filename) const;
 
     ModManager *m_modManager;

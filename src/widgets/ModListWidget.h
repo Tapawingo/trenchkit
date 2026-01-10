@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QTimer>
+#include <QRegularExpression>
 
 class NexusModsClient;
 class NexusModsAuth;
@@ -66,6 +67,7 @@ private:
     void setupUi();
     QString getSelectedModId() const;
     int getSelectedRow() const;
+    QString extractVersionFromFilename(const QString &filename) const;
 
     ModManager *m_modManager = nullptr;
     NexusModsClient *m_nexusClient = nullptr;

@@ -8,6 +8,7 @@
 #include "../modals/content/ModMetadataModalContent.h"
 #include "../modals/content/ModUpdateModalContent.h"
 #include "../modals/content/ItchModUpdateModalContent.h"
+#include "../modals/content/FileSelectionModalContent.h"
 #include "../utils/Theme.h"
 #include "../utils/ArchiveExtractor.h"
 #include "../utils/ModUpdateService.h"
@@ -548,8 +549,68 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
         m_modalManager->showModal(modal);
     } else if (!mod.itchGameId.isEmpty() && m_itchClient && m_itchUpdateService && m_itchUpdateService->hasUpdate(modId)) {
         ItchUpdateInfo updateInfo = m_itchUpdateService->getUpdateInfo(modId);
-        auto *modal = new ItchModUpdateModalContent(mod, updateInfo, m_modManager, m_itchClient, m_modalManager);
-        connect(modal, &ItchModUpdateModalContent::accepted, this, hideUpdateButton);
-        m_modalManager->showModal(modal);
+
+        if (updateInfo.hasMultipleUploads()) {
+            QList<FileItem> fileItems;
+            for (const ItchUploadInfo &upload : updateInfo.candidateUploads) {
+                fileItems.append({upload.id, upload.filename});
+            }
+
+            auto *fileModal = new FileSelectionModalContent(
+                fileItems,
+                "Select Update File",
+                QString("Multiple update files are available for '%1'. Select one:").arg(mod.name),
+                false
+            );
+
+            connect(fileModal, &FileSelectionModalContent::accepted, this,
+                    [this, fileModal, mod, updateInfo, hideUpdateButton]() {
+                QStringList selectedIds = fileModal->getSelectedIds();
+                if (!selectedIds.isEmpty()) {
+                    QString selectedUploadId = selectedIds.first();
+
+                    ItchUploadInfo selectedUpload;
+                    for (const ItchUploadInfo &upload : updateInfo.candidateUploads) {
+                        if (upload.id == selectedUploadId) {
+                            selectedUpload = upload;
+                            break;
+                        }
+                    }
+
+                    ItchUpdateInfo selectedUpdateInfo = updateInfo;
+                    selectedUpdateInfo.availableUploadId = selectedUpload.id;
+                    selectedUpdateInfo.availableUploadDate =
+                        selectedUpload.updatedAt.isValid() ? selectedUpload.updatedAt : selectedUpload.createdAt;
+                    selectedUpdateInfo.availableVersion = extractVersionFromFilename(selectedUpload.filename);
+                    if (selectedUpdateInfo.availableVersion.isEmpty()) {
+                        selectedUpdateInfo.availableVersion = QString("Updated: %1")
+                            .arg(selectedUpdateInfo.availableUploadDate.toString("yyyy-MM-dd"));
+                    }
+
+                    auto *downloadModal = new ItchModUpdateModalContent(
+                        mod, selectedUpdateInfo, m_modManager, m_itchClient, m_modalManager);
+                    connect(downloadModal, &ItchModUpdateModalContent::accepted,
+                            this, hideUpdateButton);
+                    m_modalManager->showModal(downloadModal);
+                }
+            });
+
+            m_modalManager->showModal(fileModal);
+        } else {
+            auto *modal = new ItchModUpdateModalContent(mod, updateInfo, m_modManager, m_itchClient, m_modalManager);
+            connect(modal, &ItchModUpdateModalContent::accepted, this, hideUpdateButton);
+            m_modalManager->showModal(modal);
+        }
     }
+}
+
+QString ModListWidget::extractVersionFromFilename(const QString &filename) const {
+    static const QRegularExpression versionRegex(R"(v?(\d+\.\d+(?:\.\d+)?))");
+    QRegularExpressionMatch match = versionRegex.match(filename);
+
+    if (match.hasMatch()) {
+        return match.captured(1);
+    }
+
+    return QString();
 }
