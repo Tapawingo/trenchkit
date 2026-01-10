@@ -101,6 +101,9 @@ void ModListWidget::setupUi() {
     connect(m_modList, &DraggableModList::itemsReordered,
             this, &ModListWidget::onItemsReordered);
 
+    connect(m_modList, &DraggableModList::filesDropped,
+            this, &ModListWidget::onFilesDropped);
+
     connect(m_modList, &QListWidget::itemSelectionChanged,
             this, [this]() {
         int selectedRow = getSelectedRow();
@@ -661,4 +664,83 @@ QString ModListWidget::extractVersionFromFilename(const QString &filename) const
     }
 
     return QString();
+}
+
+void ModListWidget::onFilesDropped(const QStringList &filePaths) {
+    if (!m_modManager || !m_modalManager) {
+        return;
+    }
+
+    for (const QString &filePath : filePaths) {
+        if (filePath.endsWith(".zip", Qt::CaseInsensitive)) {
+            handleZipFile(filePath);
+        } else if (filePath.endsWith(".pak", Qt::CaseInsensitive)) {
+            handlePakFile(filePath);
+        }
+    }
+}
+
+void ModListWidget::handlePakFile(const QString &pakPath) {
+    QFileInfo fileInfo(pakPath);
+    QString modName = fileInfo.baseName();
+
+    if (!m_modManager->addMod(pakPath, modName)) {
+        MessageModal::warning(m_modalManager, "Error",
+                            "Failed to add mod: " + modName);
+    } else {
+        emit modAdded(modName);
+    }
+}
+
+void ModListWidget::handleZipFile(const QString &zipPath) {
+    ArchiveExtractor extractor;
+    auto result = extractor.extractPakFiles(zipPath);
+
+    if (!result.success) {
+        MessageModal::warning(m_modalManager, "Error", result.error);
+        return;
+    }
+
+    if (result.pakFiles.isEmpty()) {
+        MessageModal::warning(m_modalManager, "Error",
+                            "No .pak files found in archive");
+        ArchiveExtractor::cleanupTempDir(result.tempDir);
+        return;
+    }
+
+    if (result.pakFiles.size() == 1) {
+        handlePakFile(result.pakFiles.first());
+        ArchiveExtractor::cleanupTempDir(result.tempDir);
+    } else {
+        QStringList fileNames;
+        for (const QString &path : result.pakFiles) {
+            fileNames.append(QFileInfo(path).fileName());
+        }
+
+        auto *fileModal = new FileSelectionModalContent(
+            fileNames, QFileInfo(zipPath).fileName(), true);
+
+        connect(fileModal, &FileSelectionModalContent::accepted,
+                this, [this, fileModal, result]() {
+            QStringList selectedFileNames = fileModal->getSelectedFiles();
+
+            for (const QString &fileName : selectedFileNames) {
+                for (const QString &path : result.pakFiles) {
+                    if (QFileInfo(path).fileName() == fileName) {
+                        handlePakFile(path);
+                        break;
+                    }
+                }
+            }
+
+            ArchiveExtractor::cleanupTempDir(result.tempDir);
+        });
+
+        connect(fileModal, &FileSelectionModalContent::rejected,
+                this, [result]() {
+            ArchiveExtractor::cleanupTempDir(result.tempDir);
+        });
+
+        m_modalManager->showModal(fileModal);
+    }
 }
