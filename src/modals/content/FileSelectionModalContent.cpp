@@ -12,6 +12,7 @@ FileSelectionModalContent::FileSelectionModalContent(const QStringList &pakFiles
     : BaseModalContent(parent)
     , m_multiSelect(multiSelect)
     , m_useFileItems(false)
+    , m_showIgnoreButton(false)
 {
     setTitle("Select .pak File");
 
@@ -39,11 +40,13 @@ FileSelectionModalContent::FileSelectionModalContent(const QList<FileItem> &item
                                                     const QString &title,
                                                     const QString &headerText,
                                                     bool multiSelect,
+                                                    bool showIgnoreButton,
                                                     QWidget *parent)
     : BaseModalContent(parent)
     , m_fileItems(items)
     , m_multiSelect(multiSelect)
     , m_useFileItems(true)
+    , m_showIgnoreButton(showIgnoreButton)
 {
     setTitle(title);
     setupUi(headerText);
@@ -75,6 +78,14 @@ void FileSelectionModalContent::setupUi(const QString &headerText) {
 
     applyListStyling();
     bodyLayout()->addWidget(m_fileList);
+
+    // Add ignore button if requested (insert at position 0, before the existing stretch)
+    if (m_showIgnoreButton) {
+        m_ignoreButton = new QPushButton("Ignore These Updates", this);
+        m_ignoreButton->setCursor(Qt::PointingHandCursor);
+        connect(m_ignoreButton, &QPushButton::clicked, this, &FileSelectionModalContent::ignoreAll);
+        footerLayout()->insertWidget(0, m_ignoreButton);
+    }
 
     m_okButton = new QPushButton("OK", this);
     m_okButton->setCursor(Qt::PointingHandCursor);
@@ -164,4 +175,9 @@ void FileSelectionModalContent::accept() {
             }
         }
     }
+}
+
+void FileSelectionModalContent::ignoreAll() {
+    emit allIgnored();
+    reject();
 }

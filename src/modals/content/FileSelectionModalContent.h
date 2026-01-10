@@ -28,6 +28,7 @@ public:
                                       const QString &title,
                                       const QString &headerText,
                                       bool multiSelect = false,
+                                      bool showIgnoreButton = false,
                                       QWidget *parent = nullptr);
 
     QString getSelectedFile() const { return m_selectedFile; }
@@ -36,6 +37,10 @@ public:
 
 public slots:
     void accept() override;
+    void ignoreAll();
+
+signals:
+    void allIgnored();
 
 private:
     void setupUi(const QString &headerText);
@@ -43,12 +48,14 @@ private:
 
     QListWidget *m_fileList;
     QPushButton *m_okButton;
+    QPushButton *m_ignoreButton;
     QString m_selectedFile;
     QStringList m_selectedFiles;
     QStringList m_selectedIds;
     QList<FileItem> m_fileItems;
     bool m_multiSelect;
     bool m_useFileItems;
+    bool m_showIgnoreButton;
 };
 
 #endif // FILESELECTIONMODALCONTENT_H

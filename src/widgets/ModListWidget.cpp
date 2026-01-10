@@ -592,11 +592,12 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
                 fileItems,
                 "Select Update File",
                 QString("Multiple update files are available for '%1'. Select one:").arg(mod.name),
-                false
+                false,
+                true  // Show "Ignore These Updates" button
             );
 
-            // If user cancels, mark all these uploads as ignored and hide the update button
-            connect(fileModal, &FileSelectionModalContent::rejected, this,
+            // If user clicks "Ignore These Updates", mark all these uploads as ignored and hide the update button
+            connect(fileModal, &FileSelectionModalContent::allIgnored, this,
                     [this, modId, updateInfo, hideUpdateButton]() {
                 if (m_itchUpdateService) {
                     QStringList uploadIds;
