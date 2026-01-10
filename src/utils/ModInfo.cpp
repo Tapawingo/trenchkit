@@ -1,4 +1,5 @@
 #include "ModInfo.h"
+#include <QJsonArray>
 
 QJsonObject ModInfo::toJson() const {
     QJsonObject json;
@@ -31,6 +32,13 @@ QJsonObject ModInfo::toJson() const {
     }
     if (!description.isEmpty()) {
         json["description"] = description;
+    }
+    if (!ignoredItchUploadIds.isEmpty()) {
+        QJsonArray ignoredArray;
+        for (const QString &uploadId : ignoredItchUploadIds) {
+            ignoredArray.append(uploadId);
+        }
+        json["ignoredItchUploadIds"] = ignoredArray;
     }
 
     return json;
@@ -67,6 +75,12 @@ ModInfo ModInfo::fromJson(const QJsonObject &json) {
     }
     if (json.contains("description")) {
         mod.description = json["description"].toString();
+    }
+    if (json.contains("ignoredItchUploadIds")) {
+        QJsonArray ignoredArray = json["ignoredItchUploadIds"].toArray();
+        for (const QJsonValue &value : ignoredArray) {
+            mod.ignoredItchUploadIds.append(value.toString());
+        }
     }
 
     return mod;

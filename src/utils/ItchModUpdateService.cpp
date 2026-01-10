@@ -4,6 +4,7 @@
 #include "ItchUploadInfo.h"
 #include <QRegularExpression>
 #include <QDebug>
+#include <algorithm>
 
 ItchModUpdateService::ItchModUpdateService(ModManager *modManager,
                                          ItchClient *itchClient,
@@ -123,26 +124,12 @@ void ItchModUpdateService::onUploadsReceived(const QList<ItchUploadInfo> &upload
     }
 
     const ModInfo &mod = m_modsToCheck[m_currentModIndex];
-
-    QString latestVersion;
-    QString latestUploadId;
-    QDateTime latestDate;
-
-    findLatestUpload(uploads, latestVersion, latestUploadId, latestDate);
-
     QDateTime currentDate = mod.uploadDate.isValid() ? mod.uploadDate : mod.installDate;
-    QString currentVersion = mod.version;
 
-    if (isUpdateAvailable(currentDate, latestDate)) {
-        ItchUpdateInfo updateInfo(
-            mod.id,
-            currentVersion,
-            latestVersion,
-            latestUploadId,
-            currentDate,
-            latestDate
-        );
+    QList<ItchUploadInfo> candidateUploads = findCandidateUploads(uploads, currentDate, mod.ignoredItchUploadIds);
 
+    if (!candidateUploads.isEmpty()) {
+        ItchUpdateInfo updateInfo(mod.id, mod.version, currentDate, candidateUploads);
         m_updateCache[mod.id] = updateInfo;
         emit updateFound(mod.id, updateInfo);
         m_updatesFound++;
@@ -170,6 +157,26 @@ bool ItchModUpdateService::hasUpdate(const QString &modId) const {
 
 ItchUpdateInfo ItchModUpdateService::getUpdateInfo(const QString &modId) const {
     return m_updateCache.value(modId);
+}
+
+void ItchModUpdateService::ignoreUpdatesForMod(const QString &modId, const QStringList &uploadIds) {
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    // Add upload IDs to ignore list (avoid duplicates)
+    for (const QString &uploadId : uploadIds) {
+        if (!mod.ignoredItchUploadIds.contains(uploadId)) {
+            mod.ignoredItchUploadIds.append(uploadId);
+        }
+    }
+
+    // Save the updated mod
+    m_modManager->updateModMetadata(mod);
+
+    // Remove from update cache so it won't show as having an update
+    m_updateCache.remove(modId);
 }
 
 bool ItchModUpdateService::isUpdateAvailable(const QDateTime &currentDate, const QDateTime &availableDate) const {
@@ -205,6 +212,36 @@ void ItchModUpdateService::findLatestUpload(const QList<ItchUploadInfo> &uploads
             latestVersion = QStringLiteral("Updated: %1").arg(latestDate.toString(QStringLiteral("yyyy-MM-dd")));
         }
     }
+}
+
+QList<ItchUploadInfo> ItchModUpdateService::findCandidateUploads(
+    const QList<ItchUploadInfo> &uploads,
+    const QDateTime &currentDate,
+    const QStringList &ignoredUploadIds) const
+{
+    QList<ItchUploadInfo> candidates;
+
+    for (const ItchUploadInfo &upload : uploads) {
+        // Skip ignored uploads
+        if (ignoredUploadIds.contains(upload.id)) {
+            continue;
+        }
+
+        QDateTime uploadDate = upload.updatedAt.isValid() ? upload.updatedAt : upload.createdAt;
+
+        if (isUpdateAvailable(currentDate, uploadDate)) {
+            candidates.append(upload);
+        }
+    }
+
+    std::sort(candidates.begin(), candidates.end(),
+              [](const ItchUploadInfo &a, const ItchUploadInfo &b) {
+        QDateTime dateA = a.updatedAt.isValid() ? a.updatedAt : a.createdAt;
+        QDateTime dateB = b.updatedAt.isValid() ? b.updatedAt : b.createdAt;
+        return dateA > dateB;
+    });
+
+    return candidates;
 }
 
 QString ItchModUpdateService::extractVersionFromFilename(const QString &filename) const {

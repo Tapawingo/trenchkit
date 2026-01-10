@@ -306,6 +306,7 @@ bool ModManager::updateModMetadata(const ModInfo &updatedMod) {
     it->installDate = updatedMod.installDate;
     it->uploadDate = updatedMod.uploadDate;
     it->fileName = updatedMod.fileName;
+    it->ignoredItchUploadIds = updatedMod.ignoredItchUploadIds;
 
     if (fileNameChanged) {
         QString oldPath = m_modsStoragePath + "/" + oldFileName;

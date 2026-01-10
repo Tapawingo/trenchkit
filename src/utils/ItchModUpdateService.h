@@ -22,6 +22,7 @@ public:
 
     bool hasUpdate(const QString &modId) const;
     ItchUpdateInfo getUpdateInfo(const QString &modId) const;
+    void ignoreUpdatesForMod(const QString &modId, const QStringList &uploadIds);
 
 public slots:
     void checkAllModsForUpdates();
@@ -45,6 +46,9 @@ private:
     void findLatestUpload(const QList<ItchUploadInfo> &uploads,
                          QString &latestVersion, QString &latestUploadId,
                          QDateTime &latestDate) const;
+    QList<ItchUploadInfo> findCandidateUploads(const QList<ItchUploadInfo> &uploads,
+                                               const QDateTime &currentDate,
+                                               const QStringList &ignoredUploadIds) const;
     QString extractVersionFromFilename(const QString &filename) const;
 
     ModManager *m_modManager;
