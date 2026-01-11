@@ -92,7 +92,7 @@ private slots:
         }
 
         const QString outputDir = QDir(tempDir.path()).filePath("out");
-        QVERIFY(UpdateArchiveExtractor::extractZip(zipPath, outputDir, &error));
+        QVERIFY(UpdateArchiveExtractor::extractArchive(zipPath, outputDir, &error));
 
         QFileInfo extractedApp(QDir(outputDir).filePath("bin/app.exe"));
         QVERIFY(extractedApp.exists());

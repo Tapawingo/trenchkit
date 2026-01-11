@@ -38,6 +38,31 @@ target_compile_options(zip PRIVATE
   $<$<AND:$<COMPILE_LANGUAGE:C>,$<NOT:$<C_COMPILER_ID:MSVC>>>:-Wno-error>
 )
 
+# Fetch libarchive for multi-format archive extraction (BSD license)
+FetchContent_Declare(
+  libarchive
+  GIT_REPOSITORY https://github.com/libarchive/libarchive.git
+  GIT_TAG v3.7.4
+)
+
+set(ENABLE_TAR ON)
+set(ENABLE_CPIO OFF)
+set(ENABLE_CAT OFF)
+set(ENABLE_TEST OFF)
+set(ENABLE_INSTALL OFF)
+set(ENABLE_STATIC ON)
+set(ENABLE_SHARED OFF)
+set(ENABLE_ACL OFF)
+set(ENABLE_XATTR OFF)
+
+FetchContent_MakeAvailable(libarchive)
+
+set_target_properties(archive_static PROPERTIES
+  AUTOMOC OFF
+  AUTOUIC OFF
+  AUTORCC OFF
+)
+
 qt_standard_project_setup()
 
 add_subdirectory(updater)

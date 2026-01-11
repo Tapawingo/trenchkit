@@ -136,6 +136,7 @@ target_link_libraries(TrenchKit
     Qt6::Concurrent
     Qt6::WebSockets
     zip
+    archive_static
 )
 
 target_include_directories(TrenchKit
@@ -172,6 +173,17 @@ if(WIN32)
             $<TARGET_FILE_DIR:TrenchKit>
         COMMENT "Copying updater helper to output directory"
     )
+
+    # Copy zip DLL if it exists
+    set(ZIP_DLL_PATH "${CMAKE_BINARY_DIR}/_deps/zip-build/libzip.dll")
+    if(EXISTS "${ZIP_DLL_PATH}")
+        add_custom_command(TARGET TrenchKit POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${ZIP_DLL_PATH}"
+                $<TARGET_FILE_DIR:TrenchKit>
+            COMMENT "Copying libzip.dll to output directory"
+        )
+    endif()
 
     # Qt DLLs
     set(QT_BIN_DIR "${Qt6_DIR}/../../../bin")

@@ -80,24 +80,37 @@ void AddModModalContent::onFromFileClicked() {
         this,
         "Select Mod File",
         QString(),
-        "Mod Files (*.pak *.zip);;Pak Files (*.pak);;Zip Files (*.zip);;All Files (*.*)"
+        "Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+        "Pak Files (*.pak);;"
+        "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+        "All Files (*.*)"
     );
 
     if (filePath.isEmpty()) {
         return;
     }
 
-    if (filePath.endsWith(".zip", Qt::CaseInsensitive)) {
-        handleZipFile(filePath);
+    if (isArchiveFile(filePath)) {
+        handleArchiveFile(filePath);
     } else {
         handlePakFile(filePath);
     }
 }
 
-void AddModModalContent::handleZipFile(const QString &zipPath, const QString &nexusModId, const QString &nexusFileId,
-                                       const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QDateTime &uploadDate) {
+bool AddModModalContent::isArchiveFile(const QString &filePath) const {
+    QString lower = filePath.toLower();
+    return lower.endsWith(".zip") ||
+           lower.endsWith(".rar") ||
+           lower.endsWith(".7z") ||
+           lower.endsWith(".tar.gz") ||
+           lower.endsWith(".tar.bz2") ||
+           lower.endsWith(".tar.xz");
+}
+
+void AddModModalContent::handleArchiveFile(const QString &archivePath, const QString &nexusModId, const QString &nexusFileId,
+                                           const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QDateTime &uploadDate) {
     ArchiveExtractor extractor;
-    auto result = extractor.extractPakFiles(zipPath);
+    auto result = extractor.extractPakFiles(archivePath);
 
     if (!result.success) {
         MessageModal::warning(m_modalManager, "Error", result.error);
@@ -130,8 +143,8 @@ void AddModModalContent::handleZipFile(const QString &zipPath, const QString &ne
             fileNames.append(QFileInfo(path).fileName());
         }
 
-        auto *fileModal = new FileSelectionModalContent(fileNames, QFileInfo(zipPath).fileName(), true);
-        connect(fileModal, &FileSelectionModalContent::accepted, this, [this, fileModal, result, nexusModId, nexusFileId, author, description, version, itchGameId, uploadDate]() {
+        auto *fileModal = new FileSelectionModalContent(fileNames, QFileInfo(archivePath).fileName(), true);
+        connect(fileModal, &FileSelectionModalContent::accepted, this, [this, result, fileModal, nexusModId, nexusFileId, author, description, version, itchGameId, uploadDate]() {
             QStringList selectedFileNames = fileModal->getSelectedFiles();
             QStringList selectedPaks;
 
@@ -205,8 +218,8 @@ void AddModModalContent::onFromNexusClicked() {
                 version = files[i].version;
             }
 
-            if (filePath.endsWith(".zip", Qt::CaseInsensitive)) {
-                handleZipFile(filePath, nexusModId, nexusFileId, author, description, version);
+            if (isArchiveFile(filePath)) {
+                handleArchiveFile(filePath, nexusModId, nexusFileId, author, description, version);
             } else {
                 handlePakFile(filePath, nexusModId, nexusFileId, author, description, version);
             }
@@ -258,8 +271,8 @@ void AddModModalContent::onFromItchClicked() {
                 uploadDate = uploads[i].updatedAt.isValid() ? uploads[i].updatedAt : uploads[i].createdAt;
             }
 
-            if (filePath.endsWith(".zip", Qt::CaseInsensitive)) {
-                handleZipFile(filePath, "", "", author, gameTitle, "", itchGameId, uploadDate);
+            if (isArchiveFile(filePath)) {
+                handleArchiveFile(filePath, "", "", author, gameTitle, "", itchGameId, uploadDate);
             } else {
                 handlePakFile(filePath, "", "", author, gameTitle, "", itchGameId, modName, uploadDate);
             }

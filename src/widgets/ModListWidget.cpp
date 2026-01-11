@@ -672,10 +672,10 @@ void ModListWidget::onFilesDropped(const QStringList &filePaths) {
     }
 
     for (const QString &filePath : filePaths) {
-        if (filePath.endsWith(".zip", Qt::CaseInsensitive)) {
-            handleZipFile(filePath);
-        } else if (filePath.endsWith(".pak", Qt::CaseInsensitive)) {
+        if (filePath.endsWith(".pak", Qt::CaseInsensitive)) {
             handlePakFile(filePath);
+        } else if (isArchiveFile(filePath)) {
+            handleArchiveFile(filePath);
         }
     }
 }
@@ -692,9 +692,19 @@ void ModListWidget::handlePakFile(const QString &pakPath) {
     }
 }
 
-void ModListWidget::handleZipFile(const QString &zipPath) {
+bool ModListWidget::isArchiveFile(const QString &filePath) const {
+    QString lower = filePath.toLower();
+    return lower.endsWith(".zip") ||
+           lower.endsWith(".rar") ||
+           lower.endsWith(".7z") ||
+           lower.endsWith(".tar.gz") ||
+           lower.endsWith(".tar.bz2") ||
+           lower.endsWith(".tar.xz");
+}
+
+void ModListWidget::handleArchiveFile(const QString &archivePath) {
     ArchiveExtractor extractor;
-    auto result = extractor.extractPakFiles(zipPath);
+    auto result = extractor.extractPakFiles(archivePath);
 
     if (!result.success) {
         MessageModal::warning(m_modalManager, "Error", result.error);
@@ -718,10 +728,10 @@ void ModListWidget::handleZipFile(const QString &zipPath) {
         }
 
         auto *fileModal = new FileSelectionModalContent(
-            fileNames, QFileInfo(zipPath).fileName(), true);
+            fileNames, QFileInfo(archivePath).fileName(), true);
 
         connect(fileModal, &FileSelectionModalContent::accepted,
-                this, [this, fileModal, result]() {
+                this, [this, result, fileModal]() {
             QStringList selectedFileNames = fileModal->getSelectedFiles();
 
             for (const QString &fileName : selectedFileNames) {

@@ -61,8 +61,8 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
     setProperty("selected", false);
 
-    connect(m_enabledCheckBox, &QCheckBox::stateChanged,
-            this, [this](int state) {
+    connect(m_enabledCheckBox, &QCheckBox::checkStateChanged,
+            this, [this](Qt::CheckState state) {
         emit enabledChanged(m_modId, state == Qt::Checked);
     });
 

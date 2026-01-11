@@ -13,6 +13,8 @@ qt_add_executable(tests_utilities
 target_include_directories(tests_utilities
   PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/_deps/zip-src/src
+    ${CMAKE_BINARY_DIR}/_deps/libarchive-src/libarchive/.
 )
 
 target_link_libraries(tests_utilities
@@ -21,11 +23,23 @@ target_link_libraries(tests_utilities
     Qt6::Network
     Qt6::Concurrent
     zip
+    archive_static
 )
 
 add_test(NAME tests_utilities COMMAND tests_utilities)
 
 if(WIN32)
+  # Copy zip DLL if it exists
+  set(ZIP_DLL_PATH "${CMAKE_BINARY_DIR}/_deps/zip-build/libzip.dll")
+  if(EXISTS "${ZIP_DLL_PATH}")
+    add_custom_command(TARGET tests_utilities POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${ZIP_DLL_PATH}"
+        $<TARGET_FILE_DIR:tests_utilities>
+      COMMENT "Copying libzip.dll for tests_utilities"
+    )
+  endif()
+
   set(QT_BIN_DIR "${Qt6_DIR}/../../../bin")
   set(QT_TEST_DLLS "")
   foreach(QT_DLL_NAME

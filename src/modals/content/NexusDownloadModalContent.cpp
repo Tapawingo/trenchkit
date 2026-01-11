@@ -395,7 +395,10 @@ void NexusDownloadModalContent::onError(const QString &error) {
                             this,
                             "Select Downloaded File",
                             QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
-                            "Mod Files (*.pak *.zip);;All Files (*.*)"
+                            "Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+                            "Pak Files (*.pak);;"
+                            "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+                            "All Files (*.*)"
                         );
 
                         if (!filePath.isEmpty()) {

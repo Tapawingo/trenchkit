@@ -70,7 +70,8 @@ private:
     int getSelectedRow() const;
     QString extractVersionFromFilename(const QString &filename) const;
     void handlePakFile(const QString &pakPath);
-    void handleZipFile(const QString &zipPath);
+    void handleArchiveFile(const QString &archivePath);
+    bool isArchiveFile(const QString &filePath) const;
 
     ModManager *m_modManager = nullptr;
     NexusModsClient *m_nexusClient = nullptr;

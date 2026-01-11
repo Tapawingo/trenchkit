@@ -26,6 +26,13 @@ signals:
     void errorOccurred(const QString &error);
 
 private:
+    enum class ArchiveFormat {
+        Zip, Rar, SevenZip, TarGz, TarBz2, TarXz, Unknown
+    };
+
+    ArchiveFormat detectFormat(const QString &filePath) const;
+    ExtractResult extractWithLibarchive(const QString &archivePath);
+    ExtractResult extractWithZip(const QString &archivePath);
     bool isPakFile(const QString &fileName) const;
     QString createTempDir() const;
 };

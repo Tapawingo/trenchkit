@@ -68,6 +68,12 @@ void DraggableModList::dropEvent(QDropEvent *event) {
 }
 
 bool DraggableModList::isValidModFile(const QString &filePath) const {
-    return filePath.endsWith(".pak", Qt::CaseInsensitive) ||
-           filePath.endsWith(".zip", Qt::CaseInsensitive);
+    QString lower = filePath.toLower();
+    return lower.endsWith(".pak") ||
+           lower.endsWith(".zip") ||
+           lower.endsWith(".rar") ||
+           lower.endsWith(".7z") ||
+           lower.endsWith(".tar.gz") ||
+           lower.endsWith(".tar.bz2") ||
+           lower.endsWith(".tar.xz");
 }

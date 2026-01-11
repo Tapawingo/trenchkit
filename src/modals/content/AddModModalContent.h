@@ -36,12 +36,13 @@ private slots:
 
 private:
     void setupUi();
-    void handleZipFile(const QString &zipPath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
-                       const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
-                       const QString &itchGameId = QString(), const QDateTime &uploadDate = QDateTime());
+    void handleArchiveFile(const QString &archivePath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
+                           const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
+                           const QString &itchGameId = QString(), const QDateTime &uploadDate = QDateTime());
     void handlePakFile(const QString &pakPath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
                        const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
                        const QString &itchGameId = QString(), const QString &customModName = QString(), const QDateTime &uploadDate = QDateTime());
+    bool isArchiveFile(const QString &filePath) const;
 
     ModManager *m_modManager;
     NexusModsClient *m_nexusClient;

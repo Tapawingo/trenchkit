@@ -4,5 +4,13 @@
 
 class UpdateArchiveExtractor {
 public:
-    static bool extractZip(const QString &zipPath, const QString &destDir, QString *error);
+    static bool extractArchive(const QString &archivePath, const QString &destDir, QString *error);
+
+private:
+    static bool extractWithLibarchive(const QString &archivePath,
+                                     const QString &destDir,
+                                     QString *error);
+    static bool extractWithZip(const QString &archivePath,
+                              const QString &destDir,
+                              QString *error);
 };

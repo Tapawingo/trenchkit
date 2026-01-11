@@ -645,7 +645,7 @@ bool MainWindow::stageUpdate(const QString &archivePath,
     }
 
     QString extractError;
-    if (!UpdateArchiveExtractor::extractZip(archivePath, stagingDir, &extractError)) {
+    if (!UpdateArchiveExtractor::extractArchive(archivePath, stagingDir, &extractError)) {
         if (error) {
             *error = QString("Failed to extract update: %1").arg(extractError);
         }

@@ -43,8 +43,11 @@ static void cleanupArchives(const QDir &updatesDir) {
         "*.zip",
         "*.pak",
         "*.7z",
+        "*.rar",
         "*.tar",
-        "*.tar.gz"
+        "*.tar.gz",
+        "*.tar.bz2",
+        "*.tar.xz"
     };
 
     QFileInfoList entries = updatesDir.entryInfoList(
