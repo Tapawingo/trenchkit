@@ -34,6 +34,7 @@
 - Install mod from Nexusmods
 - Install mod from Itch.io
 - Check for mod updates
+- Check for mod conflicts
 
 ## Usage Guide
 
@@ -88,10 +89,6 @@ To download mods from Itch.io, you need an API key:
 5. Click **"Add API Key"** and paste your key
 
 **Note:** Keep your API key private. It grants access to your itch.io account.
-
-## Planned Features
-- Create mod development environment
-- Bundle mod development tools ([UE Viewer](https://github.com/gildor2/UEViewer))
 
 ## Goals
 - Make enabling/disabling mods simple
