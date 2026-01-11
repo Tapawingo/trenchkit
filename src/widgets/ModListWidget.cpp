@@ -9,12 +9,14 @@
 #include "../modals/content/ModUpdateModalContent.h"
 #include "../modals/content/ItchModUpdateModalContent.h"
 #include "../modals/content/FileSelectionModalContent.h"
+#include "../modals/content/ConflictDetailModalContent.h"
 #include "../utils/Theme.h"
 #include "../utils/ArchiveExtractor.h"
 #include "../utils/ModUpdateService.h"
 #include "../utils/ModUpdateInfo.h"
 #include "../utils/ItchModUpdateService.h"
 #include "../utils/ItchUpdateInfo.h"
+#include "../utils/ModConflictDetector.h"
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QHBoxLayout>
@@ -29,6 +31,7 @@ ModListWidget::ModListWidget(QWidget *parent)
     , m_loadingLabel(new QLabel(this))
     , m_modCountLabel(new QLabel(this))
     , m_loadingTimer(new QTimer(this))
+    , m_conflictDetector(nullptr)
 {
     setupUi();
 
@@ -56,7 +59,17 @@ void ModListWidget::setModManager(ModManager *modManager) {
             }
         });
 
+        if (!m_conflictDetector) {
+            m_conflictDetector = new ModConflictDetector(m_modManager, this);
+            connect(m_conflictDetector, &ModConflictDetector::scanComplete,
+                    this, &ModListWidget::onConflictScanComplete);
+        }
+
+        connect(m_modManager, &ModManager::modsChanged,
+                m_conflictDetector, &ModConflictDetector::scanForConflicts);
+
         refreshModList();
+        m_conflictDetector->scanForConflicts();
     }
 }
 
@@ -148,9 +161,16 @@ void ModListWidget::refreshModList() {
                 this, &ModListWidget::onRemoveRequested);
         connect(modRow, &ModRowWidget::updateRequested,
                 this, &ModListWidget::onUpdateRequested);
+        connect(modRow, &ModRowWidget::conflictDetailsRequested,
+                this, &ModListWidget::onConflictDetailsRequested);
 
         auto *item = new QListWidgetItem(m_modList);
-        item->setSizeHint(modRow->sizeHint());
+        QSize rowSize = modRow->sizeHint();
+        int rowWidth = m_modList->viewport()->width();
+        if (rowWidth > 0) {
+            rowSize.setWidth(rowWidth);
+        }
+        item->setSizeHint(rowSize);
         item->setData(Qt::UserRole, mod.id);
 
         m_modList->addItem(item);
@@ -164,6 +184,11 @@ void ModListWidget::refreshModList() {
             modRow->setUpdateAvailable(true, updateInfo.availableVersion);
         }
 
+        if (m_conflictDetector) {
+            ConflictInfo conflictInfo = m_conflictDetector->getConflictInfo(mod.id);
+            modRow->setConflictInfo(conflictInfo);
+        }
+
         modRow->setSelected(i == currentRow);
     }
 
@@ -172,6 +197,31 @@ void ModListWidget::refreshModList() {
     }
 
     m_updating = false;
+}
+
+void ModListWidget::resizeEvent(QResizeEvent *event) {
+    QWidget::resizeEvent(event);
+
+    if (!m_modList) {
+        return;
+    }
+
+    int rowWidth = m_modList->viewport()->width();
+    if (rowWidth <= 0) {
+        return;
+    }
+
+    for (int i = 0; i < m_modList->count(); ++i) {
+        QListWidgetItem *item = m_modList->item(i);
+        if (!item) {
+            continue;
+        }
+        QSize rowSize = item->sizeHint();
+        if (rowSize.width() != rowWidth) {
+            rowSize.setWidth(rowWidth);
+            item->setSizeHint(rowSize);
+        }
+    }
 }
 
 void ModListWidget::onModsChanged() {
@@ -753,4 +803,39 @@ void ModListWidget::handleArchiveFile(const QString &archivePath) {
 
         m_modalManager->showModal(fileModal);
     }
+}
+
+void ModListWidget::onConflictScanComplete(QMap<QString, ConflictInfo> conflicts) {
+    for (int i = 0; i < m_modList->count(); ++i) {
+        QListWidgetItem *item = m_modList->item(i);
+        if (!item) {
+            continue;
+        }
+
+        auto *rowWidget = qobject_cast<ModRowWidget*>(m_modList->itemWidget(item));
+        if (rowWidget) {
+            QString modId = rowWidget->modId();
+            ConflictInfo info = conflicts.value(modId);
+            rowWidget->setConflictInfo(info);
+        }
+    }
+}
+
+void ModListWidget::onConflictDetailsRequested(const QString &modId) {
+    if (!m_modManager || !m_modalManager || !m_conflictDetector) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    ConflictInfo conflictInfo = m_conflictDetector->getConflictInfo(modId);
+    if (!conflictInfo.hasConflicts()) {
+        return;
+    }
+
+    auto *modal = new ConflictDetailModalContent(mod.name, conflictInfo);
+    m_modalManager->showModal(modal);
 }

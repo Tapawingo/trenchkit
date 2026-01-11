@@ -267,6 +267,29 @@ QString Theme::getStyleSheet() {
             color: #888888;
             margin-left: 28px;
         }
+        QPushButton#modUpdateButton {
+            background: transparent;
+            border: none;
+            padding: 4px;
+        }
+        QPushButton#modUpdateButton:hover {
+            background: rgba(61, 64, 46, 0.6);
+            border-radius: 4px;
+        }
+        QPushButton#modConflictButton {
+            background: transparent;
+            border: none;
+            padding: 4px;
+        }
+        QPushButton#modConflictButton:hover {
+            background: rgba(232, 17, 35, 0.1);
+            border-radius: 4px;
+        }
+        #conflictTooltipLabel {
+            color: #e1d0ab;
+            font-size: 12px;
+            padding: 6px 8px;
+        }
 
         /* ===== RIGHT PANEL WIDGET ===== */
         #modActionsTitle, #launchTitle, #backupTitle, #activityLogTitle {

@@ -11,6 +11,7 @@
         <file alias="icon_checkmark.png">../extras/icons/icon_checkmark.png</file>
         <file alias="icon_settings.png">../extras/icons/icon_settings.png</file>
         <file alias="icon_update.png">../extras/icons/icon_update.png</file>
+        <file alias="icon_conflict.png">../extras/icons/icon_conflict.png</file>
         <file alias="tex_main.png">../extras/textures/tex_main.png</file>
         <file alias="tex_panel.png">../extras/textures/tex_panel.png</file>
         <file alias="tex_container.png">../extras/textures/tex_container.png</file>

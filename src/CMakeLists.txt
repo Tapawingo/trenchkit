@@ -19,6 +19,8 @@ qt_add_executable(TrenchKit
   widgets/DraggableModList.cpp
   widgets/ModRowWidget.h
   widgets/ModRowWidget.cpp
+  widgets/ConflictTooltip.h
+  widgets/ConflictTooltip.cpp
   widgets/ProfileRowWidget.h
   widgets/ProfileRowWidget.cpp
   widgets/RightPanelWidget.h
@@ -83,6 +85,10 @@ qt_add_executable(TrenchKit
   utils/ItchUpdateInfo.h
   utils/ItchModUpdateService.h
   utils/ItchModUpdateService.cpp
+  utils/PakFileReader.h
+  utils/PakFileReader.cpp
+  utils/ModConflictDetector.h
+  utils/ModConflictDetector.cpp
 
   # Modals
   modals/ModalManager.h
@@ -115,6 +121,8 @@ qt_add_executable(TrenchKit
   modals/content/ItchDownloadModalContent.cpp
   modals/content/AddModModalContent.h
   modals/content/AddModModalContent.cpp
+  modals/content/ConflictDetailModalContent.h
+  modals/content/ConflictDetailModalContent.cpp
 
   resources.qrc
   app.rc
