@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QPushButton>
 
+class ConflictTooltip;
 struct ConflictInfo;
 
 class ModRowWidget : public QWidget {
@@ -34,6 +35,7 @@ signals:
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
 private:
@@ -47,6 +49,8 @@ private:
     QLabel *m_dateLabel;
     QPushButton *m_updateButton;
     QPushButton *m_conflictButton;
+    ConflictTooltip *m_conflictTooltip = nullptr;
+    QString m_conflictTooltipText;
     bool m_selected = false;
 };
 

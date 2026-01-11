@@ -1,4 +1,5 @@
 #include "ModRowWidget.h"
+#include "ConflictTooltip.h"
 #include "../utils/Theme.h"
 #include "../utils/ModConflictDetector.h"
 #include <QVBoxLayout>
@@ -6,6 +7,7 @@
 #include <QStyle>
 #include <QMenu>
 #include <QContextMenuEvent>
+#include <QEvent>
 
 ModRowWidget::ModRowWidget(const ModInfo &mod, QWidget *parent)
     : QWidget(parent)
@@ -51,6 +53,25 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
     mainLayout->addLayout(leftSection, 1);
 
+    m_conflictButton = new QPushButton(this);
+    m_conflictButton->setObjectName("modConflictButton");
+    m_conflictButton->setVisible(false);
+    m_conflictButton->setIcon(QIcon(":/icon_conflict.png"));
+    m_conflictButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    m_conflictButton->setCursor(Qt::PointingHandCursor);
+    m_conflictButton->setFlat(true);
+    m_conflictButton->setFocusPolicy(Qt::NoFocus);
+
+    m_conflictTooltip = new ConflictTooltip(this);
+    m_conflictTooltip->hide();
+    m_conflictButton->installEventFilter(this);
+
+    connect(m_conflictButton, &QPushButton::clicked, this, [this]() {
+        emit conflictDetailsRequested(m_modId);
+    });
+
+    mainLayout->addWidget(m_conflictButton);
+
     m_updateButton = new QPushButton(this);
     m_updateButton->setObjectName("modUpdateButton");
     m_updateButton->setVisible(false);
@@ -59,21 +80,6 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     m_updateButton->setCursor(Qt::PointingHandCursor);
 
     mainLayout->addWidget(m_updateButton);
-
-    m_conflictButton = new QPushButton(this);
-    m_conflictButton->setObjectName("modConflictButton");
-    m_conflictButton->setVisible(false);
-    m_conflictButton->setIcon(QIcon(":/icon_warning.png"));
-    m_conflictButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    m_conflictButton->setCursor(Qt::PointingHandCursor);
-    m_conflictButton->setFlat(true);
-    m_conflictButton->setFocusPolicy(Qt::NoFocus);
-
-    connect(m_conflictButton, &QPushButton::clicked, this, [this]() {
-        emit conflictDetailsRequested(m_modId);
-    });
-
-    mainLayout->addWidget(m_conflictButton);
     mainLayout->addSpacing(6);
 
     setProperty("selected", false);
@@ -161,6 +167,36 @@ void ModRowWidget::resizeEvent(QResizeEvent *event) {
     }
 }
 
+bool ModRowWidget::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_conflictButton) {
+        switch (event->type()) {
+            case QEvent::Enter:
+            case QEvent::ToolTip: {
+                if (m_conflictTooltip && m_conflictButton->isVisible()
+                    && !m_conflictTooltipText.isEmpty()) {
+                    m_conflictTooltip->setText(m_conflictTooltipText);
+                    QPoint pos = m_conflictButton->mapToGlobal(
+                        QPoint(m_conflictButton->width() + 8, 0));
+                    m_conflictTooltip->showAt(pos);
+                }
+                return event->type() == QEvent::ToolTip;
+            }
+            case QEvent::Leave:
+            case QEvent::Hide:
+            case QEvent::MouseButtonPress:
+            case QEvent::FocusOut:
+                if (m_conflictTooltip) {
+                    m_conflictTooltip->hide();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    return QWidget::eventFilter(watched, event);
+}
+
 void ModRowWidget::setConflictInfo(const ConflictInfo &info) {
     if (!m_conflictButton) {
         return;
@@ -170,12 +206,19 @@ void ModRowWidget::setConflictInfo(const ConflictInfo &info) {
     m_conflictButton->setVisible(hasConflicts);
 
     if (hasConflicts) {
-        QString tooltip = formatConflictTooltip(info);
-        m_conflictButton->setToolTip(tooltip);
+        m_conflictTooltipText = formatConflictTooltip(info);
+        if (m_conflictTooltip && m_conflictTooltip->isVisible()) {
+            m_conflictTooltip->setText(m_conflictTooltipText);
+        }
 
         int buttonHeight = m_conflictButton->height();
         if (buttonHeight > 0) {
             m_conflictButton->setFixedWidth(buttonHeight);
+        }
+    } else {
+        m_conflictTooltipText.clear();
+        if (m_conflictTooltip) {
+            m_conflictTooltip->hide();
         }
     }
 }
@@ -184,10 +227,15 @@ void ModRowWidget::clearConflictIndicator() {
     if (m_conflictButton) {
         m_conflictButton->setVisible(false);
     }
+    m_conflictTooltipText.clear();
+    if (m_conflictTooltip) {
+        m_conflictTooltip->hide();
+    }
 }
 
 QString ModRowWidget::formatConflictTooltip(const ConflictInfo &info) const {
-    QString tooltip = QString("<b>⚠️ File Conflicts (%1 files)</b><br><br>")
+    QString tooltip = QString("<b><img src=\":/icon_conflict.png\" width=\"14\" height=\"14\"> "
+                              "File Conflicts (%1 files)</b><br><br>")
         .arg(info.fileConflictCount);
 
     tooltip += "<b>Conflicts with:</b><br>";

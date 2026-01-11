@@ -19,6 +19,8 @@ qt_add_executable(TrenchKit
   widgets/DraggableModList.cpp
   widgets/ModRowWidget.h
   widgets/ModRowWidget.cpp
+  widgets/ConflictTooltip.h
+  widgets/ConflictTooltip.cpp
   widgets/ProfileRowWidget.h
   widgets/ProfileRowWidget.cpp
   widgets/RightPanelWidget.h

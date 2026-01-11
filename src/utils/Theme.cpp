@@ -285,6 +285,11 @@ QString Theme::getStyleSheet() {
             background: rgba(232, 17, 35, 0.1);
             border-radius: 4px;
         }
+        #conflictTooltipLabel {
+            color: #e1d0ab;
+            font-size: 12px;
+            padding: 6px 8px;
+        }
 
         /* ===== RIGHT PANEL WIDGET ===== */
         #modActionsTitle, #launchTitle, #backupTitle, #activityLogTitle {
