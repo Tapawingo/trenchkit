@@ -17,8 +17,10 @@ class ItchAuth;
 class ModUpdateService;
 class ItchModUpdateService;
 class ModalManager;
+class ModConflictDetector;
 struct ModUpdateInfo;
 struct ItchUpdateInfo;
+struct ConflictInfo;
 
 class ModListWidget : public QWidget {
     Q_OBJECT
@@ -63,6 +65,7 @@ private slots:
     void onItchUpdateFound(const QString &modId, const ItchUpdateInfo &updateInfo);
     void onItchUpdateCheckComplete(int updatesFound);
     void onFilesDropped(const QStringList &filePaths);
+    void onConflictScanComplete(QMap<QString, ConflictInfo> conflicts);
 
 private:
     void setupUi();
@@ -81,6 +84,7 @@ private:
     ModUpdateService *m_updateService = nullptr;
     ItchModUpdateService *m_itchUpdateService = nullptr;
     ModalManager *m_modalManager = nullptr;
+    ModConflictDetector *m_conflictDetector = nullptr;
     DraggableModList *m_modList;
 
     QLabel *m_loadingLabel;

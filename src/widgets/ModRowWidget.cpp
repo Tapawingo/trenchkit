@@ -1,5 +1,6 @@
 #include "ModRowWidget.h"
 #include "../utils/Theme.h"
+#include "../utils/ModConflictDetector.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QStyle>
@@ -58,6 +59,17 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     m_updateButton->setCursor(Qt::PointingHandCursor);
 
     mainLayout->addWidget(m_updateButton);
+
+    m_conflictButton = new QPushButton(this);
+    m_conflictButton->setObjectName("modConflictButton");
+    m_conflictButton->setVisible(false);
+    m_conflictButton->setIcon(QIcon(":/icon_warning.png"));
+    m_conflictButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    m_conflictButton->setCursor(Qt::PointingHandCursor);
+    m_conflictButton->setFlat(true);
+    m_conflictButton->setFocusPolicy(Qt::NoFocus);
+
+    mainLayout->addWidget(m_conflictButton);
 
     setProperty("selected", false);
 
@@ -137,4 +149,69 @@ void ModRowWidget::resizeEvent(QResizeEvent *event) {
         int buttonHeight = m_updateButton->height();
         m_updateButton->setFixedWidth(buttonHeight);
     }
+
+    if (m_conflictButton && m_conflictButton->isVisible()) {
+        int buttonHeight = m_conflictButton->height();
+        m_conflictButton->setFixedWidth(buttonHeight);
+    }
+}
+
+void ModRowWidget::setConflictInfo(const ConflictInfo &info) {
+    if (!m_conflictButton) {
+        return;
+    }
+
+    bool hasConflicts = info.hasConflicts();
+    m_conflictButton->setVisible(hasConflicts);
+
+    if (hasConflicts) {
+        QString tooltip = formatConflictTooltip(info);
+        m_conflictButton->setToolTip(tooltip);
+
+        int buttonHeight = m_conflictButton->height();
+        if (buttonHeight > 0) {
+            m_conflictButton->setFixedWidth(buttonHeight);
+        }
+    }
+}
+
+void ModRowWidget::clearConflictIndicator() {
+    if (m_conflictButton) {
+        m_conflictButton->setVisible(false);
+    }
+}
+
+QString ModRowWidget::formatConflictTooltip(const ConflictInfo &info) const {
+    QString tooltip = QString("<b>⚠️ File Conflicts (%1 files)</b><br><br>")
+        .arg(info.fileConflictCount);
+
+    tooltip += "<b>Conflicts with:</b><br>";
+
+    for (int i = 0; i < info.conflictingModNames.size(); ++i) {
+        QString modName = info.conflictingModNames[i];
+        int otherPriority = info.conflictingModPriorities[i];
+
+        QString loadOrder;
+        if (otherPriority < info.modPriority) {
+            loadOrder = " <i>(loads before this)</i>";
+        } else {
+            loadOrder = " <i>(loads after this)</i>";
+        }
+
+        tooltip += QString("• %1%2<br>").arg(modName, loadOrder);
+    }
+
+    if (!info.conflictingFilePaths.isEmpty()) {
+        tooltip += "<br><b>Sample conflicts:</b><br>";
+        int sampleCount = qMin(5, info.conflictingFilePaths.size());
+        for (int i = 0; i < sampleCount; ++i) {
+            tooltip += QString("• %1<br>").arg(info.conflictingFilePaths[i]);
+        }
+        if (info.conflictingFilePaths.size() > 5) {
+            tooltip += QString("• ... and %1 more<br>")
+                .arg(info.conflictingFilePaths.size() - 5);
+        }
+    }
+
+    return tooltip;
 }

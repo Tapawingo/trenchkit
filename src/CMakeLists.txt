@@ -83,6 +83,10 @@ qt_add_executable(TrenchKit
   utils/ItchUpdateInfo.h
   utils/ItchModUpdateService.h
   utils/ItchModUpdateService.cpp
+  utils/PakFileReader.h
+  utils/PakFileReader.cpp
+  utils/ModConflictDetector.h
+  utils/ModConflictDetector.cpp
 
   # Modals
   modals/ModalManager.h

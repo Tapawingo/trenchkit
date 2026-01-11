@@ -7,6 +7,8 @@
 #include <QLabel>
 #include <QPushButton>
 
+struct ConflictInfo;
+
 class ModRowWidget : public QWidget {
     Q_OBJECT
 
@@ -19,6 +21,8 @@ public:
     void setSelected(bool selected);
     void setUpdateAvailable(bool available, const QString &version);
     void hideUpdateButton();
+    void setConflictInfo(const ConflictInfo &info);
+    void clearConflictIndicator();
 
 signals:
     void enabledChanged(const QString &modId, bool enabled);
@@ -34,12 +38,14 @@ protected:
 private:
     void setupUi(const ModInfo &mod);
     void updateStyling();
+    QString formatConflictTooltip(const ConflictInfo &info) const;
 
     QString m_modId;
     QCheckBox *m_enabledCheckBox;
     QLabel *m_nameLabel;
     QLabel *m_dateLabel;
     QPushButton *m_updateButton;
+    QPushButton *m_conflictButton;
     bool m_selected = false;
 };
 

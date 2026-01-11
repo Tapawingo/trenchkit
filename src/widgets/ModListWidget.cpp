@@ -15,6 +15,7 @@
 #include "../utils/ModUpdateInfo.h"
 #include "../utils/ItchModUpdateService.h"
 #include "../utils/ItchUpdateInfo.h"
+#include "../utils/ModConflictDetector.h"
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QHBoxLayout>
@@ -29,6 +30,7 @@ ModListWidget::ModListWidget(QWidget *parent)
     , m_loadingLabel(new QLabel(this))
     , m_modCountLabel(new QLabel(this))
     , m_loadingTimer(new QTimer(this))
+    , m_conflictDetector(nullptr)
 {
     setupUi();
 
@@ -56,7 +58,17 @@ void ModListWidget::setModManager(ModManager *modManager) {
             }
         });
 
+        if (!m_conflictDetector) {
+            m_conflictDetector = new ModConflictDetector(m_modManager, this);
+            connect(m_conflictDetector, &ModConflictDetector::scanComplete,
+                    this, &ModListWidget::onConflictScanComplete);
+        }
+
+        connect(m_modManager, &ModManager::modsChanged,
+                m_conflictDetector, &ModConflictDetector::scanForConflicts);
+
         refreshModList();
+        m_conflictDetector->scanForConflicts();
     }
 }
 
@@ -162,6 +174,11 @@ void ModListWidget::refreshModList() {
         } else if (m_itchUpdateService && m_itchUpdateService->hasUpdate(mod.id)) {
             ItchUpdateInfo updateInfo = m_itchUpdateService->getUpdateInfo(mod.id);
             modRow->setUpdateAvailable(true, updateInfo.availableVersion);
+        }
+
+        if (m_conflictDetector) {
+            ConflictInfo conflictInfo = m_conflictDetector->getConflictInfo(mod.id);
+            modRow->setConflictInfo(conflictInfo);
         }
 
         modRow->setSelected(i == currentRow);
@@ -752,5 +769,21 @@ void ModListWidget::handleArchiveFile(const QString &archivePath) {
         });
 
         m_modalManager->showModal(fileModal);
+    }
+}
+
+void ModListWidget::onConflictScanComplete(QMap<QString, ConflictInfo> conflicts) {
+    for (int i = 0; i < m_modList->count(); ++i) {
+        QListWidgetItem *item = m_modList->item(i);
+        if (!item) {
+            continue;
+        }
+
+        auto *rowWidget = qobject_cast<ModRowWidget*>(m_modList->itemWidget(item));
+        if (rowWidget) {
+            QString modId = rowWidget->modId();
+            ConflictInfo info = conflicts.value(modId);
+            rowWidget->setConflictInfo(info);
+        }
     }
 }
