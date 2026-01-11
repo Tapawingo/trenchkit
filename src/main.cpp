@@ -1,6 +1,7 @@
 #include <QApplication>
 #include "MainWindow.h"
 #include "utils/UpdateCleanup.h"
+#include "utils/Logger.h"
 #include <QTimer>
 #include <QCoreApplication>
 #ifdef _WIN32
@@ -19,6 +20,13 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setOrganizationName(QStringLiteral("TrenchKit"));
     QCoreApplication::setApplicationName(QStringLiteral("TrenchKit"));
 
+    Logger::instance().initialize();
+    qInstallMessageHandler(Logger::messageHandler);
+
+    qInfo() << "TrenchKit version:" << TRENCHKIT_VERSION;
+    qInfo() << "Qt version:" << QT_VERSION_STR;
+    qInfo() << "Log directory:" << Logger::instance().logDirectory();
+
     // Set application icon (for taskbar, alt-tab, etc.)
     app.setWindowIcon(QIcon(":/icon.png"));
 
@@ -30,5 +38,9 @@ int main(int argc, char *argv[]) {
     if (app.arguments().contains("--smoke-test")) {
         QTimer::singleShot(200, &app, &QCoreApplication::quit);
     }
-    return app.exec();
+
+    int result = app.exec();
+
+    Logger::instance().shutdown();
+    return result;
 }
