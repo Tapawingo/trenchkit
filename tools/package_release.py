@@ -51,6 +51,10 @@ def main() -> int:
     for dll in build_dir.glob("*.dll"):
         shutil.copy2(dll, staging_dir / dll.name)
 
+    zip_dll = build_dir / "_deps" / "zip-build" / "libzip.dll"
+    if zip_dll.exists():
+        shutil.copy2(zip_dll, staging_dir / zip_dll.name)
+
     copy_tree(build_dir / "platforms", staging_dir / "platforms")
     copy_tree(build_dir / "tls", staging_dir / "tls")
 

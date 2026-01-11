@@ -13,10 +13,10 @@ bool UpdateArchiveExtractor::extractArchive(const QString &archivePath,
     QString lower = archivePath.toLower();
 
     if (lower.endsWith(".zip")) {
-        if (!extractWithLibarchive(archivePath, destDir, error)) {
-            return extractWithZip(archivePath, destDir, error);
+        if (extractWithZip(archivePath, destDir, error)) {
+            return true;
         }
-        return true;
+        return extractWithLibarchive(archivePath, destDir, error);
     }
 
     return extractWithLibarchive(archivePath, destDir, error);
@@ -88,12 +88,43 @@ bool UpdateArchiveExtractor::extractWithLibarchive(const QString &archivePath,
             return false;
         }
 
-        const void *buff;
-        size_t size;
-        int64_t offset;
+        const void *buff = nullptr;
+        size_t size = 0;
+        int64_t offset = 0;
+        int readResult = ARCHIVE_OK;
+        qint64 totalWritten = 0;
 
-        while (archive_read_data_block(a, &buff, &size, &offset) == ARCHIVE_OK) {
-            outFile.write(static_cast<const char*>(buff), size);
+        while ((readResult = archive_read_data_block(a, &buff, &size, &offset)) == ARCHIVE_OK) {
+            const qint64 written = outFile.write(static_cast<const char*>(buff),
+                                                 static_cast<qint64>(size));
+            if (written != static_cast<qint64>(size)) {
+                if (error) {
+                    *error = "Failed to write extracted file.";
+                }
+                outFile.close();
+                archive_read_free(a);
+                return false;
+            }
+            totalWritten += written;
+        }
+
+        if (readResult != ARCHIVE_EOF) {
+            if (error) {
+                *error = QString("Failed to read archive entry: %1")
+                    .arg(archive_error_string(a));
+            }
+            outFile.close();
+            archive_read_free(a);
+            return false;
+        }
+
+        if (archive_entry_size_is_set(entry) && archive_entry_size(entry) > 0 && totalWritten == 0) {
+            if (error) {
+                *error = "Archive entry contained no data.";
+            }
+            outFile.close();
+            archive_read_free(a);
+            return false;
         }
 
         outFile.close();
