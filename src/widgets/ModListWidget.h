@@ -51,6 +51,9 @@ public slots:
     void onMoveDownClicked();
     void onCheckUpdatesClicked();
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
 private slots:
     void onModsChanged();
     void onModEnabledChanged(const QString &modId, bool enabled);
@@ -66,6 +69,7 @@ private slots:
     void onItchUpdateCheckComplete(int updatesFound);
     void onFilesDropped(const QStringList &filePaths);
     void onConflictScanComplete(QMap<QString, ConflictInfo> conflicts);
+    void onConflictDetailsRequested(const QString &modId);
 
 private:
     void setupUi();

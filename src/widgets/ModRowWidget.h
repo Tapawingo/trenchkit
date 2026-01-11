@@ -30,6 +30,7 @@ signals:
     void editMetaRequested(const QString &modId);
     void removeRequested(const QString &modId);
     void updateRequested(const QString &modId);
+    void conflictDetailsRequested(const QString &modId);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;

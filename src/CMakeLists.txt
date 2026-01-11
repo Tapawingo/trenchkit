@@ -119,6 +119,8 @@ qt_add_executable(TrenchKit
   modals/content/ItchDownloadModalContent.cpp
   modals/content/AddModModalContent.h
   modals/content/AddModModalContent.cpp
+  modals/content/ConflictDetailModalContent.h
+  modals/content/ConflictDetailModalContent.cpp
 
   resources.qrc
   app.rc

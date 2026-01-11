@@ -7,6 +7,7 @@
 #include <QStringList>
 #include <QFutureWatcher>
 #include <QMutex>
+#include <QDateTime>
 #include "ModInfo.h"
 
 struct ConflictInfo {
@@ -15,6 +16,7 @@ struct ConflictInfo {
     QStringList conflictingModNames;
     QList<int> conflictingModPriorities;
     QStringList conflictingFilePaths;
+    QStringList allConflictingFilePaths;
     int fileConflictCount = 0;
 
     bool hasConflicts() const { return !conflictingModIds.isEmpty(); }
@@ -55,15 +57,37 @@ private:
         QStringList filePaths;
     };
 
-    static QMap<QString, ConflictInfo> detectConflictsWorker(
-        const QList<ModInfo> &mods,
-        const QString &modsStoragePath
-    );
+    struct PersistentModCache {
+        QString fileName;
+        QDateTime lastModified;
+        qint64 fileSize;
+        QStringList filePaths;
+    };
+
+    struct ScanInput {
+        QList<ModInfo> mods;
+        QString modsStoragePath;
+        QMap<QString, PersistentModCache> persistentCache;
+    };
+
+    struct ScanResult {
+        QMap<QString, ConflictInfo> conflicts;
+        QMap<QString, PersistentModCache> updatedCache;
+    };
+
+    static ScanResult detectConflictsWorker(const ScanInput &input);
+
+    void loadPersistentCache();
+    void savePersistentCache();
+    QString getCacheFilePath() const;
+    bool hasModChanged(const QString &pakPath, const PersistentModCache &cached) const;
 
     ModManager *m_modManager;
-    QFutureWatcher<QMap<QString, ConflictInfo>> *m_scanWatcher;
+    QFutureWatcher<ScanResult> *m_scanWatcher;
     QMap<QString, ConflictInfo> m_conflictCache;
+    QMap<QString, PersistentModCache> m_persistentCache;
     mutable QMutex m_cacheMutex;
+    mutable QMutex m_persistentCacheMutex;
     bool m_isScanning = false;
 };
 

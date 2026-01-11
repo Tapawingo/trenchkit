@@ -21,7 +21,7 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     mainLayout->setContentsMargins(
         Theme::Spacing::MOD_ROW_PADDING_HORIZONTAL,
         Theme::Spacing::MOD_ROW_PADDING_VERTICAL,
-        Theme::Spacing::MOD_ROW_PADDING_HORIZONTAL,
+        3,
         Theme::Spacing::MOD_ROW_PADDING_VERTICAL
     );
     mainLayout->setSpacing(Theme::Spacing::MOD_ROW_INTERNAL_SPACING);
@@ -69,7 +69,12 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     m_conflictButton->setFlat(true);
     m_conflictButton->setFocusPolicy(Qt::NoFocus);
 
+    connect(m_conflictButton, &QPushButton::clicked, this, [this]() {
+        emit conflictDetailsRequested(m_modId);
+    });
+
     mainLayout->addWidget(m_conflictButton);
+    mainLayout->addSpacing(6);
 
     setProperty("selected", false);
 
