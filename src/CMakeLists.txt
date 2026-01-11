@@ -122,6 +122,7 @@ qt_add_executable(TrenchKit
 
 target_compile_definitions(TrenchKit PRIVATE
   TRENCHKIT_VERSION="${PROJECT_VERSION}"
+  LIBARCHIVE_STATIC
 )
 
 if(WIN32)
