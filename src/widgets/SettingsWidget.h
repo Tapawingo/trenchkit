@@ -39,6 +39,10 @@ signals:
     void settingsApplied(bool autoCheck);
     void manualCheckRequested();
 
+private slots:
+    void onOpenLogsClicked();
+    void onCopyLogPathClicked();
+
 private:
     void buildUi();
     void applySettings();
@@ -70,6 +74,9 @@ private:
     QLabel *m_itchStatusLabel = nullptr;
     QPushButton *m_itchAuthButton = nullptr;
     QPushButton *m_itchClearButton = nullptr;
+    QLabel *m_logPathLabel = nullptr;
+    QPushButton *m_openLogsButton = nullptr;
+    QPushButton *m_copyLogPathButton = nullptr;
 };
 
 #endif // SETTINGSWIDGET_H

@@ -8,15 +8,18 @@
 #include "../utils/NexusModsAuth.h"
 #include "../utils/ItchClient.h"
 #include "../utils/ItchAuth.h"
+#include "../utils/Logger.h"
 #include "../utils/Theme.h"
 #include "PanelFrame.h"
 #include "GradientFrame.h"
 
 #include <QCheckBox>
+#include <QClipboard>
 #include <QComboBox>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QGridLayout>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -24,6 +27,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSettings>
+#include <QTimer>
 #include <QUrl>
 #include <QVBoxLayout>
 #include <QCoreApplication>
@@ -109,7 +113,7 @@ void SettingsWidget::buildUi() {
     containerLayout->setVerticalSpacing(Theme::Spacing::SETTINGS_ROW_SPACING);
     containerLayout->setColumnStretch(0, 1);
     containerLayout->setColumnStretch(1, 2);
-    containerLayout->setRowStretch(12, 1);
+    containerLayout->setRowStretch(18, 1);
 
     auto *title = new QLabel("Settings", m_panel);
     title->setObjectName("settingsTitle");
@@ -253,6 +257,39 @@ void SettingsWidget::buildUi() {
     itchButtonRow->addStretch();
     containerLayout->addLayout(itchButtonRow, 14, 1);
 
+    auto *loggingHeader = new QLabel("Logging", m_panel);
+    loggingHeader->setObjectName("settingsSectionHeader");
+    loggingHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(loggingHeader, 15, 0, 1, 2);
+
+    auto *logLocationLabel = new QLabel("Log files location", m_panel);
+    logLocationLabel->setObjectName("settingsLabel");
+    logLocationLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(logLocationLabel, 16, 0);
+
+    m_logPathLabel = new QLabel(Logger::instance().logDirectory(), m_panel);
+    m_logPathLabel->setWordWrap(true);
+    m_logPathLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_logPathLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_logPathLabel, 16, 1);
+
+    auto *logActionsLabel = new QLabel("Access logs", m_panel);
+    logActionsLabel->setObjectName("settingsLabel");
+    logActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(logActionsLabel, 17, 0);
+
+    auto *logButtonRow = new QHBoxLayout();
+    m_openLogsButton = new QPushButton("Open Log Folder", m_panel);
+    m_openLogsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_openLogsButton->setCursor(Qt::PointingHandCursor);
+    m_copyLogPathButton = new QPushButton("Copy Log Path", m_panel);
+    m_copyLogPathButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_copyLogPathButton->setCursor(Qt::PointingHandCursor);
+    logButtonRow->addWidget(m_openLogsButton);
+    logButtonRow->addWidget(m_copyLogPathButton);
+    logButtonRow->addStretch();
+    containerLayout->addLayout(logButtonRow, 17, 1);
+
     scrollArea->setWidget(m_container);
     panelLayout->addWidget(scrollArea);
 
@@ -316,6 +353,9 @@ void SettingsWidget::buildUi() {
             m_downloadDirEdit->setText(dir);
         }
     });
+
+    connect(m_openLogsButton, &QPushButton::clicked, this, &SettingsWidget::onOpenLogsClicked);
+    connect(m_copyLogPathButton, &QPushButton::clicked, this, &SettingsWidget::onCopyLogPathClicked);
 }
 
 void SettingsWidget::applySettings() {
@@ -581,6 +621,26 @@ void SettingsWidget::setItchServices(ItchClient *client, ItchAuth *auth) {
             });
 
             m_modalManager->showModal(modal);
+        });
+    }
+}
+
+void SettingsWidget::onOpenLogsClicked() {
+    QString logDir = Logger::instance().logDirectory();
+    QDesktopServices::openUrl(QUrl::fromLocalFile(logDir));
+}
+
+void SettingsWidget::onCopyLogPathClicked() {
+    QString logPath = Logger::instance().currentLogFile();
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setText(logPath);
+
+    if (m_copyLogPathButton) {
+        m_copyLogPathButton->setText("Copied!");
+        QTimer::singleShot(2000, this, [this]() {
+            if (m_copyLogPathButton) {
+                m_copyLogPathButton->setText("Copy Log Path");
+            }
         });
     }
 }

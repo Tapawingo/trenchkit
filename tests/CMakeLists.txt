@@ -17,6 +17,11 @@ target_include_directories(tests_utilities
     ${CMAKE_BINARY_DIR}/_deps/libarchive-src/libarchive/.
 )
 
+target_compile_definitions(tests_utilities
+  PRIVATE
+    LIBARCHIVE_STATIC
+)
+
 target_link_libraries(tests_utilities
   PRIVATE
     Qt6::Test

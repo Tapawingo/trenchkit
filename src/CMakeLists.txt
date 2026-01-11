@@ -51,6 +51,8 @@ qt_add_executable(TrenchKit
   utils/ProfileManager.cpp
   utils/Theme.h
   utils/Theme.cpp
+  utils/Logger.h
+  utils/Logger.cpp
   utils/ArchiveExtractor.h
   utils/ArchiveExtractor.cpp
   utils/UpdaterService.h
@@ -120,6 +122,7 @@ qt_add_executable(TrenchKit
 
 target_compile_definitions(TrenchKit PRIVATE
   TRENCHKIT_VERSION="${PROJECT_VERSION}"
+  LIBARCHIVE_STATIC
 )
 
 if(WIN32)
