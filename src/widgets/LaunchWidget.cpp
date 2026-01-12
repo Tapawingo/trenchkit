@@ -10,13 +10,19 @@
 #include <QProcess>
 #include <QDir>
 #include <QFile>
+#include <QTimer>
 
 LaunchWidget::LaunchWidget(QWidget *parent)
     : QWidget(parent)
     , m_launchButton(new QToolButton(this))
+    , m_gamePollTimer(new QTimer(this))
 {
     setupUi();
     setupConnections();
+    m_gamePollTimer->setInterval(2000);
+    connect(m_gamePollTimer, &QTimer::timeout, this, [this]() {
+        onGamePollTimeout();
+    });
 }
 
 void LaunchWidget::setModManager(ModManager *modManager) {
@@ -138,7 +144,32 @@ void LaunchWidget::onLaunchWithoutMods() {
             }
             m_modsToRestore.clear();
         } else {
+            m_launchTimer.start();
+            m_waitingForGameStart = false;
+            m_waitingForGameExit = false;
             emit gameLaunched(false);
+        }
+
+        if (!m_modsToRestore.isEmpty()) {
+            m_waitingForGameStart = true;
+            m_waitingForGameExit = false;
+            startGamePolling();
+
+            if (m_modalManager) {
+                m_waitingModal = new MessageModal(
+                    "Waiting for Foxhole",
+                    "Waiting for Foxhole to start...\n\n"
+                    "Cancel to restore mods and stop the launch.",
+                    MessageModal::Information,
+                    MessageModal::Cancel
+                );
+                connect(m_waitingModal, &MessageModal::finished, this, [this]() {
+                    if (m_waitingForGameStart || m_waitingForGameExit) {
+                        cancelWaitingForGameStart();
+                    }
+                });
+                m_modalManager->showModal(m_waitingModal);
+            }
         }
     };
 
@@ -166,20 +197,15 @@ void LaunchWidget::onGameProcessFinished(int exitCode, QProcess::ExitStatus exit
     Q_UNUSED(exitCode);
     Q_UNUSED(exitStatus);
 
-    if (!m_modsToRestore.isEmpty() && m_modManager) {
-        int modCount = m_modsToRestore.count();
-        for (const QString &modId : m_modsToRestore) {
-            m_modManager->enableMod(modId);
-        }
-
-        emit modsRestored(modCount);
-
-        MessageModal::information(m_modalManager, "Mods Restored",
-            QString("Restored %1 mod(s) that were disabled for vanilla gameplay.")
-            .arg(modCount));
-
-        m_modsToRestore.clear();
+    if (m_modsToRestore.isEmpty()) {
+        return;
     }
+
+    if (m_waitingForGameStart || m_waitingForGameExit) {
+        return;
+    }
+
+    restoreDisabledMods();
 }
 
 QString LaunchWidget::getFoxholeExecutablePath() const {
@@ -212,4 +238,110 @@ QString LaunchWidget::getFoxholeExecutablePath() const {
     }
 
     return QString();
+}
+
+void LaunchWidget::startGamePolling() {
+    if (!m_gamePollTimer->isActive()) {
+        m_gamePollTimer->start();
+    }
+}
+
+void LaunchWidget::onGamePollTimeout() {
+    if (m_modsToRestore.isEmpty() || !m_modManager) {
+        m_gamePollTimer->stop();
+        return;
+    }
+
+    const bool running = isGameRunning();
+
+    if (m_waitingForGameStart) {
+        if (running) {
+            m_waitingForGameStart = false;
+            m_waitingForGameExit = true;
+            if (m_waitingModal) {
+                m_waitingModal->reject();
+                m_waitingModal = nullptr;
+            }
+            return;
+        }
+        return;
+    }
+
+    if (m_waitingForGameExit) {
+        if (!running) {
+            m_gamePollTimer->stop();
+            restoreDisabledMods();
+        }
+    }
+}
+
+void LaunchWidget::restoreDisabledMods() {
+    if (m_modsToRestore.isEmpty() || !m_modManager) {
+        return;
+    }
+
+    const int modCount = m_modsToRestore.count();
+    for (const QString &modId : m_modsToRestore) {
+        m_modManager->enableMod(modId);
+    }
+
+    if (m_waitingModal) {
+        m_waitingModal->reject();
+        m_waitingModal = nullptr;
+    }
+
+    emit modsRestored(modCount);
+
+    MessageModal::information(m_modalManager, "Mods Restored",
+        QString("Restored %1 mod(s) that were disabled for vanilla gameplay.")
+        .arg(modCount));
+
+    m_modsToRestore.clear();
+}
+
+void LaunchWidget::cancelWaitingForGameStart() {
+    m_gamePollTimer->stop();
+    m_waitingForGameStart = false;
+    m_waitingForGameExit = false;
+    if (m_waitingModal) {
+        m_waitingModal->reject();
+        m_waitingModal = nullptr;
+    }
+    if (m_gameProcess && m_gameProcess->state() != QProcess::NotRunning) {
+        m_gameProcess->terminate();
+        if (!m_gameProcess->waitForFinished(2000)) {
+            m_gameProcess->kill();
+        }
+    }
+    restoreDisabledMods();
+}
+
+bool LaunchWidget::isGameRunning() const {
+#if defined(Q_OS_WIN)
+    const QStringList exeNames = {
+        QStringLiteral("War-Win64-Shipping.exe"),
+        QStringLiteral("Foxhole.exe"),
+        QStringLiteral("War.exe")
+    };
+
+    for (const QString &exe : exeNames) {
+        QProcess tasklist;
+        tasklist.start(QStringLiteral("tasklist"),
+                       QStringList() << QStringLiteral("/FI")
+                                     << QStringLiteral("IMAGENAME eq %1").arg(exe));
+        if (!tasklist.waitForFinished(1000)) {
+            continue;
+        }
+        const QString output = QString::fromUtf8(tasklist.readAllStandardOutput());
+        if (output.contains(exe, Qt::CaseInsensitive)) {
+            return true;
+        }
+    }
+    return false;
+#else
+    if (m_gameProcess) {
+        return m_gameProcess->state() != QProcess::NotRunning;
+    }
+    return false;
+#endif
 }

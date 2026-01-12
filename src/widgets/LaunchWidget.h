@@ -5,10 +5,14 @@
 #include <QString>
 #include <QStringList>
 #include <QProcess>
+#include <QElapsedTimer>
+#include <QPointer>
 
 class QToolButton;
 class ModManager;
 class ModalManager;
+class QTimer;
+class MessageModal;
 
 class LaunchWidget : public QWidget {
     Q_OBJECT
@@ -35,12 +39,22 @@ private:
     void setupUi();
     void setupConnections();
     QString getFoxholeExecutablePath() const;
+    void onGamePollTimeout();
+    void restoreDisabledMods();
+    void cancelWaitingForGameStart();
+    void startGamePolling();
+    bool isGameRunning() const;
 
     ModManager *m_modManager = nullptr;
     ModalManager *m_modalManager = nullptr;
     QString m_foxholeInstallPath;
     QProcess *m_gameProcess = nullptr;
     QStringList m_modsToRestore;
+    QTimer *m_gamePollTimer = nullptr;
+    QElapsedTimer m_launchTimer;
+    bool m_waitingForGameStart = false;
+    bool m_waitingForGameExit = false;
+    QPointer<MessageModal> m_waitingModal;
 
     QToolButton *m_launchButton;
 };
