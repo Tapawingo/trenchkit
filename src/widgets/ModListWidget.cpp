@@ -594,6 +594,15 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
             }
         }
     };
+    auto finalizeItchUpdate = [this, modId, hideUpdateButton]() {
+        hideUpdateButton();
+        if (m_itchUpdateService) {
+            m_itchUpdateService->clearUpdateForMod(modId);
+        }
+        if (m_conflictDetector) {
+            m_conflictDetector->scanForConflicts();
+        }
+    };
 
     if (!mod.nexusModId.isEmpty() && m_nexusClient && m_updateService && m_updateService->hasUpdate(modId)) {
         ModUpdateInfo updateInfo = m_updateService->getUpdateInfo(modId);
@@ -631,7 +640,7 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
 
             auto *modal = new ItchModUpdateModalContent(
                 mod, selectedUpdateInfo, m_modManager, m_itchClient, m_modalManager);
-            connect(modal, &ItchModUpdateModalContent::accepted, this, hideUpdateButton);
+            connect(modal, &ItchModUpdateModalContent::accepted, this, finalizeItchUpdate);
             m_modalManager->showModal(modal);
         }
         // If multiple uploads and no matching filename, show file selection modal
@@ -663,7 +672,7 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
             });
 
             connect(fileModal, &FileSelectionModalContent::accepted, this,
-                    [this, fileModal, mod, updateInfo, hideUpdateButton]() {
+                    [this, fileModal, mod, updateInfo, finalizeItchUpdate]() {
                 QStringList selectedIds = fileModal->getSelectedIds();
                 if (!selectedIds.isEmpty()) {
                     QString selectedUploadId = selectedIds.first();
@@ -689,7 +698,7 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
                     auto *downloadModal = new ItchModUpdateModalContent(
                         mod, selectedUpdateInfo, m_modManager, m_itchClient, m_modalManager);
                     connect(downloadModal, &ItchModUpdateModalContent::accepted,
-                            this, hideUpdateButton);
+                            this, finalizeItchUpdate);
                     m_modalManager->showModal(downloadModal);
                 }
             });
@@ -699,7 +708,7 @@ void ModListWidget::onUpdateRequested(const QString &modId) {
         // Single upload, proceed directly
         else {
             auto *modal = new ItchModUpdateModalContent(mod, updateInfo, m_modManager, m_itchClient, m_modalManager);
-            connect(modal, &ItchModUpdateModalContent::accepted, this, hideUpdateButton);
+            connect(modal, &ItchModUpdateModalContent::accepted, this, finalizeItchUpdate);
             m_modalManager->showModal(modal);
         }
     }

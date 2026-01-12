@@ -23,6 +23,7 @@ public:
     bool hasUpdate(const QString &modId) const;
     ItchUpdateInfo getUpdateInfo(const QString &modId) const;
     void ignoreUpdatesForMod(const QString &modId, const QStringList &uploadIds);
+    void clearUpdateForMod(const QString &modId);
 
 public slots:
     void checkAllModsForUpdates();
