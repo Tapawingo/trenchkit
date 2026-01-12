@@ -336,8 +336,8 @@ QString Theme::getStyleSheet() {
         QToolButton::menu-button {
             background-color: #3d402e;
             border: none;
-            border-left: 1px solid #0a4f7a;
-            width: 18px;
+            border-left: 1px solid #2c2c2c;
+            width: 22px;
         }
         QToolButton::menu-button:hover {
             background-color: #373A29;
@@ -345,13 +345,17 @@ QString Theme::getStyleSheet() {
         QToolButton::menu-button:pressed {
             background-color: #313325;
         }
+        QToolButton::menu-arrow {
+            image: url(:/icon_down.png);
+            width: 14px;
+            height: 14px;
+        }
         QToolButton::menu-indicator {
             subcontrol-position: right center;
-            subcontrol-origin: padding;
-            font-size: 10px;
-            left: -6px;
-            width: 10px;
-            height: 10px;
+            subcontrol-origin: content;
+            width: 8px;
+            height: 8px;
+            right: 6px;
         }
 
         /* ===== SEPARATORS ===== */
