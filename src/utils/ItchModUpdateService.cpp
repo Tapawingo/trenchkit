@@ -159,6 +159,10 @@ ItchUpdateInfo ItchModUpdateService::getUpdateInfo(const QString &modId) const {
     return m_updateCache.value(modId);
 }
 
+void ItchModUpdateService::clearUpdateForMod(const QString &modId) {
+    m_updateCache.remove(modId);
+}
+
 void ItchModUpdateService::ignoreUpdatesForMod(const QString &modId, const QStringList &uploadIds) {
     ModInfo mod = m_modManager->getMod(modId);
     if (mod.id.isEmpty()) {
