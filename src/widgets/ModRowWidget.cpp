@@ -211,12 +211,19 @@ void ModRowWidget::setConflictInfo(const ConflictInfo &info) {
             m_conflictTooltip->setText(m_conflictTooltipText);
         }
 
+        if (info.isEntirelyOverwritten()) {
+            m_nameLabel->setStyleSheet("QLabel#modNameLabel { color: #f48771; }");
+        } else {
+            m_nameLabel->setStyleSheet("");
+        }
+
         int buttonHeight = m_conflictButton->height();
         if (buttonHeight > 0) {
             m_conflictButton->setFixedWidth(buttonHeight);
         }
     } else {
         m_conflictTooltipText.clear();
+        m_nameLabel->setStyleSheet("");
         if (m_conflictTooltip) {
             m_conflictTooltip->hide();
         }
@@ -228,6 +235,7 @@ void ModRowWidget::clearConflictIndicator() {
         m_conflictButton->setVisible(false);
     }
     m_conflictTooltipText.clear();
+    m_nameLabel->setStyleSheet("");
     if (m_conflictTooltip) {
         m_conflictTooltip->hide();
     }
@@ -245,20 +253,32 @@ QString ModRowWidget::formatConflictTooltip(const ConflictInfo &info) const {
         int otherPriority = info.conflictingModPriorities[i];
 
         QString loadOrder;
+        QString color = "";
+
         if (otherPriority < info.modPriority) {
             loadOrder = " <i>(loads before this)</i>";
         } else {
             loadOrder = " <i>(loads after this)</i>";
+            if (info.isEntirelyOverwritten()) {
+                color = " style='color: #f48771;'";
+            }
         }
 
-        tooltip += QString("• %1%2<br>").arg(modName, loadOrder);
+        tooltip += QString("• <span%1>%2</span>%3<br>").arg(color, modName, loadOrder);
     }
 
     if (!info.conflictingFilePaths.isEmpty()) {
         tooltip += "<br><b>Sample conflicts:</b><br>";
         int sampleCount = qMin(5, info.conflictingFilePaths.size());
         for (int i = 0; i < sampleCount; ++i) {
-            tooltip += QString("• %1<br>").arg(info.conflictingFilePaths[i]);
+            const QString &filePath = info.conflictingFilePaths[i];
+
+            if (info.overwrittenFilePaths.contains(filePath)) {
+                tooltip += QString("• <span style='color: #f48771;'>%1 (overwritten)</span><br>")
+                    .arg(filePath);
+            } else {
+                tooltip += QString("• %1<br>").arg(filePath);
+            }
         }
         if (info.conflictingFilePaths.size() > 5) {
             tooltip += QString("• ... and %1 more<br>")

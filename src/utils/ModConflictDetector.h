@@ -5,6 +5,7 @@
 #include <QString>
 #include <QMap>
 #include <QStringList>
+#include <QSet>
 #include <QFutureWatcher>
 #include <QMutex>
 #include <QDateTime>
@@ -17,9 +18,14 @@ struct ConflictInfo {
     QList<int> conflictingModPriorities;
     QStringList conflictingFilePaths;
     QStringList allConflictingFilePaths;
+    QSet<QString> overwrittenFilePaths;
     int fileConflictCount = 0;
 
     bool hasConflicts() const { return !conflictingModIds.isEmpty(); }
+    bool isEntirelyOverwritten() const {
+        return !overwrittenFilePaths.isEmpty() &&
+               overwrittenFilePaths.size() == fileConflictCount;
+    }
 };
 
 class ModManager;

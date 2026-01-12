@@ -179,15 +179,22 @@ ModConflictDetector::ScanResult ModConflictDetector::detectConflictsWorker(const
                 return a->priority < b->priority;
             });
 
+        const QString &conflictingFile = it.key();
+        const ModFileCache *winnerMod = modList.last();
+
         for (const ModFileCache *mod : modList) {
             ConflictInfo &info = result.conflicts[mod->modId];
             info.modPriority = mod->priority;
             info.fileConflictCount++;
 
-            info.allConflictingFilePaths.append(it.key());
+            info.allConflictingFilePaths.append(conflictingFile);
+
+            if (mod != winnerMod) {
+                info.overwrittenFilePaths.insert(conflictingFile);
+            }
 
             if (info.conflictingFilePaths.size() < 100) {
-                info.conflictingFilePaths.append(it.key());
+                info.conflictingFilePaths.append(conflictingFile);
             }
 
             for (const ModFileCache *otherMod : modList) {

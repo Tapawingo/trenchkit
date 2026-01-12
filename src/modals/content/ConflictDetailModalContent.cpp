@@ -18,7 +18,12 @@ ConflictDetailModalContent::ConflictDetailModalContent(const QString &modName,
 }
 
 void ConflictDetailModalContent::setupUi() {
-    auto *modLabel = new QLabel(QString("<b>Mod:</b> %1").arg(m_modName), this);
+    QString modNameText = QString("<b>Mod:</b> %1").arg(m_modName);
+    if (m_conflictInfo.isEntirelyOverwritten()) {
+        modNameText = QString("<b>Mod:</b> <span style='color: #f48771;'>%1</span>").arg(m_modName);
+    }
+
+    auto *modLabel = new QLabel(modNameText, this);
     modLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 14px; }")
                            .arg(Theme::Colors::TEXT_PRIMARY));
     bodyLayout()->addWidget(modLabel);
@@ -59,7 +64,14 @@ void ConflictDetailModalContent::setupUi() {
     ).arg(Theme::Colors::TEXT_SECONDARY));
 
     for (const QString &filePath : m_conflictInfo.allConflictingFilePaths) {
-        m_fileList->addItem(filePath);
+        auto *item = new QListWidgetItem(filePath);
+
+        if (m_conflictInfo.overwrittenFilePaths.contains(filePath)) {
+            item->setForeground(QColor("#f48771"));
+            item->setText(filePath + " (overwritten)");
+        }
+
+        m_fileList->addItem(item);
     }
 
     bodyLayout()->addWidget(m_fileList, 1);
@@ -80,13 +92,18 @@ QString ConflictDetailModalContent::formatModListText() const {
         int otherPriority = m_conflictInfo.conflictingModPriorities[i];
 
         QString loadOrder;
+        QString color = "";
+
         if (otherPriority < m_conflictInfo.modPriority) {
             loadOrder = " <i>(loads before this mod, overridden)</i>";
         } else {
             loadOrder = " <i>(loads after this mod, takes priority)</i>";
+            if (m_conflictInfo.isEntirelyOverwritten()) {
+                color = " style='color: #f48771;'";
+            }
         }
 
-        text += QString("• %1%2<br>").arg(modName, loadOrder);
+        text += QString("• <span%1>%2</span>%3<br>").arg(color, modName, loadOrder);
     }
 
     return text;
