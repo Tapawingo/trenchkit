@@ -36,6 +36,7 @@ public:
     void setItchUpdateService(ItchModUpdateService *service);
     void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
     void refreshModList();
+    void rescanConflicts();
     void setLoadingState(bool loading, const QString &message = "Loading mods");
 
 signals:

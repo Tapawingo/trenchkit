@@ -275,8 +275,15 @@ void MainWindow::setupRightPanel() {
                         ActivityLogWidget::LogLevel::Success);
     });
     connect(m_rightPanelWidget->findChild<BackupWidget*>(), &BackupWidget::backupRestored,
-            this, [log](const QString &backupName) {
+            this, [this, log](const QString &backupName) {
         log->addLogEntry("Backup Restored: " + backupName, ActivityLogWidget::LogLevel::Success);
+        if (m_modManager && m_modManager->loadMods()) {
+            m_modManager->syncEnabledModsWithPaks();
+        }
+        if (m_modListWidget) {
+            m_modListWidget->refreshModList();
+            m_modListWidget->rescanConflicts();
+        }
     });
 
     // LaunchWidget logging

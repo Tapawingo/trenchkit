@@ -636,6 +636,23 @@ void ModManager::renumberEnabledMods() {
         QString newNumberedName = generateNumberedFileName(mod.priority, mod.fileName);
 
         if (oldNumberedName == newNumberedName) {
+            QString expectedPath = paksPath + "/" + newNumberedName;
+            if (QFile::exists(expectedPath)) {
+                continue;
+            }
+
+            QString sourcePath = m_modsStoragePath + "/" + mod.fileName;
+            locker.unlock();
+
+            if (QFile::exists(sourcePath)) {
+                QFile::copy(sourcePath, expectedPath);
+                locker.relock();
+                mod.numberedFileName = newNumberedName;
+                qDebug() << "Restored mod to paks:" << newNumberedName;
+                locker.unlock();
+            } else {
+                locker.relock();
+            }
             continue;
         }
 

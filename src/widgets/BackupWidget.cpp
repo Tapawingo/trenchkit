@@ -89,10 +89,24 @@ void BackupWidget::onCreateBackupClicked() {
         return;
     }
 
+    QDir modsDir(modsStoragePath);
+    QStringList modFiles = modsDir.entryList(QStringList() << "*.pak", QDir::Files);
+
+    int copiedFiles = 0;
+    for (const QString &fileName : modFiles) {
+        QString sourceFile = modsStoragePath + "/" + fileName;
+        QString destFile = backupDir + "/" + fileName;
+
+        if (QFile::copy(sourceFile, destFile)) {
+            copiedFiles++;
+        }
+    }
+
     QJsonObject backupInfo;
     backupInfo["timestamp"] = QDateTime::currentDateTime().toString(Qt::ISODate);
     int modCount = m_modManager->getMods().count();
     backupInfo["modCount"] = modCount;
+    backupInfo["fileCount"] = copiedFiles;
 
     QFile infoFile(backupDir + "/backup_info.json");
     if (infoFile.open(QIODevice::WriteOnly)) {
@@ -102,7 +116,9 @@ void BackupWidget::onCreateBackupClicked() {
     }
 
     emit backupCreated(modCount);
-    MessageModal::information(m_modalManager, "Success", "Backup created successfully at:\n" + backupDir);
+    MessageModal::information(m_modalManager, "Success",
+        QString("Backup created successfully:\n%1\n\nBacked up %2 mod file(s)")
+        .arg(backupDir).arg(copiedFiles));
 }
 
 void BackupWidget::onRestoreBackupClicked() {
@@ -167,21 +183,38 @@ void BackupWidget::onRestoreBackupClicked() {
                 return;
             }
 
-            QString backupPath = backupsPath + "/" + selectedBackup + "/mods.json";
+            QString backupDir = backupsPath + "/" + selectedBackup;
             QString modsStoragePath = m_modManager->getModsStoragePath();
-            QString destPath = modsStoragePath + "/mods.json";
 
-            QFile::remove(destPath);
+            QString backupMetadataPath = backupDir + "/mods.json";
+            QString destMetadataPath = modsStoragePath + "/mods.json";
 
-            if (!QFile::copy(backupPath, destPath)) {
-                emit errorOccurred("Failed to restore backup");
+            QFile::remove(destMetadataPath);
+
+            if (!QFile::copy(backupMetadataPath, destMetadataPath)) {
+                emit errorOccurred("Failed to restore backup metadata");
                 return;
             }
 
-            m_modManager->loadMods();
+            QDir backupDirObj(backupDir);
+            QStringList modFiles = backupDirObj.entryList(QStringList() << "*.pak", QDir::Files);
+
+            int restoredFiles = 0;
+            for (const QString &fileName : modFiles) {
+                QString sourceFile = backupDir + "/" + fileName;
+                QString destFile = modsStoragePath + "/" + fileName;
+
+                QFile::remove(destFile);
+
+                if (QFile::copy(sourceFile, destFile)) {
+                    restoredFiles++;
+                }
+            }
 
             emit backupRestored(selectedBackup);
-            MessageModal::information(m_modalManager, "Success", "Backup restored successfully");
+            MessageModal::information(m_modalManager, "Success",
+                QString("Backup restored successfully\n\nRestored %1 mod file(s)")
+                .arg(restoredFiles));
         });
         m_modalManager->showModal(confirmModal);
     });

@@ -199,6 +199,12 @@ void ModListWidget::refreshModList() {
     m_updating = false;
 }
 
+void ModListWidget::rescanConflicts() {
+    if (m_conflictDetector) {
+        m_conflictDetector->scanForConflicts();
+    }
+}
+
 void ModListWidget::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
 
