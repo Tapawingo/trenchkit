@@ -3,6 +3,7 @@
 
 #include "../BaseModalContent.h"
 #include "../../utils/ItchUploadInfo.h"
+#include "../../utils/NexusFileInfo.h"
 #include <QString>
 #include <QDateTime>
 
@@ -13,6 +14,8 @@ class ItchClient;
 class ItchAuth;
 class ModalManager;
 class QPushButton;
+class QLabel;
+class QProgressBar;
 
 class AddModModalContent : public BaseModalContent {
     Q_OBJECT
@@ -33,16 +36,30 @@ private slots:
     void onFromFileClicked();
     void onFromNexusClicked();
     void onFromItchClicked();
+    void processNextFile();
 
 private:
+    struct FileToProcess {
+        QString filePath;
+        QString nexusModId;
+        QString nexusFileId;
+        QString author;
+        QString description;
+        QString version;
+        QString itchGameId;
+        QString customModName;
+        QDateTime uploadDate;
+    };
+
     void setupUi();
     void handleArchiveFile(const QString &archivePath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
                            const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
-                           const QString &itchGameId = QString(), const QDateTime &uploadDate = QDateTime());
+                           const QString &itchGameId = QString(), const QDateTime &uploadDate = QDateTime(), bool isBatchProcessing = false);
     void handlePakFile(const QString &pakPath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
                        const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
                        const QString &itchGameId = QString(), const QString &customModName = QString(), const QDateTime &uploadDate = QDateTime());
     bool isArchiveFile(const QString &filePath) const;
+    void startProcessingFiles(const QList<FileToProcess> &files);
 
     ModManager *m_modManager;
     NexusModsClient *m_nexusClient;
@@ -53,6 +70,11 @@ private:
     QPushButton *m_fromFileButton;
     QPushButton *m_fromNexusButton;
     QPushButton *m_fromItchButton;
+    QLabel *m_processingLabel = nullptr;
+    QProgressBar *m_processingProgress = nullptr;
+    QList<FileToProcess> m_filesToProcess;
+    int m_currentFileIndex = 0;
+    bool m_waitingForModal = false;
 };
 
 #endif // ADDMODMODALCONTENT_H

@@ -53,6 +53,7 @@ private:
     void showDownloadPage();
     void startDownloadProcess();
     void startNextDownload();
+    void startManualDownloadSequence();
     QString generateTempPath(const QString &fileName) const;
     void updateFooterButtons();
     QString formatFileSize(qint64 bytes) const;

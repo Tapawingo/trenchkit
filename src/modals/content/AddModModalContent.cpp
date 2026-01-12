@@ -16,6 +16,10 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFile>
+#include <QLabel>
+#include <QProgressBar>
+#include <QTimer>
+#include <QCoreApplication>
 
 AddModModalContent::AddModModalContent(ModManager *modManager,
                                        NexusModsClient *nexusClient,
@@ -108,7 +112,7 @@ bool AddModModalContent::isArchiveFile(const QString &filePath) const {
 }
 
 void AddModModalContent::handleArchiveFile(const QString &archivePath, const QString &nexusModId, const QString &nexusFileId,
-                                           const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QDateTime &uploadDate) {
+                                           const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QDateTime &uploadDate, bool isBatchProcessing) {
     ArchiveExtractor extractor;
     auto result = extractor.extractPakFiles(archivePath);
 
@@ -134,7 +138,7 @@ void AddModModalContent::handleArchiveFile(const QString &archivePath, const QSt
 
         ArchiveExtractor::cleanupTempDir(result.tempDir);
 
-        if (!selectedPaks.isEmpty()) {
+        if (!isBatchProcessing && !selectedPaks.isEmpty()) {
             accept();
         }
     } else {
@@ -144,7 +148,7 @@ void AddModModalContent::handleArchiveFile(const QString &archivePath, const QSt
         }
 
         auto *fileModal = new FileSelectionModalContent(fileNames, QFileInfo(archivePath).fileName(), true);
-        connect(fileModal, &FileSelectionModalContent::accepted, this, [this, result, fileModal, nexusModId, nexusFileId, author, description, version, itchGameId, uploadDate]() {
+        connect(fileModal, &FileSelectionModalContent::accepted, this, [this, result, fileModal, nexusModId, nexusFileId, author, description, version, itchGameId, uploadDate, isBatchProcessing]() {
             QStringList selectedFileNames = fileModal->getSelectedFiles();
             QStringList selectedPaks;
 
@@ -163,13 +167,28 @@ void AddModModalContent::handleArchiveFile(const QString &archivePath, const QSt
 
             ArchiveExtractor::cleanupTempDir(result.tempDir);
 
-            if (!selectedPaks.isEmpty()) {
+            if (isBatchProcessing) {
+                m_waitingForModal = false;
+                m_currentFileIndex++;
+                QTimer::singleShot(200, this, &AddModModalContent::processNextFile);
+            } else if (!selectedPaks.isEmpty()) {
                 accept();
             }
         });
-        connect(fileModal, &FileSelectionModalContent::rejected, this, [result]() {
+        connect(fileModal, &FileSelectionModalContent::rejected, this, [this, result, isBatchProcessing]() {
             ArchiveExtractor::cleanupTempDir(result.tempDir);
+
+            if (isBatchProcessing) {
+                m_waitingForModal = false;
+                m_currentFileIndex++;
+                QTimer::singleShot(200, this, &AddModModalContent::processNextFile);
+            }
         });
+
+        if (isBatchProcessing) {
+            m_waitingForModal = true;
+        }
+
         m_modalManager->showModal(fileModal);
     }
 }
@@ -208,28 +227,48 @@ void AddModModalContent::onFromNexusClicked() {
         QString description = nexusModal->getDescription();
         QList<NexusFileInfo> files = nexusModal->getDownloadedFiles();
 
-        for (int i = 0; i < filePaths.size(); ++i) {
-            const QString &filePath = filePaths[i];
+        if (filePaths.size() > 1) {
+            QList<FileToProcess> filesToProcess;
+            for (int i = 0; i < filePaths.size(); ++i) {
+                FileToProcess fileData;
+                fileData.filePath = filePaths[i];
+                fileData.nexusModId = nexusModId;
+                fileData.author = author;
+                fileData.description = description;
 
-            QString nexusFileId;
-            QString version;
-            if (i < files.size()) {
-                nexusFileId = files[i].id;
-                version = files[i].version;
+                if (i < files.size()) {
+                    fileData.nexusFileId = files[i].id;
+                    fileData.version = files[i].version;
+                }
+
+                filesToProcess.append(fileData);
             }
 
-            if (isArchiveFile(filePath)) {
-                handleArchiveFile(filePath, nexusModId, nexusFileId, author, description, version);
-            } else {
-                handlePakFile(filePath, nexusModId, nexusFileId, author, description, version);
+            startProcessingFiles(filesToProcess);
+        } else {
+            for (int i = 0; i < filePaths.size(); ++i) {
+                const QString &filePath = filePaths[i];
+
+                QString nexusFileId;
+                QString version;
+                if (i < files.size()) {
+                    nexusFileId = files[i].id;
+                    version = files[i].version;
+                }
+
+                if (isArchiveFile(filePath)) {
+                    handleArchiveFile(filePath, nexusModId, nexusFileId, author, description, version);
+                } else {
+                    handlePakFile(filePath, nexusModId, nexusFileId, author, description, version);
+                }
+
+                if (filePath.contains("nexus_mod_")) {
+                    QFile::remove(filePath);
+                }
             }
 
-            if (filePath.contains("nexus_mod_")) {
-                QFile::remove(filePath);
-            }
+            accept();
         }
-
-        accept();
     });
     m_modalManager->showModal(nexusModal);
 }
@@ -285,4 +324,87 @@ void AddModModalContent::onFromItchClicked() {
         accept();
     });
     m_modalManager->showModal(itchModal);
+}
+
+void AddModModalContent::startProcessingFiles(const QList<FileToProcess> &files) {
+    m_filesToProcess = files;
+    m_currentFileIndex = 0;
+
+    setTitle("Processing Files");
+
+    m_fromFileButton->setVisible(false);
+    m_fromNexusButton->setVisible(false);
+    m_fromItchButton->setVisible(false);
+
+    if (!m_processingLabel) {
+        m_processingLabel = new QLabel(this);
+        m_processingLabel->setAlignment(Qt::AlignCenter);
+        m_processingLabel->setStyleSheet("QLabel { font-size: 14px; color: #e1d0ab; padding: 20px; }");
+        bodyLayout()->insertWidget(0, m_processingLabel);
+    }
+
+    if (!m_processingProgress) {
+        m_processingProgress = new QProgressBar(this);
+        m_processingProgress->setMinimumHeight(30);
+        bodyLayout()->insertWidget(1, m_processingProgress);
+    }
+
+    m_processingProgress->setMaximum(files.size());
+    m_processingProgress->setValue(0);
+    m_processingLabel->setVisible(true);
+    m_processingProgress->setVisible(true);
+
+    QTimer::singleShot(100, this, &AddModModalContent::processNextFile);
+}
+
+void AddModModalContent::processNextFile() {
+    if (m_currentFileIndex >= m_filesToProcess.size()) {
+        setTitle("Add Mod");
+        m_fromFileButton->setVisible(true);
+        m_fromNexusButton->setVisible(true);
+        m_fromItchButton->setVisible(true);
+        m_processingLabel->setVisible(false);
+        m_processingProgress->setVisible(false);
+        m_filesToProcess.clear();
+        m_waitingForModal = false;
+        accept();
+        return;
+    }
+
+    const FileToProcess &fileData = m_filesToProcess[m_currentFileIndex];
+    m_processingLabel->setText(QString("Processing file %1 of %2...")
+        .arg(m_currentFileIndex + 1).arg(m_filesToProcess.size()));
+    m_processingProgress->setValue(m_currentFileIndex);
+
+    QCoreApplication::processEvents();
+
+    const QString &filePath = fileData.filePath;
+
+    if (isArchiveFile(filePath)) {
+        handleArchiveFile(filePath, fileData.nexusModId, fileData.nexusFileId,
+                         fileData.author, fileData.description, fileData.version,
+                         fileData.itchGameId, fileData.uploadDate, true);
+
+        if (filePath.contains("nexus_mod_") || filePath.contains("itch_game_")) {
+            QFile::remove(filePath);
+        }
+
+        if (m_waitingForModal) {
+            return;
+        }
+    } else {
+        handlePakFile(filePath, fileData.nexusModId, fileData.nexusFileId,
+                     fileData.author, fileData.description, fileData.version,
+                     fileData.itchGameId, fileData.customModName, fileData.uploadDate);
+
+        if (filePath.contains("nexus_mod_") || filePath.contains("itch_game_")) {
+            QFile::remove(filePath);
+        }
+    }
+
+    m_currentFileIndex++;
+
+    QCoreApplication::processEvents();
+
+    QTimer::singleShot(200, this, &AddModModalContent::processNextFile);
 }

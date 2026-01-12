@@ -354,73 +354,130 @@ void NexusDownloadModalContent::onDownloadFinished(const QString &savePath) {
     }
 }
 
+void NexusDownloadModalContent::startManualDownloadSequence() {
+    if (m_currentDownloadIndex >= m_selectedFiles.size()) {
+        accept();
+        return;
+    }
+
+    const NexusFileInfo &file = m_selectedFiles[m_currentDownloadIndex];
+    m_currentFileId = file.id;
+
+    QString modUrl = QString("https://www.nexusmods.com/foxhole/mods/%1?tab=files&file_id=%2")
+                        .arg(m_currentModId, m_currentFileId);
+
+    QString title;
+    QString message;
+
+    if (m_selectedFiles.size() > 1) {
+        title = QString("Download File %1 of %2").arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size());
+        message = QString("Downloading: %1\n\nThe browser will open. Please download the file.\n\nOnce complete, click OK to locate it.")
+            .arg(file.name);
+    } else {
+        title = "Select Downloaded File";
+        message = "Please download the file from your browser.\n\nOnce the download is complete, click OK to locate the file.";
+    }
+
+    QDesktopServices::openUrl(QUrl(modUrl));
+
+    auto *selectModal = new MessageModal(
+        title,
+        message,
+        MessageModal::Information,
+        MessageModal::Ok | MessageModal::Cancel
+    );
+
+    connect(selectModal, &MessageModal::finished, this, [this, file, selectModal]() {
+        if (selectModal->clickedButton() == MessageModal::Ok) {
+            QString dialogTitle = m_selectedFiles.size() > 1
+                ? QString("Select Downloaded File - %1").arg(file.name)
+                : "Select Downloaded File";
+
+            QString filePath = QFileDialog::getOpenFileName(
+                this,
+                dialogTitle,
+                QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
+                "Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+                "Pak Files (*.pak);;"
+                "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+                "All Files (*.*)"
+            );
+
+            if (!filePath.isEmpty()) {
+                if (m_selectedFiles.size() == 1) {
+                    m_downloadedFilePaths.clear();
+                    m_downloadedFiles.clear();
+                }
+
+                m_downloadedFilePaths.append(filePath);
+                m_downloadedFiles.append(file);
+
+                if (m_selectedFiles.size() > 1) {
+                    int progress = ((m_currentDownloadIndex + 1) * 100) / m_selectedFiles.size();
+                    m_progressBar->setValue(progress);
+                    m_statusLabel->setText(QString("Downloaded %1 of %2 files")
+                        .arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size()));
+                }
+
+                m_currentDownloadIndex++;
+                startManualDownloadSequence();
+            } else {
+                if (m_selectedFiles.size() == 1) {
+                    reject();
+                } else {
+                    showInputPage();
+                }
+            }
+        } else {
+            if (m_selectedFiles.size() == 1) {
+                reject();
+            } else {
+                showInputPage();
+            }
+        }
+        selectModal->deleteLater();
+    });
+
+    m_modalManager->showModal(selectModal);
+}
+
 void NexusDownloadModalContent::onError(const QString &error) {
     if (error == "PREMIUM_REQUIRED") {
+        QString message;
+        QString title = "Premium Required";
+
         if (m_selectedFiles.size() > 1) {
-            MessageModal::warning(m_modalManager, "Error",
+            message = QString(
                 "Direct downloads via API require a Nexus Mods Premium account.\n\n"
-                "Multi-file downloads are not supported for manual downloads.\n"
-                "Please download files individually.");
-            showInputPage();
-            return;
+                "Your browser will open for each of the %1 files you selected. "
+                "Please download each file manually.\n\n"
+                "You will be prompted to locate each downloaded file."
+            ).arg(m_selectedFiles.size());
+        } else {
+            message = "Direct downloads via API require a Nexus Mods Premium account.\n\n"
+                     "Your browser will open to the download page where you can download the file manually.\n\n"
+                     "The mod will be installed with Nexus metadata for future updates.";
         }
 
-        QString modUrl = QString("https://www.nexusmods.com/foxhole/mods/%1?tab=files&file_id=%2")
-                            .arg(m_currentModId, m_currentFileId);
-
         auto *modal = new MessageModal(
-            "Premium Required",
-            "Direct downloads via API require a Nexus Mods Premium account.\n\n"
-            "Your browser will open to the download page where you can download the file manually.\n\n"
-            "The mod will be installed with Nexus metadata for future updates.",
+            title,
+            message,
             MessageModal::Information,
             MessageModal::Ok | MessageModal::Cancel
         );
 
-        connect(modal, &MessageModal::finished, this, [this, modUrl, modal]() {
+        connect(modal, &MessageModal::finished, this, [this, modal]() {
             if (modal->clickedButton() == MessageModal::Ok) {
-                QDesktopServices::openUrl(QUrl(modUrl));
-
-                auto *selectModal = new MessageModal(
-                    "Select Downloaded File",
-                    "Please download the file from your browser.\n\n"
-                    "Once the download is complete, click OK to locate the file.",
-                    MessageModal::Information,
-                    MessageModal::Ok | MessageModal::Cancel
-                );
-
-                connect(selectModal, &MessageModal::finished, this, [this, selectModal]() {
-                    if (selectModal->clickedButton() == MessageModal::Ok) {
-                        QString filePath = QFileDialog::getOpenFileName(
-                            this,
-                            "Select Downloaded File",
-                            QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
-                            "Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
-                            "Pak Files (*.pak);;"
-                            "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
-                            "All Files (*.*)"
-                        );
-
-                        if (!filePath.isEmpty()) {
-                            m_downloadedFilePaths.clear();
-                            m_downloadedFilePaths.append(filePath);
-                            m_downloadedFiles.clear();
-                            if (!m_selectedFiles.isEmpty()) {
-                                m_downloadedFiles.append(m_selectedFiles.first());
-                            }
-                            accept();
-                        } else {
-                            reject();
-                        }
-                    } else {
-                        reject();
-                    }
-                });
-
-                m_modalManager->showModal(selectModal);
+                m_currentDownloadIndex = 0;
+                if (m_selectedFiles.size() > 1) {
+                    m_downloadedFilePaths.clear();
+                    m_downloadedFiles.clear();
+                }
+                startManualDownloadSequence();
             } else {
-                reject();
+                showInputPage();
             }
+            modal->deleteLater();
         });
 
         m_modalManager->showModal(modal);
