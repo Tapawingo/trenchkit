@@ -71,6 +71,8 @@ private slots:
     void onFilesDropped(const QStringList &filePaths);
     void onConflictScanComplete(QMap<QString, ConflictInfo> conflicts);
     void onConflictDetailsRequested(const QString &modId);
+    void onRegisterWithNexusRequested(const QString &modId);
+    void onRegisterWithItchRequested(const QString &modId);
 
 private:
     void setupUi();

@@ -135,6 +135,9 @@ void ModRowWidget::contextMenuEvent(QContextMenuEvent *event) {
     QAction *renameAction = menu.addAction("Rename");
     QAction *editMetaAction = menu.addAction("Edit Metadata");
     menu.addSeparator();
+    QAction *registerNexusAction = menu.addAction("Register with Nexus Mods");
+    QAction *registerItchAction = menu.addAction("Register with itch.io");
+    menu.addSeparator();
     QAction *removeAction = menu.addAction("Remove");
 
     QAction *selectedAction = menu.exec(event->globalPos());
@@ -143,6 +146,10 @@ void ModRowWidget::contextMenuEvent(QContextMenuEvent *event) {
         emit renameRequested(m_modId);
     } else if (selectedAction == editMetaAction) {
         emit editMetaRequested(m_modId);
+    } else if (selectedAction == registerNexusAction) {
+        emit registerWithNexusRequested(m_modId);
+    } else if (selectedAction == registerItchAction) {
+        emit registerWithItchRequested(m_modId);
     } else if (selectedAction == removeAction) {
         emit removeRequested(m_modId);
     }

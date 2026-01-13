@@ -10,6 +10,8 @@
 #include "../modals/content/ItchModUpdateModalContent.h"
 #include "../modals/content/FileSelectionModalContent.h"
 #include "../modals/content/ConflictDetailModalContent.h"
+#include "../modals/content/NexusRegistrationModalContent.h"
+#include "../modals/content/ItchRegistrationModalContent.h"
 #include "../utils/Theme.h"
 #include "../utils/ArchiveExtractor.h"
 #include "../utils/ModUpdateService.h"
@@ -165,6 +167,10 @@ void ModListWidget::refreshModList() {
                 this, &ModListWidget::onUpdateRequested);
         connect(modRow, &ModRowWidget::conflictDetailsRequested,
                 this, &ModListWidget::onConflictDetailsRequested);
+        connect(modRow, &ModRowWidget::registerWithNexusRequested,
+                this, &ModListWidget::onRegisterWithNexusRequested);
+        connect(modRow, &ModRowWidget::registerWithItchRequested,
+                this, &ModListWidget::onRegisterWithItchRequested);
 
         auto *item = new QListWidgetItem(m_modList);
         QSize rowSize = modRow->sizeHint();
@@ -885,5 +891,80 @@ void ModListWidget::onConflictDetailsRequested(const QString &modId) {
     }
 
     auto *modal = new ConflictDetailModalContent(mod.name, conflictInfo);
+    m_modalManager->showModal(modal);
+}
+
+void ModListWidget::onRegisterWithNexusRequested(const QString &modId) {
+    if (!m_modalManager || !m_nexusClient || !m_nexusAuth) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    auto *modal = new NexusRegistrationModalContent(
+        m_nexusClient, m_nexusAuth, m_modalManager, modId, mod.name);
+
+    connect(modal, &NexusRegistrationModalContent::accepted, this, [this, modal, modId]() {
+        ModInfo mod = m_modManager->getMod(modId);
+        if (mod.id.isEmpty()) {
+            return;
+        }
+
+        mod.nexusModId = modal->getModId();
+        mod.author = modal->getAuthor();
+        mod.description = modal->getDescription();
+
+        QList<NexusFileInfo> files = modal->getSelectedFiles();
+        if (!files.isEmpty()) {
+            mod.nexusFileId = files.first().id;
+            mod.version = files.first().version;
+        }
+
+        if (m_modManager->updateModMetadata(mod)) {
+            refreshModList();
+        }
+    });
+
+    m_modalManager->showModal(modal);
+}
+
+void ModListWidget::onRegisterWithItchRequested(const QString &modId) {
+    if (!m_modalManager || !m_itchClient || !m_itchAuth) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    auto *modal = new ItchRegistrationModalContent(
+        m_itchClient, m_itchAuth, m_modalManager, modId, mod.name);
+
+    connect(modal, &ItchRegistrationModalContent::accepted, this, [this, modal, modId]() {
+        ModInfo mod = m_modManager->getMod(modId);
+        if (mod.id.isEmpty()) {
+            return;
+        }
+
+        mod.itchGameId = modal->getGameId();
+        mod.author = modal->getAuthor();
+
+        QList<ItchUploadInfo> uploads = modal->getSelectedUploads();
+        if (!uploads.isEmpty()) {
+            QString version = extractVersionFromFilename(uploads.first().filename);
+            if (!version.isEmpty()) {
+                mod.version = version;
+            }
+        }
+
+        if (m_modManager->updateModMetadata(mod)) {
+            refreshModList();
+        }
+    });
+
     m_modalManager->showModal(modal);
 }
