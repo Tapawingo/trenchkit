@@ -25,6 +25,7 @@
 #include <QTimer>
 #include <QFileInfo>
 #include <QPushButton>
+#include <QScrollBar>
 
 ModListWidget::ModListWidget(QWidget *parent)
     : QWidget(parent)
@@ -144,6 +145,7 @@ void ModListWidget::refreshModList() {
     m_updating = true;
 
     int currentRow = getSelectedRow();
+    int scrollPosition = m_modList->verticalScrollBar()->value();
     m_modList->clear();
 
     QList<ModInfo> mods = m_modManager->getMods();
@@ -195,6 +197,10 @@ void ModListWidget::refreshModList() {
     if (currentRow >= 0 && currentRow < m_modList->count()) {
         m_modList->setCurrentRow(currentRow);
     }
+
+    QTimer::singleShot(0, this, [this, scrollPosition]() {
+        m_modList->verticalScrollBar()->setValue(scrollPosition);
+    });
 
     m_updating = false;
 }
