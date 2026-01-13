@@ -219,14 +219,6 @@ QString LaunchWidget::getFoxholeExecutablePath() const {
         "War.exe"
     };
 
-    QDir rootDir(m_foxholeInstallPath);
-    for (const QString &exe : possibleExes) {
-        QString path = rootDir.filePath(exe);
-        if (QFile::exists(path)) {
-            return path;
-        }
-    }
-
     QDir warDir(m_foxholeInstallPath);
     if (warDir.cd("War") && warDir.cd("Binaries") && warDir.cd("Win64")) {
         for (const QString &exe : possibleExes) {
@@ -234,6 +226,14 @@ QString LaunchWidget::getFoxholeExecutablePath() const {
             if (QFile::exists(path)) {
                 return path;
             }
+        }
+    }
+
+    QDir rootDir(m_foxholeInstallPath);
+    for (const QString &exe : possibleExes) {
+        QString path = rootDir.filePath(exe);
+        if (QFile::exists(path)) {
+            return path;
         }
     }
 
