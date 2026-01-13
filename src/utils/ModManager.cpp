@@ -829,24 +829,16 @@ void ModManager::syncEnabledModsWithPaks() {
 QString ModManager::cleanModName(const QString &fileName) const {
     QString baseName = QFileInfo(fileName).baseName();
 
-    if (baseName.startsWith("War-WindowsNoEditor", Qt::CaseInsensitive)) {
-        baseName = baseName.mid(19);
-    }
-
-    if (baseName.endsWith("-WindowsNoEditor", Qt::CaseInsensitive)) {
-        baseName.chop(16);
-    }
-
-    baseName.replace("WindowsNoEditor", "", Qt::CaseInsensitive);
-
-    while (baseName.startsWith('-') || baseName.startsWith('_')) {
-        baseName = baseName.mid(1);
-    }
-    while (baseName.endsWith('-') || baseName.endsWith('_')) {
-        baseName.chop(1);
-    }
+    baseName.replace(QStringLiteral("War-WindowsNoEditor"), QString(), Qt::CaseInsensitive);
+    baseName.replace(QStringLiteral("WindowsNoEditor"), QString(), Qt::CaseInsensitive);
 
     baseName.replace('_', ' ');
+    baseName.replace('-', ' ');
+    baseName = baseName.simplified();
+
+    if (!baseName.isEmpty()) {
+        baseName[0] = baseName[0].toUpper();
+    }
 
     return baseName.isEmpty() ? fileName : baseName;
 }
