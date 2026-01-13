@@ -34,6 +34,13 @@
 #include <QDir>
 #include <QStandardPaths>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <shlobj.h>
+#include <objbase.h>
+#include <shobjidl.h>
+#endif
+
 SettingsWidget::SettingsWidget(QWidget *parent, UpdaterService *updater)
     : QWidget(parent),
       m_updater(updater) {
@@ -113,7 +120,7 @@ void SettingsWidget::buildUi() {
     containerLayout->setVerticalSpacing(Theme::Spacing::SETTINGS_ROW_SPACING);
     containerLayout->setColumnStretch(0, 1);
     containerLayout->setColumnStretch(1, 2);
-    containerLayout->setRowStretch(18, 1);
+    containerLayout->setRowStretch(21, 1);
 
     auto *title = new QLabel("Settings", m_panel);
     title->setObjectName("settingsTitle");
@@ -195,24 +202,49 @@ void SettingsWidget::buildUi() {
     m_checkStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     containerLayout->addWidget(m_checkStatusLabel, 8, 1);
 
+    auto *shortcutsHeader = new QLabel("Shortcuts", m_panel);
+    shortcutsHeader->setObjectName("settingsSectionHeader");
+    shortcutsHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(shortcutsHeader, 9, 0, 1, 2);
+
+    auto *desktopShortcutLabel = new QLabel("Desktop shortcut", m_panel);
+    desktopShortcutLabel->setObjectName("settingsLabel");
+    desktopShortcutLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(desktopShortcutLabel, 10, 0);
+
+    m_addDesktopShortcutButton = new QPushButton("Add Desktop Shortcut", m_panel);
+    m_addDesktopShortcutButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_addDesktopShortcutButton->setCursor(Qt::PointingHandCursor);
+    containerLayout->addWidget(m_addDesktopShortcutButton, 10, 1);
+
+    auto *startMenuLabel = new QLabel("Start menu", m_panel);
+    startMenuLabel->setObjectName("settingsLabel");
+    startMenuLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(startMenuLabel, 11, 0);
+
+    m_addStartMenuShortcutButton = new QPushButton("Add to Start Menu", m_panel);
+    m_addStartMenuShortcutButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_addStartMenuShortcutButton->setCursor(Qt::PointingHandCursor);
+    containerLayout->addWidget(m_addStartMenuShortcutButton, 11, 1);
+
     auto *nexusHeader = new QLabel("Nexus Mods Integration", m_panel);
     nexusHeader->setObjectName("settingsSectionHeader");
     nexusHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(nexusHeader, 9, 0, 1, 2);
+    containerLayout->addWidget(nexusHeader, 12, 0, 1, 2);
 
     auto *nexusLabel = new QLabel("Connection status", m_panel);
     nexusLabel->setObjectName("settingsLabel");
     nexusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(nexusLabel, 10, 0);
+    containerLayout->addWidget(nexusLabel, 13, 0);
 
     m_nexusStatusLabel = new QLabel("Not connected", m_panel);
     m_nexusStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_nexusStatusLabel, 10, 1);
+    containerLayout->addWidget(m_nexusStatusLabel, 13, 1);
 
     auto *nexusActionsLabel = new QLabel("Authentication", m_panel);
     nexusActionsLabel->setObjectName("settingsLabel");
     nexusActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(nexusActionsLabel, 11, 0);
+    containerLayout->addWidget(nexusActionsLabel, 14, 0);
 
     auto *nexusButtonRow = new QHBoxLayout();
     m_nexusAuthButton = new QPushButton("Authenticate (SSO)", m_panel);
@@ -224,26 +256,26 @@ void SettingsWidget::buildUi() {
     nexusButtonRow->addWidget(m_nexusAuthButton);
     nexusButtonRow->addWidget(m_nexusClearButton);
     nexusButtonRow->addStretch();
-    containerLayout->addLayout(nexusButtonRow, 11, 1);
+    containerLayout->addLayout(nexusButtonRow, 14, 1);
 
     auto *itchHeader = new QLabel("Itch.io Integration", m_panel);
     itchHeader->setObjectName("settingsSectionHeader");
     itchHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(itchHeader, 12, 0, 1, 2);
+    containerLayout->addWidget(itchHeader, 15, 0, 1, 2);
 
     auto *itchLabel = new QLabel("Connection status", m_panel);
     itchLabel->setObjectName("settingsLabel");
     itchLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(itchLabel, 13, 0);
+    containerLayout->addWidget(itchLabel, 16, 0);
 
     m_itchStatusLabel = new QLabel("Not connected", m_panel);
     m_itchStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_itchStatusLabel, 13, 1);
+    containerLayout->addWidget(m_itchStatusLabel, 16, 1);
 
     auto *itchActionsLabel = new QLabel("Authentication", m_panel);
     itchActionsLabel->setObjectName("settingsLabel");
     itchActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(itchActionsLabel, 14, 0);
+    containerLayout->addWidget(itchActionsLabel, 17, 0);
 
     auto *itchButtonRow = new QHBoxLayout();
     m_itchAuthButton = new QPushButton("Add API Key", m_panel);
@@ -255,28 +287,28 @@ void SettingsWidget::buildUi() {
     itchButtonRow->addWidget(m_itchAuthButton);
     itchButtonRow->addWidget(m_itchClearButton);
     itchButtonRow->addStretch();
-    containerLayout->addLayout(itchButtonRow, 14, 1);
+    containerLayout->addLayout(itchButtonRow, 17, 1);
 
     auto *loggingHeader = new QLabel("Logging", m_panel);
     loggingHeader->setObjectName("settingsSectionHeader");
     loggingHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(loggingHeader, 15, 0, 1, 2);
+    containerLayout->addWidget(loggingHeader, 18, 0, 1, 2);
 
     auto *logLocationLabel = new QLabel("Log files location", m_panel);
     logLocationLabel->setObjectName("settingsLabel");
     logLocationLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(logLocationLabel, 16, 0);
+    containerLayout->addWidget(logLocationLabel, 19, 0);
 
     m_logPathLabel = new QLabel(Logger::instance().logDirectory(), m_panel);
     m_logPathLabel->setWordWrap(true);
     m_logPathLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     m_logPathLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_logPathLabel, 16, 1);
+    containerLayout->addWidget(m_logPathLabel, 19, 1);
 
     auto *logActionsLabel = new QLabel("Access logs", m_panel);
     logActionsLabel->setObjectName("settingsLabel");
     logActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(logActionsLabel, 17, 0);
+    containerLayout->addWidget(logActionsLabel, 20, 0);
 
     auto *logButtonRow = new QHBoxLayout();
     m_openLogsButton = new QPushButton("Open Log Folder", m_panel);
@@ -288,7 +320,7 @@ void SettingsWidget::buildUi() {
     logButtonRow->addWidget(m_openLogsButton);
     logButtonRow->addWidget(m_copyLogPathButton);
     logButtonRow->addStretch();
-    containerLayout->addLayout(logButtonRow, 17, 1);
+    containerLayout->addLayout(logButtonRow, 20, 1);
 
     scrollArea->setWidget(m_container);
     panelLayout->addWidget(scrollArea);
@@ -356,6 +388,8 @@ void SettingsWidget::buildUi() {
 
     connect(m_openLogsButton, &QPushButton::clicked, this, &SettingsWidget::onOpenLogsClicked);
     connect(m_copyLogPathButton, &QPushButton::clicked, this, &SettingsWidget::onCopyLogPathClicked);
+    connect(m_addDesktopShortcutButton, &QPushButton::clicked, this, &SettingsWidget::onAddDesktopShortcutClicked);
+    connect(m_addStartMenuShortcutButton, &QPushButton::clicked, this, &SettingsWidget::onAddStartMenuShortcutClicked);
 }
 
 void SettingsWidget::applySettings() {
@@ -643,4 +677,113 @@ void SettingsWidget::onCopyLogPathClicked() {
             }
         });
     }
+}
+
+bool SettingsWidget::createShortcut(const QString &shortcutPath, const QString &targetPath, const QString &description) {
+#ifdef Q_OS_WIN
+    CoInitialize(nullptr);
+
+    IShellLinkW *shellLink = nullptr;
+    HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&shellLink);
+
+    if (FAILED(hr) || !shellLink) {
+        CoUninitialize();
+        return false;
+    }
+
+    shellLink->SetPath(reinterpret_cast<const wchar_t*>(targetPath.utf16()));
+    shellLink->SetDescription(reinterpret_cast<const wchar_t*>(description.utf16()));
+
+    QString workingDir = QFileInfo(targetPath).absolutePath();
+    shellLink->SetWorkingDirectory(reinterpret_cast<const wchar_t*>(workingDir.utf16()));
+
+    IPersistFile *persistFile = nullptr;
+    hr = shellLink->QueryInterface(IID_IPersistFile, (LPVOID*)&persistFile);
+
+    bool success = false;
+    if (SUCCEEDED(hr) && persistFile) {
+        hr = persistFile->Save(reinterpret_cast<const wchar_t*>(shortcutPath.utf16()), TRUE);
+        success = SUCCEEDED(hr);
+        persistFile->Release();
+    }
+
+    shellLink->Release();
+    CoUninitialize();
+
+    return success;
+#else
+    Q_UNUSED(shortcutPath);
+    Q_UNUSED(targetPath);
+    Q_UNUSED(description);
+    return false;
+#endif
+}
+
+void SettingsWidget::onAddDesktopShortcutClicked() {
+#ifdef Q_OS_WIN
+    QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    QString shortcutPath = desktopPath + "/TrenchKit.lnk";
+
+    QString exePath = QCoreApplication::applicationFilePath();
+
+    if (QFile::exists(shortcutPath)) {
+        if (m_modalManager) {
+            MessageModal::information(m_modalManager, "Shortcut Already Exists",
+                "A desktop shortcut for TrenchKit already exists.");
+        }
+        return;
+    }
+
+    bool success = createShortcut(shortcutPath, exePath, "TrenchKit - Foxhole Mod Manager");
+
+    if (m_modalManager) {
+        if (success) {
+            MessageModal::information(m_modalManager, "Success",
+                "Desktop shortcut created successfully.");
+        } else {
+            MessageModal::warning(m_modalManager, "Error",
+                "Failed to create desktop shortcut.");
+        }
+    }
+#else
+    if (m_modalManager) {
+        MessageModal::information(m_modalManager, "Not Supported",
+            "Shortcut creation is only supported on Windows.");
+    }
+#endif
+}
+
+void SettingsWidget::onAddStartMenuShortcutClicked() {
+#ifdef Q_OS_WIN
+    QString startMenuPath = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    QDir().mkpath(startMenuPath + "/TrenchKit");
+    QString shortcutPath = startMenuPath + "/TrenchKit/TrenchKit.lnk";
+
+    QString exePath = QCoreApplication::applicationFilePath();
+
+    if (QFile::exists(shortcutPath)) {
+        if (m_modalManager) {
+            MessageModal::information(m_modalManager, "Shortcut Already Exists",
+                "A Start Menu shortcut for TrenchKit already exists.");
+        }
+        return;
+    }
+
+    bool success = createShortcut(shortcutPath, exePath, "TrenchKit - Foxhole Mod Manager");
+
+    if (m_modalManager) {
+        if (success) {
+            MessageModal::information(m_modalManager, "Success",
+                "Start Menu shortcut created successfully.");
+        } else {
+            MessageModal::warning(m_modalManager, "Error",
+                "Failed to create Start Menu shortcut.");
+        }
+    }
+#else
+    if (m_modalManager) {
+        MessageModal::information(m_modalManager, "Not Supported",
+            "Shortcut creation is only supported on Windows.");
+    }
+#endif
 }
