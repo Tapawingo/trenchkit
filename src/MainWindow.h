@@ -27,6 +27,7 @@ class ModManager;
 class ProfileManager;
 class QProgressDialog;
 class SettingsWidget;
+class QShortcut;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -106,6 +107,7 @@ private:
     QWidget *m_settingsPage = nullptr;
     SettingsWidget *m_settingsWidget = nullptr;
     ModalManager *m_modalManager = nullptr;
+    QShortcut *m_globalSearchShortcut = nullptr;
 
     QPixmap m_backgroundTexture;
     QPixmap m_cachedScaledTexture;

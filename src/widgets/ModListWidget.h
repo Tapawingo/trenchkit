@@ -18,6 +18,8 @@ class ModUpdateService;
 class ItchModUpdateService;
 class ModalManager;
 class ModConflictDetector;
+class QLineEdit;
+class QShortcut;
 struct ModUpdateInfo;
 struct ItchUpdateInfo;
 struct ConflictInfo;
@@ -51,9 +53,11 @@ public slots:
     void onMoveUpClicked();
     void onMoveDownClicked();
     void onCheckUpdatesClicked();
+    void activateSearch();
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void onModsChanged();
@@ -82,6 +86,9 @@ private:
     void handlePakFile(const QString &pakPath);
     void handleArchiveFile(const QString &archivePath);
     bool isArchiveFile(const QString &filePath) const;
+    void hideSearch(bool clearFilter);
+    void updateDragMode();
+    bool isFilterActive() const;
 
     ModManager *m_modManager = nullptr;
     NexusModsClient *m_nexusClient = nullptr;
@@ -98,6 +105,9 @@ private:
     QLabel *m_modCountLabel;
     QPushButton *m_checkUpdatesButton;
     QTimer *m_loadingTimer;
+    QWidget *m_searchContainer = nullptr;
+    QLineEdit *m_searchEdit = nullptr;
+    QString m_filterText;
     int m_loadingDots = 0;
 
     bool m_updating = false;

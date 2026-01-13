@@ -34,6 +34,7 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <QMetaObject>
+#include <QShortcut>
 
 namespace {
 QString defaultUpdatesDir() {
@@ -80,6 +81,21 @@ MainWindow::MainWindow(QWidget *parent)
     setupModList();
     setupRightPanel();
     setupSettingsOverlay();
+    m_globalSearchShortcut = new QShortcut(QKeySequence::Find, this);
+    m_globalSearchShortcut->setContext(Qt::ApplicationShortcut);
+    connect(m_globalSearchShortcut, &QShortcut::activated, this, [this]() {
+        if (!m_modListWidget || !m_modalManager) {
+            return;
+        }
+        if (m_modalManager->hasOpenModal()) {
+            return;
+        }
+        if (ui->bodyStack && m_settingsPage &&
+            ui->bodyStack->currentWidget() == m_settingsPage) {
+            return;
+        }
+        m_modListWidget->activateSearch();
+    });
 
     connect(m_updater, &UpdaterService::updateAvailable,
             this, &MainWindow::onUpdateAvailable);

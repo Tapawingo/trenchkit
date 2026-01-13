@@ -39,6 +39,10 @@ void ModalManager::closeAllModals() {
     }
 }
 
+bool ModalManager::hasOpenModal() const {
+    return !m_modalStack.isEmpty();
+}
+
 void ModalManager::onOverlayClosed(int result) {
     auto *overlay = qobject_cast<ModalOverlay*>(sender());
     if (overlay) {
