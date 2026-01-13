@@ -5,13 +5,13 @@
 #include <QString>
 
 class QLabel;
-class QListWidget;
 class QListWidgetItem;
 class QPushButton;
 class QToolButton;
 class QVBoxLayout;
 class ProfileManager;
 class ModalManager;
+class DraggableProfileList;
 
 class ProfileManagerWidget : public QWidget {
     Q_OBJECT
@@ -41,6 +41,7 @@ private slots:
     void onItemSelectionChanged();
     void onItemDoubleClicked(QListWidgetItem *item);
     void onProfileRowClicked(const QString &profileId);
+    void onItemsReordered();
 
 private:
     void setupUi();
@@ -50,7 +51,7 @@ private:
     void showValidationDialog(const QString &profileId);
 
     QLabel *m_titleLabel;
-    QListWidget *m_profileList;
+    DraggableProfileList *m_profileList;
     QPushButton *m_createButton;
     QPushButton *m_loadButton;
     QPushButton *m_updateButton;
