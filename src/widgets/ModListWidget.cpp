@@ -533,11 +533,16 @@ void ModListWidget::onCheckUpdatesClicked() {
     m_checkUpdatesButton->setEnabled(false);
     m_checkUpdatesButton->setText("Checking...");
 
+    m_pendingUpdateChecks = 0;
+    m_totalUpdatesFound = 0;
+
     if (m_updateService) {
+        m_pendingUpdateChecks++;
         m_updateService->checkAllModsForUpdates();
     }
 
     if (m_itchUpdateService) {
+        m_pendingUpdateChecks++;
         m_itchUpdateService->checkAllModsForUpdates();
     }
 }
@@ -556,8 +561,19 @@ void ModListWidget::onUpdateFound(const QString &modId, const ModUpdateInfo &upd
 }
 
 void ModListWidget::onUpdateCheckComplete(int updatesFound) {
-    m_checkUpdatesButton->setEnabled(true);
-    m_checkUpdatesButton->setText("Check for Updates");
+    m_totalUpdatesFound += updatesFound;
+    m_pendingUpdateChecks--;
+
+    if (m_pendingUpdateChecks <= 0) {
+        m_checkUpdatesButton->setEnabled(true);
+        m_checkUpdatesButton->setText(QString("Check for Updates (%1)").arg(m_totalUpdatesFound));
+
+        QTimer::singleShot(5000, this, [this]() {
+            if (m_checkUpdatesButton->text().contains('(')) {
+                m_checkUpdatesButton->setText("Check for Updates");
+            }
+        });
+    }
 }
 
 void ModListWidget::onItchUpdateFound(const QString &modId, const ItchUpdateInfo &updateInfo) {
@@ -574,8 +590,19 @@ void ModListWidget::onItchUpdateFound(const QString &modId, const ItchUpdateInfo
 }
 
 void ModListWidget::onItchUpdateCheckComplete(int updatesFound) {
-    m_checkUpdatesButton->setEnabled(true);
-    m_checkUpdatesButton->setText("Check for Updates");
+    m_totalUpdatesFound += updatesFound;
+    m_pendingUpdateChecks--;
+
+    if (m_pendingUpdateChecks <= 0) {
+        m_checkUpdatesButton->setEnabled(true);
+        m_checkUpdatesButton->setText(QString("Check for Updates (%1)").arg(m_totalUpdatesFound));
+
+        QTimer::singleShot(5000, this, [this]() {
+            if (m_checkUpdatesButton->text().contains('(')) {
+                m_checkUpdatesButton->setText("Check for Updates");
+            }
+        });
+    }
 }
 
 void ModListWidget::onUpdateRequested(const QString &modId) {
