@@ -11,6 +11,7 @@ DraggableModList::DraggableModList(QWidget *parent)
     setSelectionMode(QAbstractItemView::SingleSelection);
     setDropIndicatorShown(true);
     setAcceptDrops(true);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 void DraggableModList::dragEnterEvent(QDragEnterEvent *event) {

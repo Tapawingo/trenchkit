@@ -8,13 +8,17 @@
 #include <QMenu>
 #include <QContextMenuEvent>
 #include <QEvent>
+#include <QFontMetrics>
+#include <QTimer>
 
 ModRowWidget::ModRowWidget(const ModInfo &mod, QWidget *parent)
     : QWidget(parent)
     , m_modId(mod.id)
+    , m_fullModName(mod.name)
 {
     setAttribute(Qt::WA_StyledBackground, true);
     setCursor(Qt::PointingHandCursor);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     setupUi(mod);
 }
 
@@ -39,6 +43,8 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
     m_nameLabel = new QLabel(mod.name, this);
     m_nameLabel->setObjectName("modNameLabel");
+    m_nameLabel->setToolTip(mod.name);
+    m_nameLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 
     topLayout->addWidget(m_enabledCheckBox);
     topLayout->addWidget(m_nameLabel, 1);
@@ -96,6 +102,8 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
 void ModRowWidget::updateModInfo(const ModInfo &mod) {
     m_enabledCheckBox->setChecked(mod.enabled);
+    m_fullModName = mod.name;
+    m_nameLabel->setToolTip(mod.name);
     m_nameLabel->setText(mod.name);
     m_dateLabel->setText("Installed: " + mod.installDate.toString("yyyy-MM-dd hh:mm"));
 }
@@ -111,6 +119,14 @@ void ModRowWidget::updateStyling() {
     setProperty("selected", m_selected);
     style()->unpolish(this);
     style()->polish(this);
+}
+
+void ModRowWidget::updateNameEliding() {
+    if (m_nameLabel && !m_fullModName.isEmpty() && m_nameLabel->width() > 0) {
+        QFontMetrics metrics(m_nameLabel->font());
+        QString elidedText = metrics.elidedText(m_fullModName, Qt::ElideRight, m_nameLabel->width());
+        m_nameLabel->setText(elidedText);
+    }
 }
 
 void ModRowWidget::contextMenuEvent(QContextMenuEvent *event) {
@@ -134,6 +150,7 @@ void ModRowWidget::contextMenuEvent(QContextMenuEvent *event) {
 
 void ModRowWidget::setUpdateAvailable(bool available, const QString &version) {
     if (m_updateButton) {
+        bool wasVisible = m_updateButton->isVisible();
         m_updateButton->setVisible(available);
         if (available) {
             if (!version.isEmpty()) {
@@ -144,12 +161,16 @@ void ModRowWidget::setUpdateAvailable(bool available, const QString &version) {
                 m_updateButton->setFixedWidth(buttonHeight);
             }
         }
+        if (wasVisible != available) {
+            QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
+        }
     }
 }
 
 void ModRowWidget::hideUpdateButton() {
-    if (m_updateButton) {
+    if (m_updateButton && m_updateButton->isVisible()) {
         m_updateButton->setVisible(false);
+        QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
     }
 }
 
@@ -165,6 +186,8 @@ void ModRowWidget::resizeEvent(QResizeEvent *event) {
         int buttonHeight = m_conflictButton->height();
         m_conflictButton->setFixedWidth(buttonHeight);
     }
+
+    updateNameEliding();
 }
 
 bool ModRowWidget::eventFilter(QObject *watched, QEvent *event) {
@@ -203,6 +226,7 @@ void ModRowWidget::setConflictInfo(const ConflictInfo &info) {
     }
 
     bool hasConflicts = info.hasConflicts();
+    bool wasVisible = m_conflictButton->isVisible();
     m_conflictButton->setVisible(hasConflicts);
 
     if (hasConflicts) {
@@ -228,16 +252,25 @@ void ModRowWidget::setConflictInfo(const ConflictInfo &info) {
             m_conflictTooltip->hide();
         }
     }
+
+    if (wasVisible != hasConflicts) {
+        QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
+    }
 }
 
 void ModRowWidget::clearConflictIndicator() {
+    bool wasVisible = false;
     if (m_conflictButton) {
+        wasVisible = m_conflictButton->isVisible();
         m_conflictButton->setVisible(false);
     }
     m_conflictTooltipText.clear();
     m_nameLabel->setStyleSheet("");
     if (m_conflictTooltip) {
         m_conflictTooltip->hide();
+    }
+    if (wasVisible) {
+        QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
     }
 }
 
