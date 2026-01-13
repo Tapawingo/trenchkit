@@ -75,6 +75,7 @@ private:
     void hideSettingsOverlay();
     void onSettingsApplied(bool autoCheck);
     QString findProfileImportPath() const;
+    void trySyncEnabledMods();
 
     Ui::MainWindow *ui;
     InstallPathWidget *m_installPathWidget;
@@ -96,6 +97,8 @@ private:
     UpdaterService::ReleaseInfo m_updateRelease;
     bool m_updateAvailable = false;
     bool m_updateInstallStarted = false;
+    bool m_modsLoaded = false;
+    bool m_installPathReady = false;
     QPointer<QProgressDialog> m_updateDialog;
     QString m_pendingUpdatePath;
     qint64 m_pendingUpdateSize = -1;
