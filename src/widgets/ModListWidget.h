@@ -99,6 +99,8 @@ private:
     int m_loadingDots = 0;
 
     bool m_updating = false;
+    int m_pendingUpdateChecks = 0;
+    int m_totalUpdatesFound = 0;
 };
 
 #endif // MODLISTWIDGET_H
