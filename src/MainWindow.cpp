@@ -394,6 +394,7 @@ void MainWindow::onInstallPathChanged(const QString &path) {
     settings.setValue("foxholeInstallPath", path);
 
     m_modManager->setInstallPath(path);
+    m_installPathReady = false;
 
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
     log->addLogEntry("Install Path Updated", ActivityLogWidget::LogLevel::Info);
@@ -411,6 +412,7 @@ void MainWindow::onModsLoadComplete() {
     m_modListWidget->setLoadingState(false);
 
     if (success) {
+        m_modsLoaded = true;
         m_modListWidget->refreshModList();
 
         if (m_modUpdateService) {
@@ -432,6 +434,8 @@ void MainWindow::onModsLoadComplete() {
             });
         }
     }
+
+    trySyncEnabledMods();
 }
 
 QString MainWindow::findProfileImportPath() const {
@@ -445,8 +449,23 @@ QString MainWindow::findProfileImportPath() const {
     return QString();
 }
 
+void MainWindow::trySyncEnabledMods() {
+    if (!m_modManager || !m_modsLoaded || !m_installPathReady) {
+        return;
+    }
+
+    const QString paksPath = m_modManager->getPaksPath();
+    if (paksPath.isEmpty() || !QDir(paksPath).exists()) {
+        return;
+    }
+
+    m_modManager->syncEnabledModsWithPaks();
+}
+
 void MainWindow::onUnregisteredModsDetectionComplete() {
     m_modListWidget->setLoadingState(false);
+    m_installPathReady = true;
+    trySyncEnabledMods();
 }
 
 void MainWindow::onSettingsClicked() {
