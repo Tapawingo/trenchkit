@@ -163,6 +163,30 @@ bool ProfileManager::deleteProfile(const QString &profileId) {
     return true;
 }
 
+bool ProfileManager::reorderProfiles(const QList<QString> &orderedProfileIds) {
+    if (orderedProfileIds.size() != m_profiles.size()) {
+        emit errorOccurred("Profile count mismatch during reordering");
+        return false;
+    }
+
+    QList<ProfileInfo> reorderedProfiles;
+    for (const QString &profileId : orderedProfileIds) {
+        auto it = std::find_if(m_profiles.begin(), m_profiles.end(),
+                              [&profileId](const ProfileInfo &p) { return p.id == profileId; });
+        if (it == m_profiles.end()) {
+            emit errorOccurred("Profile not found during reordering: " + profileId);
+            return false;
+        }
+        reorderedProfiles.append(*it);
+    }
+
+    m_profiles = reorderedProfiles;
+    saveProfiles();
+    emit profilesChanged();
+
+    return true;
+}
+
 ProfileInfo ProfileManager::getProfile(const QString &profileId) const {
     auto it = std::find_if(m_profiles.begin(), m_profiles.end(),
                           [&profileId](const ProfileInfo &p) { return p.id == profileId; });

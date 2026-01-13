@@ -23,6 +23,8 @@ qt_add_executable(TrenchKit
   widgets/ConflictTooltip.cpp
   widgets/ProfileRowWidget.h
   widgets/ProfileRowWidget.cpp
+  widgets/DraggableProfileList.h
+  widgets/DraggableProfileList.cpp
   widgets/RightPanelWidget.h
   widgets/RightPanelWidget.cpp
   widgets/ActionsWidget.h

@@ -1,13 +1,13 @@
 #include "ProfileManagerWidget.h"
 #include "ProfileRowWidget.h"
 #include "GradientFrame.h"
+#include "DraggableProfileList.h"
 #include "../modals/ModalManager.h"
 #include "../modals/MessageModal.h"
 #include "../modals/InputModal.h"
 #include "../utils/ProfileManager.h"
 #include "../utils/Theme.h"
 #include <QLabel>
-#include <QListWidget>
 #include <QPushButton>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -18,7 +18,7 @@
 ProfileManagerWidget::ProfileManagerWidget(QWidget *parent)
     : QWidget(parent)
     , m_titleLabel(new QLabel(this))
-    , m_profileList(new QListWidget(this))
+    , m_profileList(new DraggableProfileList(this))
     , m_createButton(new QPushButton(this))
     , m_loadButton(new QPushButton(this))
     , m_updateButton(new QPushButton(this))
@@ -95,10 +95,12 @@ void ProfileManagerWidget::setupConnections() {
     connect(m_updateButton, &QPushButton::clicked, this, &ProfileManagerWidget::onUpdateClicked);
     connect(m_importIconButton, &QToolButton::clicked, this, &ProfileManagerWidget::onImportClicked);
 
-    connect(m_profileList, &QListWidget::itemSelectionChanged,
+    connect(m_profileList, &DraggableProfileList::itemSelectionChanged,
             this, &ProfileManagerWidget::onItemSelectionChanged);
-    connect(m_profileList, &QListWidget::itemDoubleClicked,
+    connect(m_profileList, &DraggableProfileList::itemDoubleClicked,
             this, &ProfileManagerWidget::onItemDoubleClicked);
+    connect(m_profileList, &DraggableProfileList::itemsReordered,
+            this, &ProfileManagerWidget::onItemsReordered);
 }
 
 void ProfileManagerWidget::setProfileManager(ProfileManager *profileManager) {
@@ -410,4 +412,20 @@ void ProfileManagerWidget::showValidationDialog(const QString &profileId) {
                 "Profile '" + profile.name + "' loaded successfully!");
         }
     }
+}
+
+void ProfileManagerWidget::onItemsReordered() {
+    if (!m_profileManager) {
+        return;
+    }
+
+    QList<QString> orderedProfileIds;
+    for (int i = 0; i < m_profileList->count(); ++i) {
+        QListWidgetItem *item = m_profileList->item(i);
+        if (item) {
+            orderedProfileIds.append(item->data(Qt::UserRole).toString());
+        }
+    }
+
+    m_profileManager->reorderProfiles(orderedProfileIds);
 }
