@@ -149,6 +149,7 @@ void SettingsWidget::buildUi() {
     m_updateSourceEdit = new QLineEdit(m_panel);
     m_updateSourceEdit->setPlaceholderText("https://github.com/Tapawingo/TrenchKit");
     m_updateSourceEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_updateSourceEdit->setFocusPolicy(Qt::ClickFocus);
     containerLayout->addWidget(m_updateSourceEdit, 3, 1);
 
     auto *channelLabel = new QLabel("Update channel", m_panel);
@@ -180,6 +181,7 @@ void SettingsWidget::buildUi() {
     m_downloadDirEdit = new QLineEdit(m_panel);
     m_downloadDirEdit->setPlaceholderText("Default: AppData/Local/TrenchKit/updates");
     m_downloadDirEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_downloadDirEdit->setFocusPolicy(Qt::ClickFocus);
     m_downloadBrowseButton = new QPushButton("Browse...", m_panel);
     m_downloadBrowseButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_downloadBrowseButton->setCursor(Qt::PointingHandCursor);
