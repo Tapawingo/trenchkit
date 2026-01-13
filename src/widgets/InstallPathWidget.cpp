@@ -40,6 +40,7 @@ void InstallPathWidget::setupUi() {
     // Path input
     m_pathLineEdit->setPlaceholderText("Select Foxhole installation folder...");
     m_pathLineEdit->setObjectName("installPathInput");
+    m_pathLineEdit->setFocusPolicy(Qt::ClickFocus);
 
     // Browse button
     QIcon browseIcon(":/icon_edit.png");
