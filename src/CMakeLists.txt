@@ -111,6 +111,8 @@ qt_add_executable(TrenchKit
   modals/content/FileSelectionModalContent.cpp
   modals/content/BackupSelectionModalContent.h
   modals/content/BackupSelectionModalContent.cpp
+  modals/content/ConflictResolutionModalContent.h
+  modals/content/ConflictResolutionModalContent.cpp
   modals/content/ModMetadataModalContent.h
   modals/content/ModMetadataModalContent.cpp
   modals/content/ModUpdateModalContent.h

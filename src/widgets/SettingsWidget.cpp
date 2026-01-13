@@ -120,7 +120,7 @@ void SettingsWidget::buildUi() {
     containerLayout->setVerticalSpacing(Theme::Spacing::SETTINGS_ROW_SPACING);
     containerLayout->setColumnStretch(0, 1);
     containerLayout->setColumnStretch(1, 2);
-    containerLayout->setRowStretch(21, 1);
+    containerLayout->setRowStretch(24, 1);
 
     auto *title = new QLabel("Settings", m_panel);
     title->setObjectName("settingsTitle");
@@ -324,6 +324,26 @@ void SettingsWidget::buildUi() {
     logButtonRow->addStretch();
     containerLayout->addLayout(logButtonRow, 20, 1);
 
+    auto *fileAssocHeader = new QLabel("File Associations", m_panel);
+    fileAssocHeader->setObjectName("settingsSectionHeader");
+    fileAssocHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(fileAssocHeader, 21, 0, 1, 2);
+
+    auto *tkprofileLabel = new QLabel("Profile files (.tkprofile)", m_panel);
+    tkprofileLabel->setObjectName("settingsLabel");
+    tkprofileLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(tkprofileLabel, 22, 0);
+
+    m_tkprofileStatusLabel = new QLabel("Not associated", m_panel);
+    m_tkprofileStatusLabel->setObjectName("settingsStatus");
+    m_tkprofileStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_tkprofileStatusLabel, 22, 1);
+
+    m_tkprofileAssociateButton = new QPushButton("Set as Default Handler", m_panel);
+    m_tkprofileAssociateButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_tkprofileAssociateButton->setCursor(Qt::PointingHandCursor);
+    containerLayout->addWidget(m_tkprofileAssociateButton, 23, 1);
+
     scrollArea->setWidget(m_container);
     panelLayout->addWidget(scrollArea);
 
@@ -392,6 +412,8 @@ void SettingsWidget::buildUi() {
     connect(m_copyLogPathButton, &QPushButton::clicked, this, &SettingsWidget::onCopyLogPathClicked);
     connect(m_addDesktopShortcutButton, &QPushButton::clicked, this, &SettingsWidget::onAddDesktopShortcutClicked);
     connect(m_addStartMenuShortcutButton, &QPushButton::clicked, this, &SettingsWidget::onAddStartMenuShortcutClicked);
+    connect(m_tkprofileAssociateButton, &QPushButton::clicked,
+            this, &SettingsWidget::onAssociateTkprofileClicked);
 }
 
 void SettingsWidget::applySettings() {
@@ -467,6 +489,12 @@ void SettingsWidget::loadSettings(bool applyToUpdater) {
         }
         m_updater->setIncludePrereleases(includePrereleases);
         setCurrentVersion(m_updater->currentVersion().toString());
+    }
+
+    if (m_tkprofileStatusLabel) {
+        m_tkprofileStatusLabel->setText(isTkprofileAssociationSet()
+            ? QStringLiteral("Associated")
+            : QStringLiteral("Not associated"));
     }
 }
 
@@ -787,5 +815,70 @@ void SettingsWidget::onAddStartMenuShortcutClicked() {
         MessageModal::information(m_modalManager, "Not Supported",
             "Shortcut creation is only supported on Windows.");
     }
+#endif
+}
+
+void SettingsWidget::onAssociateTkprofileClicked() {
+#ifdef Q_OS_WIN
+    if (registerTkprofileAssociation()) {
+        if (m_tkprofileStatusLabel) {
+            m_tkprofileStatusLabel->setText(QStringLiteral("Associated"));
+        }
+        if (m_modalManager) {
+            MessageModal::information(m_modalManager, "File Association",
+                "TrenchKit is now the default handler for .tkprofile files.");
+        }
+    } else if (m_modalManager) {
+        MessageModal::warning(m_modalManager, "File Association",
+            "Failed to register .tkprofile file association.");
+    }
+#else
+    if (m_modalManager) {
+        MessageModal::information(m_modalManager, "Not Supported",
+            "File associations are only supported on Windows.");
+    }
+#endif
+}
+
+bool SettingsWidget::isTkprofileAssociationSet() const {
+#ifdef Q_OS_WIN
+    QSettings classes("HKEY_CURRENT_USER\\Software\\Classes", QSettings::NativeFormat);
+    classes.beginGroup(".tkprofile");
+    const QString progId = classes.value(".").toString();
+    classes.endGroup();
+    return progId == QStringLiteral("TrenchKit.Profile");
+#else
+    return false;
+#endif
+}
+
+bool SettingsWidget::registerTkprofileAssociation() {
+#ifdef Q_OS_WIN
+    const QString exePath = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    const QString command = QString("\"%1\" \"%2\"").arg(exePath, "%1");
+
+    QSettings classes("HKEY_CURRENT_USER\\Software\\Classes", QSettings::NativeFormat);
+
+    classes.beginGroup(".tkprofile");
+    classes.setValue(".", "TrenchKit.Profile");
+    classes.endGroup();
+
+    classes.beginGroup("TrenchKit.Profile");
+    classes.setValue(".", "TrenchKit Profile");
+    classes.endGroup();
+
+    classes.beginGroup("TrenchKit.Profile\\DefaultIcon");
+    classes.setValue(".", exePath + ",0");
+    classes.endGroup();
+
+    classes.beginGroup("TrenchKit.Profile\\shell\\open\\command");
+    classes.setValue(".", command);
+    classes.endGroup();
+
+    classes.sync();
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+    return classes.status() == QSettings::NoError;
+#else
+    return false;
 #endif
 }

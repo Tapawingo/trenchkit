@@ -44,6 +44,7 @@ private slots:
     void onCopyLogPathClicked();
     void onAddDesktopShortcutClicked();
     void onAddStartMenuShortcutClicked();
+    void onAssociateTkprofileClicked();
 
 private:
     void buildUi();
@@ -51,6 +52,8 @@ private:
     void loadSettings(bool applyToUpdater);
     static bool parseGithubRepo(const QString &text, QString *owner, QString *repo);
     bool createShortcut(const QString &shortcutPath, const QString &targetPath, const QString &description);
+    bool isTkprofileAssociationSet() const;
+    bool registerTkprofileAssociation();
 
     QPointer<UpdaterService> m_updater;
     QPointer<NexusModsClient> m_nexusClient;
@@ -82,6 +85,8 @@ private:
     QPushButton *m_copyLogPathButton = nullptr;
     QPushButton *m_addDesktopShortcutButton = nullptr;
     QPushButton *m_addStartMenuShortcutButton = nullptr;
+    QLabel *m_tkprofileStatusLabel = nullptr;
+    QPushButton *m_tkprofileAssociateButton = nullptr;
 };
 
 #endif // SETTINGSWIDGET_H

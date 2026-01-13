@@ -64,6 +64,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    m_pendingProfileImportPath = findProfileImportPath();
+
     setWindowIcon(QIcon(":/icon.png"));
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -421,7 +423,26 @@ void MainWindow::onModsLoadComplete() {
                 m_itchUpdateService->checkAllModsForUpdates();
             });
         }
+
+        if (!m_pendingProfileImportPath.isEmpty() && m_profileManagerWidget) {
+            const QString importPath = m_pendingProfileImportPath;
+            m_pendingProfileImportPath.clear();
+            QTimer::singleShot(0, this, [this, importPath]() {
+                m_profileManagerWidget->importProfileFromPath(importPath);
+            });
+        }
     }
+}
+
+QString MainWindow::findProfileImportPath() const {
+    const QStringList args = QCoreApplication::arguments();
+    for (int i = 1; i < args.size(); ++i) {
+        const QString arg = args.at(i);
+        if (arg.endsWith(".tkprofile", Qt::CaseInsensitive)) {
+            return arg;
+        }
+    }
+    return QString();
 }
 
 void MainWindow::onUnregisteredModsDetectionComplete() {

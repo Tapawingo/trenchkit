@@ -74,6 +74,7 @@ private:
     void showSettingsOverlay();
     void hideSettingsOverlay();
     void onSettingsApplied(bool autoCheck);
+    QString findProfileImportPath() const;
 
     Ui::MainWindow *ui;
     InstallPathWidget *m_installPathWidget;
@@ -98,6 +99,7 @@ private:
     QPointer<QProgressDialog> m_updateDialog;
     QString m_pendingUpdatePath;
     qint64 m_pendingUpdateSize = -1;
+    QString m_pendingProfileImportPath;
     QWidget *m_settingsPage = nullptr;
     SettingsWidget *m_settingsWidget = nullptr;
     ModalManager *m_modalManager = nullptr;

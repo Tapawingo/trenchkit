@@ -2,9 +2,11 @@
 #define PROFILEMANAGER_H
 
 #include "ProfileInfo.h"
+#include "ModInfo.h"
 #include <QObject>
 #include <QList>
 #include <QString>
+#include <functional>
 
 class ModManager;
 
@@ -29,6 +31,15 @@ class ProfileManager : public QObject {
     Q_OBJECT
 
 public:
+    enum class ImportConflictAction {
+        Ignore,
+        Overwrite,
+        Duplicate
+    };
+    using ImportConflictResolver = std::function<ImportConflictAction(const ModInfo &incoming,
+                                                                      const ModInfo &existing,
+                                                                      bool checksumMatch)>;
+
     explicit ProfileManager(QObject *parent = nullptr);
     ~ProfileManager() override = default;
 
@@ -47,7 +58,8 @@ public:
     bool applyProfile(const QString &profileId, bool ignoreWarnings = false);
 
     bool exportProfile(const QString &profileId, const QString &filePath);
-    bool importProfile(const QString &filePath, QString &importedProfileId);
+    bool importProfile(const QString &filePath, QString &importedProfileId,
+                       ImportConflictResolver resolver = {});
 
     bool loadProfiles();
     bool saveProfiles();
