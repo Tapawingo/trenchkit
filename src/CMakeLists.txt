@@ -125,6 +125,10 @@ qt_add_executable(TrenchKit
   modals/content/AddModModalContent.cpp
   modals/content/ConflictDetailModalContent.h
   modals/content/ConflictDetailModalContent.cpp
+  modals/content/NexusRegistrationModalContent.h
+  modals/content/NexusRegistrationModalContent.cpp
+  modals/content/ItchRegistrationModalContent.h
+  modals/content/ItchRegistrationModalContent.cpp
 
   resources.qrc
   app.rc
