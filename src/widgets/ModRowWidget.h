@@ -41,9 +41,11 @@ protected:
 private:
     void setupUi(const ModInfo &mod);
     void updateStyling();
+    void updateNameEliding();
     QString formatConflictTooltip(const ConflictInfo &info) const;
 
     QString m_modId;
+    QString m_fullModName;
     QCheckBox *m_enabledCheckBox;
     QLabel *m_nameLabel;
     QLabel *m_dateLabel;
