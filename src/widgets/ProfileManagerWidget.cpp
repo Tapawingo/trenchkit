@@ -268,48 +268,66 @@ void ProfileManagerWidget::onImportClicked() {
         "", "TrenchKit Profile (*.tkprofile);;JSON Files (*.json)");
 
     if (!filePath.isEmpty()) {
-        QString importedProfileId;
-        auto resolver = [this](const ModInfo &incoming,
-                               const ModInfo &existing,
-                               bool checksumMatch) {
-            if (!m_modalManager) {
-                return ProfileManager::ImportConflictAction::Ignore;
-            }
-
-            auto *conflictModal = new ConflictResolutionModalContent(incoming, existing, checksumMatch);
-            QEventLoop loop;
-            connect(conflictModal, &BaseModalContent::finished, &loop, &QEventLoop::quit);
-            m_modalManager->showModal(conflictModal);
-            loop.exec();
-
-            switch (conflictModal->selectedAction()) {
-                case ConflictResolutionModalContent::Action::Overwrite:
-                    return ProfileManager::ImportConflictAction::Overwrite;
-                case ConflictResolutionModalContent::Action::Duplicate:
-                    return ProfileManager::ImportConflictAction::Duplicate;
-                case ConflictResolutionModalContent::Action::Ignore:
-                default:
-                    return ProfileManager::ImportConflictAction::Ignore;
-            }
-        };
-
-        if (m_profileManager->importProfile(filePath, importedProfileId, resolver)) {
-            MessageModal::information(m_modalManager, "Success", "Profile imported successfully!");
-
-            auto *modal = new MessageModal(
-                "Load Profile",
-                "Would you like to load the imported profile now?",
-                MessageModal::Question,
-                MessageModal::Yes | MessageModal::No
-            );
-            connect(modal, &MessageModal::finished, this, [this, modal, importedProfileId]() {
-                if (modal->clickedButton() == MessageModal::Yes) {
-                    showValidationDialog(importedProfileId);
-                }
-            });
-            m_modalManager->showModal(modal);
-        }
+        runImport(filePath);
     }
+}
+
+bool ProfileManagerWidget::importProfileFromPath(const QString &filePath) {
+    if (!m_modalManager || filePath.isEmpty()) {
+        return false;
+    }
+    return runImport(filePath);
+}
+
+bool ProfileManagerWidget::runImport(const QString &filePath) {
+    if (!m_profileManager || !m_modalManager) {
+        return false;
+    }
+
+    QString importedProfileId;
+    auto resolver = [this](const ModInfo &incoming,
+                           const ModInfo &existing,
+                           bool checksumMatch) {
+        if (!m_modalManager) {
+            return ProfileManager::ImportConflictAction::Ignore;
+        }
+
+        auto *conflictModal = new ConflictResolutionModalContent(incoming, existing, checksumMatch);
+        QEventLoop loop;
+        connect(conflictModal, &BaseModalContent::finished, &loop, &QEventLoop::quit);
+        m_modalManager->showModal(conflictModal);
+        loop.exec();
+
+        switch (conflictModal->selectedAction()) {
+            case ConflictResolutionModalContent::Action::Overwrite:
+                return ProfileManager::ImportConflictAction::Overwrite;
+            case ConflictResolutionModalContent::Action::Duplicate:
+                return ProfileManager::ImportConflictAction::Duplicate;
+            case ConflictResolutionModalContent::Action::Ignore:
+            default:
+                return ProfileManager::ImportConflictAction::Ignore;
+        }
+    };
+
+    if (m_profileManager->importProfile(filePath, importedProfileId, resolver)) {
+        MessageModal::information(m_modalManager, "Success", "Profile imported successfully!");
+
+        auto *modal = new MessageModal(
+            "Load Profile",
+            "Would you like to load the imported profile now?",
+            MessageModal::Question,
+            MessageModal::Yes | MessageModal::No
+        );
+        connect(modal, &MessageModal::finished, this, [this, modal, importedProfileId]() {
+            if (modal->clickedButton() == MessageModal::Yes) {
+                showValidationDialog(importedProfileId);
+            }
+        });
+        m_modalManager->showModal(modal);
+        return true;
+    }
+
+    return false;
 }
 
 void ProfileManagerWidget::onDeleteClicked(const QString &profileId) {

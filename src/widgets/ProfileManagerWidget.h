@@ -23,6 +23,7 @@ public:
     void setProfileManager(ProfileManager *profileManager);
     void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
     void refreshProfileList();
+    bool importProfileFromPath(const QString &filePath);
 
 signals:
     void profileSelected(const QString &profileId);
@@ -44,6 +45,7 @@ private slots:
     void onItemsReordered();
 
 private:
+    bool runImport(const QString &filePath);
     void setupUi();
     void setupConnections();
     QString getSelectedProfileId() const;
