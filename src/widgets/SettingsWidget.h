@@ -42,12 +42,15 @@ signals:
 private slots:
     void onOpenLogsClicked();
     void onCopyLogPathClicked();
+    void onAddDesktopShortcutClicked();
+    void onAddStartMenuShortcutClicked();
 
 private:
     void buildUi();
     void applySettings();
     void loadSettings(bool applyToUpdater);
     static bool parseGithubRepo(const QString &text, QString *owner, QString *repo);
+    bool createShortcut(const QString &shortcutPath, const QString &targetPath, const QString &description);
 
     QPointer<UpdaterService> m_updater;
     QPointer<NexusModsClient> m_nexusClient;
@@ -77,6 +80,8 @@ private:
     QLabel *m_logPathLabel = nullptr;
     QPushButton *m_openLogsButton = nullptr;
     QPushButton *m_copyLogPathButton = nullptr;
+    QPushButton *m_addDesktopShortcutButton = nullptr;
+    QPushButton *m_addStartMenuShortcutButton = nullptr;
 };
 
 #endif // SETTINGSWIDGET_H
