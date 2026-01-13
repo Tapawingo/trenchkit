@@ -28,6 +28,8 @@
 #include <QFileInfo>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QLineEdit>
+#include <QKeyEvent>
 
 ModListWidget::ModListWidget(QWidget *parent)
     : QWidget(parent)
@@ -102,11 +104,25 @@ void ModListWidget::setupUi() {
     connect(m_checkUpdatesButton, &QPushButton::clicked,
             this, &ModListWidget::onCheckUpdatesClicked);
 
+    m_searchContainer = new QWidget(this);
+    auto *searchLayout = new QHBoxLayout(m_searchContainer);
+    searchLayout->setContentsMargins(0, 0, 0, 0);
+    searchLayout->setSpacing(Theme::Spacing::MOD_LIST_TITLE_SPACING);
+
+    m_searchEdit = new QLineEdit(m_searchContainer);
+    m_searchEdit->setPlaceholderText("Search mods...");
+    m_searchEdit->setClearButtonEnabled(true);
+    m_searchEdit->installEventFilter(this);
+
+    searchLayout->addWidget(m_searchEdit);
+    m_searchContainer->setVisible(false);
+
     m_modList = new DraggableModList(this);
     m_modList->setSpacing(Theme::Spacing::MOD_LIST_ITEM_SPACING);
     m_modList->setUniformItemSizes(false);
 
     frameLayout->addLayout(titleLayout);
+    frameLayout->addWidget(m_searchContainer);
     frameLayout->addWidget(m_modList, 1);
 
     auto *layout = new QVBoxLayout(this);
@@ -137,6 +153,13 @@ void ModListWidget::setupUi() {
 
         emit modSelectionChanged(selectedRow, totalMods);
     });
+
+    connect(m_searchEdit, &QLineEdit::textChanged, this, [this](const QString &text) {
+        m_filterText = text.trimmed();
+        refreshModList();
+        updateDragMode();
+    });
+
 }
 
 void ModListWidget::refreshModList() {
@@ -151,9 +174,32 @@ void ModListWidget::refreshModList() {
     m_modList->clear();
 
     QList<ModInfo> mods = m_modManager->getMods();
-    m_modCountLabel->setText(QString::number(mods.size()) + " Total");
-    for (int i = 0; i < mods.size(); ++i) {
-        const ModInfo &mod = mods[i];
+    QList<ModInfo> filteredMods;
+    filteredMods.reserve(mods.size());
+    for (const ModInfo &mod : mods) {
+        if (!isFilterActive()) {
+            filteredMods.append(mod);
+            continue;
+        }
+
+        const QString name = mod.name;
+        const QString fileName = mod.fileName;
+        if (name.contains(m_filterText, Qt::CaseInsensitive) ||
+            fileName.contains(m_filterText, Qt::CaseInsensitive)) {
+            filteredMods.append(mod);
+        }
+    }
+
+    if (isFilterActive()) {
+        m_modCountLabel->setText(QString("%1 / %2")
+            .arg(filteredMods.size())
+            .arg(mods.size()));
+    } else {
+        m_modCountLabel->setText(QString::number(mods.size()) + " Total");
+    }
+
+    for (int i = 0; i < filteredMods.size(); ++i) {
+        const ModInfo &mod = filteredMods[i];
         auto *modRow = new ModRowWidget(mod, this);
         connect(modRow, &ModRowWidget::enabledChanged,
                 this, &ModListWidget::onModEnabledChanged);
@@ -207,6 +253,8 @@ void ModListWidget::refreshModList() {
     QTimer::singleShot(0, this, [this, scrollPosition]() {
         m_modList->verticalScrollBar()->setValue(scrollPosition);
     });
+
+    updateDragMode();
 
     m_updating = false;
 }
@@ -420,6 +468,10 @@ void ModListWidget::onItemsReordered() {
         return;
     }
 
+    if (isFilterActive()) {
+        return;
+    }
+
     m_updating = true;
 
     QMap<QString, int> newPriorities;
@@ -434,6 +486,63 @@ void ModListWidget::onItemsReordered() {
     m_modManager->batchSetModPriorities(newPriorities);
 
     m_updating = false;
+}
+
+bool ModListWidget::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_searchEdit && event->type() == QEvent::KeyPress) {
+        auto *keyEvent = static_cast<QKeyEvent*>(event);
+        if (keyEvent->key() == Qt::Key_Escape) {
+            hideSearch(true);
+            return true;
+        }
+    }
+
+    return QWidget::eventFilter(watched, event);
+}
+
+void ModListWidget::activateSearch() {
+    if (!m_searchContainer || !m_searchEdit) {
+        return;
+    }
+
+    m_searchContainer->setVisible(true);
+    m_searchEdit->setFocus();
+    m_searchEdit->selectAll();
+}
+
+void ModListWidget::hideSearch(bool clearFilter) {
+    if (!m_searchContainer) {
+        return;
+    }
+
+    if (clearFilter && m_searchEdit) {
+        m_searchEdit->clear();
+        m_filterText.clear();
+        refreshModList();
+    }
+
+    m_searchContainer->setVisible(false);
+    if (m_modList) {
+        m_modList->setFocus();
+    }
+}
+
+void ModListWidget::updateDragMode() {
+    if (!m_modList) {
+        return;
+    }
+
+    if (isFilterActive()) {
+        m_modList->setDragEnabled(false);
+        m_modList->setDragDropMode(QAbstractItemView::DropOnly);
+    } else {
+        m_modList->setDragEnabled(true);
+        m_modList->setDragDropMode(QAbstractItemView::DragDrop);
+    }
+}
+
+bool ModListWidget::isFilterActive() const {
+    return !m_filterText.isEmpty();
 }
 
 void ModListWidget::onRenameRequested(const QString &modId) {

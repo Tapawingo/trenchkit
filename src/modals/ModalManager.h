@@ -18,6 +18,7 @@ public:
     void showModal(BaseModalContent *content);
     void closeCurrentModal();
     void closeAllModals();
+    bool hasOpenModal() const;
 
 signals:
     void modalOpened();
