@@ -4,14 +4,14 @@
 #include <QMainWindow>
 #include <QFutureWatcher>
 #include <QPointer>
-#include "utils/UpdaterService.h"
-#include "utils/NexusModsClient.h"
-#include "utils/NexusModsAuth.h"
-#include "utils/ItchClient.h"
-#include "utils/ItchAuth.h"
-#include "utils/ModUpdateService.h"
-#include "utils/ItchModUpdateService.h"
-#include "modals/ModalManager.h"
+#include "core/services/UpdaterService.h"
+#include "core/api/NexusModsClient.h"
+#include "core/api/NexusModsAuth.h"
+#include "core/api/ItchClient.h"
+#include "core/api/ItchAuth.h"
+#include "core/services/ModUpdateService.h"
+#include "core/services/ItchModUpdateService.h"
+#include "common/modals/ModalManager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

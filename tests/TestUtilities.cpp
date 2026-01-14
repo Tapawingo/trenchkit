@@ -1,9 +1,9 @@
 #include <QtTest/QtTest>
 
-#include "utils/ArchiveExtractor.h"
-#include "utils/UpdateArchiveExtractor.h"
-#include "utils/UpdateCleanup.h"
-#include "utils/UpdaterService.h"
+#include "core/utils/ArchiveExtractor.h"
+#include "core/utils/UpdateArchiveExtractor.h"
+#include "core/utils/UpdateCleanup.h"
+#include "core/services/UpdaterService.h"
 
 #include <QDir>
 #include <QFile>
