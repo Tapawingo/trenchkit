@@ -1,13 +1,13 @@
 qt_add_executable(tests_utilities
   TestUtilities.cpp
-  ${CMAKE_SOURCE_DIR}/src/utils/ArchiveExtractor.h
-  ${CMAKE_SOURCE_DIR}/src/utils/ArchiveExtractor.cpp
-  ${CMAKE_SOURCE_DIR}/src/utils/UpdateArchiveExtractor.h
-  ${CMAKE_SOURCE_DIR}/src/utils/UpdateArchiveExtractor.cpp
-  ${CMAKE_SOURCE_DIR}/src/utils/UpdateCleanup.h
-  ${CMAKE_SOURCE_DIR}/src/utils/UpdateCleanup.cpp
-  ${CMAKE_SOURCE_DIR}/src/utils/UpdaterService.h
-  ${CMAKE_SOURCE_DIR}/src/utils/UpdaterService.cpp
+  ${CMAKE_SOURCE_DIR}/src/core/utils/ArchiveExtractor.h
+  ${CMAKE_SOURCE_DIR}/src/core/utils/ArchiveExtractor.cpp
+  ${CMAKE_SOURCE_DIR}/src/core/utils/UpdateArchiveExtractor.h
+  ${CMAKE_SOURCE_DIR}/src/core/utils/UpdateArchiveExtractor.cpp
+  ${CMAKE_SOURCE_DIR}/src/core/utils/UpdateCleanup.h
+  ${CMAKE_SOURCE_DIR}/src/core/utils/UpdateCleanup.cpp
+  ${CMAKE_SOURCE_DIR}/src/core/services/UpdaterService.h
+  ${CMAKE_SOURCE_DIR}/src/core/services/UpdaterService.cpp
 )
 
 target_include_directories(tests_utilities

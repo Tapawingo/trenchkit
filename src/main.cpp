@@ -1,7 +1,7 @@
 #include <QApplication>
 #include "MainWindow.h"
-#include "utils/UpdateCleanup.h"
-#include "utils/Logger.h"
+#include "core/utils/UpdateCleanup.h"
+#include "core/utils/Logger.h"
 #include <QTimer>
 #include <QCoreApplication>
 #ifdef _WIN32
