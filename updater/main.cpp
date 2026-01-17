@@ -7,8 +7,9 @@
 
 #if defined(_WIN32)
 #include <windows.h>
-#include <tlhelp32.h>
 #include <shlobj.h>
+#else
+#include <unistd.h>
 #endif
 
 namespace fs = std::filesystem;
@@ -82,33 +83,21 @@ static bool parseArgs(int argc, char **argv, InstallArgs &out) {
 }
 
 #if defined(_WIN32)
-static bool isProcessRunning(const std::wstring &exeName) {
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (snapshot == INVALID_HANDLE_VALUE) {
-        return false;
+static void waitForAppExit(const fs::path &appDir) {
+    // Try to open the mutex created by the main app
+    // This blocks until the main app releases it (exits)
+    HANDLE hMutex = OpenMutexW(SYNCHRONIZE, FALSE, L"Global\\TrenchKitRunning");
+    if (hMutex) {
+        appendLog(appDir, "Waiting for mutex release (app exit)...");
+        WaitForSingleObject(hMutex, 30000);  // 30 second timeout
+        CloseHandle(hMutex);
+        appendLog(appDir, "Mutex released, app has exited.");
+    } else {
+        // Mutex doesn't exist = app already exited, or running old version without mutex
+        appendLog(appDir, "Mutex not found, assuming app already exited.");
     }
-
-    PROCESSENTRY32W entry = {};
-    entry.dwSize = sizeof(PROCESSENTRY32W);
-
-    bool found = false;
-    if (Process32FirstW(snapshot, &entry)) {
-        do {
-            if (equalsIgnoreCase(entry.szExeFile, exeName)) {
-                found = true;
-                break;
-            }
-        } while (Process32NextW(snapshot, &entry));
-    }
-
-    CloseHandle(snapshot);
-    return found;
-}
-
-static void waitForProcessExit(const std::wstring &exeName) {
-    while (isProcessRunning(exeName)) {
-        Sleep(200);
-    }
+    // Brief delay for file handles to close
+    Sleep(500);
 }
 #endif
 
@@ -250,11 +239,12 @@ int main(int argc, char **argv) {
     appendLog(args.appDir, "Exe name: " + std::string(args.exeName.begin(), args.exeName.end()));
 
 #if defined(_WIN32)
-    appendLog(args.appDir, "Waiting for main process to exit.");
-    waitForProcessExit(args.exeName);
-    appendLog(args.appDir, "Main process exit detected.");
+    waitForAppExit(args.appDir);
 #else
-    logAndStderr(args.appDir, "TODO: implement process wait for non-Windows platforms.");
+    // On non-Windows, just wait briefly for the app to exit
+    // The app should have already quit before launching the updater
+    appendLog(args.appDir, "Waiting briefly for app to release files...");
+    sleep(1);
 #endif
 
     if (!fs::exists(args.newDir)) {
@@ -284,7 +274,18 @@ int main(int argc, char **argv) {
         return 1;
     }
 #else
-    logAndStderr(args.appDir, "TODO: relaunch for non-Windows platforms.");
+    // Relaunch on non-Windows using fork + exec
+    const fs::path exePath = args.appDir / std::string(args.exeName.begin(), args.exeName.end());
+    appendLog(args.appDir, "Relaunching application: " + exePath.string());
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Child process - exec the app
+        execl(exePath.c_str(), exePath.filename().c_str(), nullptr);
+        // If execl returns, it failed
+        _exit(1);
+    } else if (pid < 0) {
+        logAndStderr(args.appDir, "Failed to fork for relaunch.");
+    }
 #endif
 
     appendLog(args.appDir, "Update completed successfully.");
