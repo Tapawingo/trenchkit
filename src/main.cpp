@@ -16,6 +16,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #endif
 
 int main(int argc, char *argv[]) {
+#ifdef _WIN32
+    // Create named mutex to signal app is running (used by updater to wait for exit)
+    HANDLE hMutex = CreateMutexW(nullptr, FALSE, L"Global\\TrenchKitRunning");
+#endif
+
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName(QStringLiteral("TrenchKit"));
     QCoreApplication::setApplicationName(QStringLiteral("TrenchKit"));
@@ -40,6 +45,12 @@ int main(int argc, char *argv[]) {
     }
 
     int result = app.exec();
+
+#ifdef _WIN32
+    if (hMutex) {
+        CloseHandle(hMutex);
+    }
+#endif
 
     Logger::instance().shutdown();
     return result;
