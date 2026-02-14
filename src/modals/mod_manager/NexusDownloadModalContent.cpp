@@ -7,7 +7,7 @@
 #include "core/utils/NexusUrlParser.h"
 #include "core/utils/Theme.h"
 #include <algorithm>
-#include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QProgressBar>
 #include <QLabel>
@@ -32,7 +32,7 @@ NexusDownloadModalContent::NexusDownloadModalContent(NexusModsClient *client,
 {
     setTitle("Download from Nexus Mods");
     setupUi();
-    setPreferredSize(QSize(500, 350));
+    setPreferredSize(QSize(500, 400));
 
     connect(m_client, &NexusModsClient::modInfoReceived, this, &NexusDownloadModalContent::onModInfoReceived);
     connect(m_client, &NexusModsClient::modFilesReceived, this, &NexusDownloadModalContent::onModFilesReceived);
@@ -77,14 +77,14 @@ QWidget* NexusDownloadModalContent::createInputPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    auto *instructionLabel = new QLabel("Enter Nexus Mods URL for a Foxhole mod:", page);
+    auto *instructionLabel = new QLabel("Enter one or more Nexus Mods URLs for Foxhole mods:", page);
     instructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                                    .arg(Theme::Colors::TEXT_SECONDARY));
     layout->addWidget(instructionLabel);
 
-    m_urlEdit = new QLineEdit(page);
-    m_urlEdit->setPlaceholderText("https://www.nexusmods.com/foxhole/mods/...");
-    connect(m_urlEdit, &QLineEdit::returnPressed, this, &NexusDownloadModalContent::onDownloadClicked);
+    m_urlEdit = new QPlainTextEdit(page);
+    m_urlEdit->setPlaceholderText("Enter one or more Nexus Mods URLs (one per line)...");
+    m_urlEdit->setFixedHeight(80);
     layout->addWidget(m_urlEdit);
 
     layout->addStretch();
@@ -161,21 +161,77 @@ void NexusDownloadModalContent::updateFooterButtons() {
 }
 
 void NexusDownloadModalContent::onDownloadClicked() {
-    QString url = m_urlEdit->text().trimmed();
-    if (url.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "Please enter a URL");
+    QString text = m_urlEdit->toPlainText().trimmed();
+    if (text.isEmpty()) {
+        MessageModal::warning(m_modalManager, "Error", "Please enter one or more URLs");
         return;
     }
 
-    auto result = NexusUrlParser::parseUrl(url);
-    if (!result.isValid) {
-        MessageModal::warning(m_modalManager, "Invalid URL", result.error);
+    QStringList lines = text.split('\n', Qt::SkipEmptyParts);
+    QStringList errors;
+    m_pendingMods.clear();
+
+    for (const QString &line : lines) {
+        QString url = line.trimmed();
+        if (url.isEmpty()) {
+            continue;
+        }
+
+        auto result = NexusUrlParser::parseUrl(url);
+        if (!result.isValid) {
+            errors.append(QString("%1: %2").arg(url, result.error));
+        } else {
+            m_pendingMods.append({result.modId, result.fileId});
+        }
+    }
+
+    if (m_pendingMods.isEmpty()) {
+        QString errorMsg = errors.isEmpty()
+            ? QStringLiteral("No valid URLs entered")
+            : QStringLiteral("No valid URLs found:\n\n") + errors.join('\n');
+        MessageModal::warning(m_modalManager, "Invalid URLs", errorMsg);
         return;
     }
 
-    m_currentModId = result.modId;
-    m_currentFileId = result.fileId;
-    m_pendingUrl = url;
+    if (!errors.isEmpty()) {
+        QString errorMsg = QString("The following URLs were skipped:\n\n%1\n\n%2 valid URL(s) will be processed.")
+            .arg(errors.join('\n'))
+            .arg(m_pendingMods.size());
+        auto *modal = new MessageModal(
+            "Some URLs Invalid",
+            errorMsg,
+            MessageModal::Information,
+            MessageModal::Ok | MessageModal::Cancel
+        );
+        connect(modal, &MessageModal::finished, this, [this, modal]() {
+            if (modal->clickedButton() == MessageModal::Ok) {
+                m_currentModIndex = 0;
+                m_results.clear();
+                m_downloadedFilePaths.clear();
+                m_downloadedFiles.clear();
+
+                m_currentModId = m_pendingMods[0].modId;
+                m_currentFileId = m_pendingMods[0].fileId;
+
+                if (!m_client->hasApiKey()) {
+                    showAuthPage();
+                } else {
+                    startDownloadProcess();
+                }
+            }
+            modal->deleteLater();
+        });
+        m_modalManager->showModal(modal);
+        return;
+    }
+
+    m_currentModIndex = 0;
+    m_results.clear();
+    m_downloadedFilePaths.clear();
+    m_downloadedFiles.clear();
+
+    m_currentModId = m_pendingMods[0].modId;
+    m_currentFileId = m_pendingMods[0].fileId;
 
     if (!m_client->hasApiKey()) {
         showAuthPage();
@@ -209,7 +265,14 @@ void NexusDownloadModalContent::onAuthFailed(const QString &error) {
 
 void NexusDownloadModalContent::startDownloadProcess() {
     showDownloadPage();
-    m_statusLabel->setText("Fetching mod information...");
+
+    if (m_pendingMods.size() > 1) {
+        m_statusLabel->setText(QString("Mod %1 of %2: Fetching mod information...")
+            .arg(m_currentModIndex + 1).arg(m_pendingMods.size()));
+    } else {
+        m_statusLabel->setText("Fetching mod information...");
+    }
+
     m_client->getModInfo(m_currentModId);
 }
 
@@ -217,7 +280,13 @@ void NexusDownloadModalContent::onModInfoReceived(const QString &author, const Q
     m_author = author;
     m_description = description;
 
-    m_statusLabel->setText("Fetching file list...");
+    if (m_pendingMods.size() > 1) {
+        m_statusLabel->setText(QString("Mod %1 of %2: Fetching file list...")
+            .arg(m_currentModIndex + 1).arg(m_pendingMods.size()));
+    } else {
+        m_statusLabel->setText("Fetching file list...");
+    }
+
     m_client->getModFiles(m_currentModId);
 }
 
@@ -275,9 +344,13 @@ void NexusDownloadModalContent::onModFilesReceived(const QList<NexusFileInfo> &f
         items.append({file.id, displayText});
     }
 
+    QString selectionTitle = m_pendingMods.size() > 1
+        ? QString("Select Files - Mod %1 of %2 - %3").arg(m_currentModIndex + 1).arg(m_pendingMods.size()).arg(m_author)
+        : QString("Select Files - %1").arg(m_author);
+
     auto *selectionModal = new FileSelectionModalContent(
         items,
-        QString("Select Files - %1").arg(m_author),
+        selectionTitle,
         "Multiple files found. Select one or more (Ctrl+Click or Shift+Click):",
         true
     );
@@ -328,7 +401,13 @@ void NexusDownloadModalContent::onDownloadProgress(qint64 received, qint64 total
         qint64 receivedMB = received / (1024 * 1024);
         qint64 totalMB = total / (1024 * 1024);
 
-        QString statusText = QString("Downloading: %1 MB / %2 MB").arg(receivedMB).arg(totalMB);
+        QString statusText;
+        if (m_pendingMods.size() > 1) {
+            statusText = QString("Mod %1 of %2 - ").arg(m_currentModIndex + 1).arg(m_pendingMods.size());
+        }
+
+        statusText += QString("Downloading: %1 MB / %2 MB").arg(receivedMB).arg(totalMB);
+
         if (m_selectedFiles.size() > 1) {
             statusText += QString(" (File %1 of %2)").arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size());
         }
@@ -341,6 +420,14 @@ void NexusDownloadModalContent::onDownloadFinished(const QString &savePath) {
 
     if (m_currentDownloadIndex < m_selectedFiles.size()) {
         m_downloadedFiles.append(m_selectedFiles[m_currentDownloadIndex]);
+
+        m_results.append({
+            savePath,
+            m_currentModId,
+            m_selectedFiles[m_currentDownloadIndex],
+            m_author,
+            m_description
+        });
     }
 
     m_currentDownloadIndex++;
@@ -348,15 +435,32 @@ void NexusDownloadModalContent::onDownloadFinished(const QString &savePath) {
     if (m_currentDownloadIndex < m_selectedFiles.size()) {
         startNextDownload();
     } else {
+        startNextMod();
+    }
+}
+
+void NexusDownloadModalContent::startNextMod() {
+    m_currentModIndex++;
+
+    if (m_currentModIndex >= m_pendingMods.size()) {
         m_statusLabel->setText("All downloads complete!");
         m_progressBar->setValue(100);
         accept();
+        return;
     }
+
+    m_currentModId = m_pendingMods[m_currentModIndex].modId;
+    m_currentFileId = m_pendingMods[m_currentModIndex].fileId;
+    m_selectedFiles.clear();
+    m_selectedFileIds.clear();
+    m_currentDownloadIndex = 0;
+
+    startDownloadProcess();
 }
 
 void NexusDownloadModalContent::startManualDownloadSequence() {
     if (m_currentDownloadIndex >= m_selectedFiles.size()) {
-        accept();
+        startNextMod();
         return;
     }
 
@@ -376,6 +480,10 @@ void NexusDownloadModalContent::startManualDownloadSequence() {
     } else {
         title = "Select Downloaded File";
         message = "Please download the file from your browser.\n\nOnce the download is complete, click OK to locate the file.";
+    }
+
+    if (m_pendingMods.size() > 1) {
+        title = QString("Mod %1 of %2 - %3").arg(m_currentModIndex + 1).arg(m_pendingMods.size()).arg(title);
     }
 
     QDesktopServices::openUrl(QUrl(modUrl));
@@ -411,6 +519,14 @@ void NexusDownloadModalContent::startManualDownloadSequence() {
 
                 m_downloadedFilePaths.append(filePath);
                 m_downloadedFiles.append(file);
+
+                m_results.append({
+                    filePath,
+                    m_currentModId,
+                    file,
+                    m_author,
+                    m_description
+                });
 
                 if (m_selectedFiles.size() > 1) {
                     int progress = ((m_currentDownloadIndex + 1) * 100) / m_selectedFiles.size();
@@ -502,13 +618,19 @@ void NexusDownloadModalContent::startNextDownload() {
 
     m_progressBar->setValue(0);
 
-    if (m_selectedFiles.size() > 1) {
-        m_statusLabel->setText(QString("Getting download link for file %1 of %2...")
-            .arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size()));
-    } else {
-        m_statusLabel->setText("Getting download link...");
+    QString statusText;
+    if (m_pendingMods.size() > 1) {
+        statusText = QString("Mod %1 of %2 - ").arg(m_currentModIndex + 1).arg(m_pendingMods.size());
     }
 
+    if (m_selectedFiles.size() > 1) {
+        statusText += QString("Getting download link for file %1 of %2...")
+            .arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size());
+    } else {
+        statusText += QStringLiteral("Getting download link...");
+    }
+
+    m_statusLabel->setText(statusText);
     m_client->getDownloadLink(m_currentModId, m_currentFileId);
 }
 
