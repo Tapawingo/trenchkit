@@ -317,6 +317,49 @@ bool ModManager::disableMod(const QString &modId) {
     return true;
 }
 
+bool ModManager::setAllModsEnabled(bool enabled) {
+    QList<ModInfo> modsToProcess;
+    {
+        QMutexLocker locker(&m_modsMutex);
+        for (const ModInfo &mod : m_mods) {
+            if (mod.enabled != enabled) {
+                modsToProcess.append(mod);
+            }
+        }
+    }
+
+    if (modsToProcess.isEmpty()) {
+        return true;
+    }
+
+    bool anyFailed = false;
+    for (const ModInfo &mod : modsToProcess) {
+        bool ok = enabled ? copyModToPaks(mod) : removeModFromPaks(mod);
+        if (!ok) {
+            emit errorOccurred(tr("Failed to %1 mod: %2")
+                .arg(enabled ? tr("enable") : tr("disable"), mod.name));
+            anyFailed = true;
+            continue;
+        }
+
+        QMutexLocker locker(&m_modsMutex);
+        auto it = std::find_if(m_mods.begin(), m_mods.end(),
+                               [&mod](const ModInfo &item) { return item.id == mod.id; });
+        if (it != m_mods.end()) {
+            it->enabled = enabled;
+        }
+    }
+
+    if (enabled) {
+        renumberEnabledMods();
+    }
+
+    saveMods();
+    emit modsChanged();
+
+    return !anyFailed;
+}
+
 bool ModManager::setModPriority(const QString &modId, int priority) {
     QMutexLocker locker(&m_modsMutex);
     auto it = std::find_if(m_mods.begin(), m_mods.end(),
@@ -626,53 +669,58 @@ void ModManager::renumberEnabledMods() {
         return;
     }
 
-    QMutexLocker locker(&m_modsMutex);
-    for (auto &mod : m_mods) {
-        if (!mod.enabled) {
-            continue;
-        }
+    struct EnabledModSnapshot {
+        QString id;
+        QString fileName;
+        QString numberedFileName;
+        int priority;
+    };
 
-        QString oldNumberedName = mod.numberedFileName;
-        QString newNumberedName = generateNumberedFileName(mod.priority, mod.fileName);
-
-        if (oldNumberedName == newNumberedName) {
-            QString expectedPath = paksPath + "/" + newNumberedName;
-            if (QFile::exists(expectedPath)) {
+    QList<EnabledModSnapshot> enabledMods;
+    {
+        QMutexLocker locker(&m_modsMutex);
+        enabledMods.reserve(m_mods.size());
+        for (const ModInfo &mod : m_mods) {
+            if (!mod.enabled) {
                 continue;
             }
+            enabledMods.append({mod.id, mod.fileName, mod.numberedFileName, mod.priority});
+        }
+    }
 
-            QString sourcePath = m_modsStoragePath + "/" + mod.fileName;
-            locker.unlock();
+    for (const auto &mod : enabledMods) {
+        QString newNumberedName = generateNumberedFileName(mod.priority, mod.fileName);
+        QString expectedPath = paksPath + "/" + newNumberedName;
+        QString sourcePath = m_modsStoragePath + "/" + mod.fileName;
 
-            if (QFile::exists(sourcePath)) {
+        if (mod.numberedFileName == newNumberedName) {
+            if (!QFile::exists(expectedPath) && QFile::exists(sourcePath)) {
                 QFile::copy(sourcePath, expectedPath);
-                locker.relock();
-                mod.numberedFileName = newNumberedName;
+                QMutexLocker locker(&m_modsMutex);
+                auto it = std::find_if(m_mods.begin(), m_mods.end(),
+                                       [&mod](const ModInfo &item) { return item.id == mod.id; });
+                if (it != m_mods.end()) {
+                    it->numberedFileName = newNumberedName;
+                }
                 qDebug() << "Restored mod to paks:" << newNumberedName;
-                locker.unlock();
-            } else {
-                locker.relock();
             }
             continue;
         }
 
-        QString oldPath = paksPath + "/" + oldNumberedName;
-        QString newPath = paksPath + "/" + newNumberedName;
-        locker.unlock();
-
+        QString oldPath = paksPath + "/" + mod.numberedFileName;
         if (QFile::exists(oldPath)) {
             QFile::remove(oldPath);
         }
 
-        QString sourcePath = m_modsStoragePath + "/" + mod.fileName;
         if (QFile::exists(sourcePath)) {
-            QFile::copy(sourcePath, newPath);
-            locker.relock();
-            mod.numberedFileName = newNumberedName;
-            qDebug() << "Renumbered mod:" << oldNumberedName << "->" << newNumberedName;
-            locker.unlock();
-        } else {
-            locker.relock();
+            QFile::copy(sourcePath, expectedPath);
+            QMutexLocker locker(&m_modsMutex);
+            auto it = std::find_if(m_mods.begin(), m_mods.end(),
+                                   [&mod](const ModInfo &item) { return item.id == mod.id; });
+            if (it != m_mods.end()) {
+                it->numberedFileName = newNumberedName;
+            }
+            qDebug() << "Renumbered mod:" << mod.numberedFileName << "->" << newNumberedName;
         }
     }
 }

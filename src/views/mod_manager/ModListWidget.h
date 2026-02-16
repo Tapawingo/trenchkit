@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QTimer>
 #include <QRegularExpression>
+#include <QCheckBox>
 
 class NexusModsClient;
 class NexusModsAuth;
@@ -63,6 +64,7 @@ protected:
 private slots:
     void onModsChanged();
     void onModEnabledChanged(const QString &modId, bool enabled);
+    void onEnableAllClicked();
     void onItemsReordered();
     void updateLoadingAnimation();
     void onRenameRequested(const QString &modId);
@@ -107,6 +109,7 @@ private:
     QLabel *m_loadingLabel;
     QLabel *m_modCountLabel;
     QPushButton *m_checkUpdatesButton;
+    QCheckBox *m_enableAllCheckBox = nullptr;
     QTimer *m_loadingTimer;
     QWidget *m_searchContainer = nullptr;
     QLineEdit *m_searchEdit = nullptr;
