@@ -21,6 +21,7 @@ class QStackedWidget;
 struct ItchDownloadResult {
     QString filePath;
     QString gameId;
+    QString url;
     QString gameTitle;
     QString author;
     ItchUploadInfo uploadInfo;
@@ -63,6 +64,7 @@ private:
     struct PendingGame {
         QString creator;
         QString gameName;
+        QString url;
     };
 
     void setupUi();

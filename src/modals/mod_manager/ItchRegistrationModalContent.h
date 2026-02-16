@@ -29,6 +29,7 @@ public:
     QList<ItchUploadInfo> getSelectedUploads() const { return m_selectedUploads; }
     QString getGameId() const { return m_currentGameId; }
     QString getAuthor() const { return m_author; }
+    QString getUrl() const { return m_url; }
 
 private slots:
     void onFetchClicked();
@@ -67,6 +68,7 @@ private:
 
     QString m_currentGameId;
     QString m_author;
+    QString m_url;
     QString m_pendingUrl;
 
     enum Page { InputPage, AuthPage };

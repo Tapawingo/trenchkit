@@ -37,8 +37,10 @@ QString ModManager::getPaksPath() const {
 
 bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
                         const QString &nexusModId, const QString &nexusFileId,
+                        const QString &nexusUrl,
                         const QString &author, const QString &description,
                         const QString &version, const QString &itchGameId,
+                        const QString &itchUrl,
                         const QDateTime &uploadDate) {
     QFileInfo fileInfo(pakFilePath);
     if (!fileInfo.exists() || !fileInfo.isFile()) {
@@ -68,7 +70,9 @@ bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
 
     mod.nexusModId = nexusModId;
     mod.nexusFileId = nexusFileId;
+    mod.nexusUrl = nexusUrl;
     mod.itchGameId = itchGameId;
+    mod.itchUrl = itchUrl;
     mod.author = author;
     mod.description = description;
     mod.version = version;
@@ -489,7 +493,9 @@ bool ModManager::updateModMetadata(const ModInfo &updatedMod) {
     it->description = updatedMod.description;
     it->nexusModId = updatedMod.nexusModId;
     it->nexusFileId = updatedMod.nexusFileId;
+    it->nexusUrl = updatedMod.nexusUrl;
     it->itchGameId = updatedMod.itchGameId;
+    it->itchUrl = updatedMod.itchUrl;
     it->version = updatedMod.version;
     it->author = updatedMod.author;
     it->installDate = updatedMod.installDate;

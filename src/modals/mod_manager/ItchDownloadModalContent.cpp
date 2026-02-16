@@ -191,7 +191,8 @@ void ItchDownloadModalContent::onDownloadClicked() {
         if (!result.isValid) {
             errors.append(QString("%1: %2").arg(url, result.error));
         } else {
-            m_pendingGames.append({result.creator, result.gameName});
+            QString canonicalUrl = QStringLiteral("https://%1.itch.io/%2").arg(result.creator, result.gameName);
+            m_pendingGames.append({result.creator, result.gameName, canonicalUrl});
         }
     }
 
@@ -489,6 +490,7 @@ void ItchDownloadModalContent::onDownloadFinished(const QString &savePath) {
         m_results.append({
             savePath,
             m_currentGameId,
+            m_pendingGames[m_currentGameIndex].url,
             m_gameTitle,
             m_author,
             m_pendingUploads[m_currentDownloadIndex]

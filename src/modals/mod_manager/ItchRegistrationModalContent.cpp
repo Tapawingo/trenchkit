@@ -157,6 +157,7 @@ void ItchRegistrationModalContent::onFetchClicked() {
         return;
     }
 
+    m_url = QStringLiteral("https://%1.itch.io/%2").arg(result.creator, result.gameName);
     m_pendingUrl = url;
 
     if (!m_client->hasApiKey()) {
@@ -179,6 +180,7 @@ void ItchRegistrationModalContent::onAuthenticateClicked() {
     m_authStatusLabel->setText(tr("API key saved. Fetching game information..."));
 
     auto result = ItchUrlParser::parseUrl(m_pendingUrl);
+    m_url = QStringLiteral("https://%1.itch.io/%2").arg(result.creator, result.gameName);
 
     QTimer::singleShot(500, this, [this, result]() {
         m_client->getGameId(result.creator, result.gameName);

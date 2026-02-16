@@ -30,6 +30,7 @@ public:
     QString getModId() const { return m_currentModId; }
     QString getAuthor() const { return m_author; }
     QString getDescription() const { return m_description; }
+    QString getUrl() const { return m_url; }
 
 private slots:
     void onFetchClicked();
@@ -68,6 +69,7 @@ private:
     QString m_currentModId;
     QString m_author;
     QString m_description;
+    QString m_url;
 
     enum Page { InputPage, AuthPage };
 };

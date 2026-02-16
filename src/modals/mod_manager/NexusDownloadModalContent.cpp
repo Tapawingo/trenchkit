@@ -182,7 +182,8 @@ void NexusDownloadModalContent::onDownloadClicked() {
         if (!result.isValid) {
             errors.append(QString("%1: %2").arg(url, result.error));
         } else {
-            m_pendingMods.append({result.modId, result.fileId});
+            QString canonicalUrl = QStringLiteral("https://www.nexusmods.com/foxhole/mods/%1").arg(result.modId);
+            m_pendingMods.append({result.modId, result.fileId, canonicalUrl});
         }
     }
 
@@ -425,6 +426,7 @@ void NexusDownloadModalContent::onDownloadFinished(const QString &savePath) {
         m_results.append({
             savePath,
             m_currentModId,
+            m_pendingMods[m_currentModIndex].url,
             m_selectedFiles[m_currentDownloadIndex],
             m_author,
             m_description
@@ -524,6 +526,7 @@ void NexusDownloadModalContent::startManualDownloadSequence() {
                 m_results.append({
                     filePath,
                     m_currentModId,
+                    m_pendingMods[m_currentModIndex].url,
                     file,
                     m_author,
                     m_description

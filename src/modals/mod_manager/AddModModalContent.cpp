@@ -130,7 +130,10 @@ bool AddModModalContent::isArchiveFile(const QString &filePath) const {
 }
 
 void AddModModalContent::handleArchiveFile(const QString &archivePath, const QString &nexusModId, const QString &nexusFileId,
-                                           const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QDateTime &uploadDate, bool isBatchProcessing) {
+                                           const QString &nexusUrl,
+                                           const QString &author, const QString &description, const QString &version,
+                                           const QString &itchGameId, const QString &itchUrl,
+                                           const QDateTime &uploadDate, bool isBatchProcessing) {
     ArchiveExtractor extractor;
     auto result = extractor.extractPakFiles(archivePath);
 
@@ -151,7 +154,8 @@ void AddModModalContent::handleArchiveFile(const QString &archivePath, const QSt
         selectedPaks.append(result.pakFiles.first());
 
         for (const QString &pakPath : selectedPaks) {
-            handlePakFile(pakPath, nexusModId, nexusFileId, author, description, version, itchGameId, QString(), uploadDate);
+            handlePakFile(pakPath, nexusModId, nexusFileId, nexusUrl, author, description, version, itchGameId,
+                          itchUrl, QString(), uploadDate);
         }
 
         ArchiveExtractor::cleanupTempDir(result.tempDir);
@@ -166,7 +170,7 @@ void AddModModalContent::handleArchiveFile(const QString &archivePath, const QSt
         }
 
         auto *fileModal = new FileSelectionModalContent(fileNames, QFileInfo(archivePath).fileName(), true);
-        connect(fileModal, &FileSelectionModalContent::accepted, this, [this, result, fileModal, nexusModId, nexusFileId, author, description, version, itchGameId, uploadDate, isBatchProcessing]() {
+        connect(fileModal, &FileSelectionModalContent::accepted, this, [this, result, fileModal, nexusModId, nexusFileId, nexusUrl, author, description, version, itchGameId, itchUrl, uploadDate, isBatchProcessing]() {
             QStringList selectedFileNames = fileModal->getSelectedFiles();
             QStringList selectedPaks;
 
@@ -180,7 +184,8 @@ void AddModModalContent::handleArchiveFile(const QString &archivePath, const QSt
             }
 
             for (const QString &pakPath : selectedPaks) {
-                handlePakFile(pakPath, nexusModId, nexusFileId, author, description, version, itchGameId, QString(), uploadDate);
+                handlePakFile(pakPath, nexusModId, nexusFileId, nexusUrl, author, description, version, itchGameId,
+                              itchUrl, QString(), uploadDate);
             }
 
             ArchiveExtractor::cleanupTempDir(result.tempDir);
@@ -212,7 +217,10 @@ void AddModModalContent::handleArchiveFile(const QString &archivePath, const QSt
 }
 
 void AddModModalContent::handlePakFile(const QString &pakPath, const QString &nexusModId, const QString &nexusFileId,
-                                       const QString &author, const QString &description, const QString &version, const QString &itchGameId, const QString &customModName, const QDateTime &uploadDate) {
+                                       const QString &nexusUrl,
+                                       const QString &author, const QString &description, const QString &version,
+                                       const QString &itchGameId, const QString &itchUrl,
+                                       const QString &customModName, const QDateTime &uploadDate) {
     QString modName;
     if (!customModName.isEmpty()) {
         modName = customModName;
@@ -221,7 +229,8 @@ void AddModModalContent::handlePakFile(const QString &pakPath, const QString &ne
         modName = fileInfo.baseName();
     }
 
-    if (!m_modManager->addMod(pakPath, modName, nexusModId, nexusFileId, author, description, version, itchGameId, uploadDate)) {
+    if (!m_modManager->addMod(pakPath, modName, nexusModId, nexusFileId, nexusUrl, author, description, version,
+                              itchGameId, itchUrl, uploadDate)) {
         MessageModal::warning(m_modalManager, tr("Error"), tr("Failed to add mod: %1").arg(modName));
     } else {
         emit modAdded(modName);
@@ -246,6 +255,7 @@ void AddModModalContent::onFromNexusClicked() {
             fileData.filePath = result.filePath;
             fileData.nexusModId = result.modId;
             fileData.nexusFileId = result.fileInfo.id;
+            fileData.nexusUrl = result.url;
             fileData.author = result.author;
             fileData.description = result.description;
             fileData.version = result.fileInfo.version;
@@ -274,6 +284,7 @@ void AddModModalContent::onFromItchClicked() {
             FileToProcess fileData;
             fileData.filePath = result.filePath;
             fileData.itchGameId = result.gameId;
+            fileData.itchUrl = result.url;
             fileData.author = result.author;
             fileData.description = result.gameTitle;
 
@@ -355,8 +366,9 @@ void AddModModalContent::processNextFile() {
 
     if (isArchiveFile(filePath)) {
         handleArchiveFile(filePath, fileData.nexusModId, fileData.nexusFileId,
-                         fileData.author, fileData.description, fileData.version,
-                         fileData.itchGameId, fileData.uploadDate, true);
+                         fileData.nexusUrl, fileData.author, fileData.description, fileData.version,
+                         fileData.itchGameId, fileData.itchUrl,
+                         fileData.uploadDate, true);
 
         if (filePath.contains("nexus_mod_") || filePath.contains("itch_game_")) {
             QFile::remove(filePath);
@@ -367,8 +379,9 @@ void AddModModalContent::processNextFile() {
         }
     } else {
         handlePakFile(filePath, fileData.nexusModId, fileData.nexusFileId,
-                     fileData.author, fileData.description, fileData.version,
-                     fileData.itchGameId, fileData.customModName, fileData.uploadDate);
+                     fileData.nexusUrl, fileData.author, fileData.description, fileData.version,
+                     fileData.itchGameId, fileData.itchUrl,
+                     fileData.customModName, fileData.uploadDate);
 
         if (filePath.contains("nexus_mod_") || filePath.contains("itch_game_")) {
             QFile::remove(filePath);

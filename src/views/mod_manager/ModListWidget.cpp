@@ -36,6 +36,8 @@
 #include <QSignalBlocker>
 #include <QSet>
 #include <QMenu>
+#include <QDesktopServices>
+#include <QUrl>
 #include <functional>
 #include <memory>
 
@@ -723,6 +725,23 @@ bool ModListWidget::isFilterActive() const {
     return !m_filterText.isEmpty();
 }
 
+QUrl ModListWidget::buildNexusUrl(const ModInfo &mod) const {
+    if (!mod.nexusUrl.isEmpty()) {
+        return QUrl(mod.nexusUrl);
+    }
+    if (!mod.nexusModId.isEmpty()) {
+        return QUrl(QStringLiteral("https://www.nexusmods.com/foxhole/mods/%1").arg(mod.nexusModId));
+    }
+    return {};
+}
+
+QUrl ModListWidget::buildItchUrl(const ModInfo &mod) const {
+    if (mod.itchUrl.isEmpty()) {
+        return {};
+    }
+    return QUrl(mod.itchUrl);
+}
+
 void ModListWidget::showSelectionContextMenu(const QPoint &globalPos) {
     if (!m_modManager) {
         return;
@@ -747,6 +766,19 @@ void ModListWidget::showSelectionContextMenu(const QPoint &globalPos) {
     QAction *removeSelected = nullptr;
 
     if (selectedCount == 1) {
+        ModInfo mod = m_modManager->getMod(singleModId);
+        QUrl nexusUrl = buildNexusUrl(mod);
+        QUrl itchUrl = buildItchUrl(mod);
+
+        QAction *openNexus = nullptr;
+        QAction *openItch = nullptr;
+
+        if (!nexusUrl.isEmpty()) {
+            openNexus = menu.addAction(tr("Open Nexus Mods Page"));
+        }
+        if (!itchUrl.isEmpty()) {
+            openItch = menu.addAction(tr("Open itch.io Page"));
+        }
         menu.addSeparator();
         QAction *renameAction = menu.addAction(tr("Rename"));
         QAction *editMetaAction = menu.addAction(tr("Edit Metadata"));
@@ -766,6 +798,10 @@ void ModListWidget::showSelectionContextMenu(const QPoint &globalPos) {
             startNexusRegistrationQueue(modIds);
         } else if (selectedAction == registerItch) {
             startItchRegistrationQueue(modIds);
+        } else if (selectedAction == openNexus && !nexusUrl.isEmpty()) {
+            QDesktopServices::openUrl(nexusUrl);
+        } else if (selectedAction == openItch && !itchUrl.isEmpty()) {
+            QDesktopServices::openUrl(itchUrl);
         } else if (selectedAction == renameAction) {
             onRenameRequested(singleModId);
         } else if (selectedAction == editMetaAction) {
@@ -1273,7 +1309,7 @@ void ModListWidget::startNexusRegistrationQueue(const QStringList &modIds) {
             connect(modal, &NexusRegistrationModalContent::accepted, this, [this, modal, modId]() {
                 applyNexusRegistration(modId, modal->getSelectedFiles(),
                                        modal->getModId(), modal->getAuthor(),
-                                       modal->getDescription());
+                                       modal->getDescription(), modal->getUrl());
             });
 
             connect(modal, &BaseModalContent::finished, this, [index, showNext](int result) {
@@ -1313,7 +1349,8 @@ void ModListWidget::startItchRegistrationQueue(const QStringList &modIds) {
 
             connect(modal, &ItchRegistrationModalContent::accepted, this, [this, modal, modId]() {
                 applyItchRegistration(modId, modal->getSelectedUploads(),
-                                      modal->getGameId(), modal->getAuthor());
+                                      modal->getGameId(), modal->getAuthor(),
+                                      modal->getUrl());
             });
 
             connect(modal, &BaseModalContent::finished, this, [index, showNext](int result) {
@@ -1334,7 +1371,7 @@ void ModListWidget::startItchRegistrationQueue(const QStringList &modIds) {
 
 void ModListWidget::applyNexusRegistration(const QString &modId, const QList<NexusFileInfo> &files,
                                            const QString &nexusModId, const QString &author,
-                                           const QString &description) {
+                                           const QString &description, const QString &nexusUrl) {
     if (!m_modManager) {
         return;
     }
@@ -1347,6 +1384,7 @@ void ModListWidget::applyNexusRegistration(const QString &modId, const QList<Nex
     mod.nexusModId = nexusModId;
     mod.author = author;
     mod.description = description;
+    mod.nexusUrl = nexusUrl;
 
     if (!files.isEmpty()) {
         mod.nexusFileId = files.first().id;
@@ -1359,7 +1397,8 @@ void ModListWidget::applyNexusRegistration(const QString &modId, const QList<Nex
 }
 
 void ModListWidget::applyItchRegistration(const QString &modId, const QList<ItchUploadInfo> &uploads,
-                                          const QString &itchGameId, const QString &author) {
+                                          const QString &itchGameId, const QString &author,
+                                          const QString &itchUrl) {
     if (!m_modManager) {
         return;
     }
@@ -1371,6 +1410,7 @@ void ModListWidget::applyItchRegistration(const QString &modId, const QList<Itch
 
     mod.itchGameId = itchGameId;
     mod.author = author;
+    mod.itchUrl = itchUrl;
 
     if (!uploads.isEmpty()) {
         QString version = extractVersionFromFilename(uploads.first().filename);
@@ -1400,7 +1440,7 @@ void ModListWidget::onRegisterWithNexusRequested(const QString &modId) {
     connect(modal, &NexusRegistrationModalContent::accepted, this, [this, modal, modId]() {
         applyNexusRegistration(modId, modal->getSelectedFiles(),
                                modal->getModId(), modal->getAuthor(),
-                               modal->getDescription());
+                               modal->getDescription(), modal->getUrl());
     });
 
     m_modalManager->showModal(modal);
@@ -1421,7 +1461,8 @@ void ModListWidget::onRegisterWithItchRequested(const QString &modId) {
 
     connect(modal, &ItchRegistrationModalContent::accepted, this, [this, modal, modId]() {
         applyItchRegistration(modId, modal->getSelectedUploads(),
-                              modal->getGameId(), modal->getAuthor());
+                              modal->getGameId(), modal->getAuthor(),
+                              modal->getUrl());
     });
 
     m_modalManager->showModal(modal);

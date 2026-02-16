@@ -17,7 +17,9 @@ struct ModInfo {
     int priority;                  // Load order (lower = loads first)
     QString nexusModId;            // Optional Nexus Mod ID
     QString nexusFileId;           // Optional Nexus File ID
+    QString nexusUrl;              // Optional Nexus Mods URL
     QString itchGameId;            // Optional itch.io Game ID
+    QString itchUrl;               // Optional itch.io URL
     QString version;               // Optional mod version
     QString author;                // Optional mod author
     QString description;           // Optional mod description

@@ -47,10 +47,12 @@ private:
         QString filePath;
         QString nexusModId;
         QString nexusFileId;
+        QString nexusUrl;
         QString author;
         QString description;
         QString version;
         QString itchGameId;
+        QString itchUrl;
         QString customModName;
         QDateTime uploadDate;
     };
@@ -58,11 +60,15 @@ private:
     void setupUi();
     void retranslateUi();
     void handleArchiveFile(const QString &archivePath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
+                           const QString &nexusUrl = QString(),
                            const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
-                           const QString &itchGameId = QString(), const QDateTime &uploadDate = QDateTime(), bool isBatchProcessing = false);
+                           const QString &itchGameId = QString(), const QString &itchUrl = QString(),
+                           const QDateTime &uploadDate = QDateTime(), bool isBatchProcessing = false);
     void handlePakFile(const QString &pakPath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
+                       const QString &nexusUrl = QString(),
                        const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
-                       const QString &itchGameId = QString(), const QString &customModName = QString(), const QDateTime &uploadDate = QDateTime());
+                       const QString &itchGameId = QString(), const QString &itchUrl = QString(),
+                       const QString &customModName = QString(), const QDateTime &uploadDate = QDateTime());
     bool isArchiveFile(const QString &filePath) const;
     void startProcessingFiles(const QList<FileToProcess> &files);
 

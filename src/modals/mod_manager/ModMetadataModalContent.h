@@ -25,7 +25,9 @@ private:
     QTextEdit *m_descriptionEdit;
     QLineEdit *m_nexusModIdEdit;
     QLineEdit *m_nexusFileIdEdit;
+    QLineEdit *m_nexusUrlEdit;
     QLineEdit *m_itchGameIdEdit;
+    QLineEdit *m_itchUrlEdit;
     QLineEdit *m_versionEdit;
     QLineEdit *m_authorEdit;
     QDateTimeEdit *m_installDateEdit;
@@ -34,6 +36,7 @@ private:
     int m_priority;
     bool m_enabled;
     QString m_numberedFileName;
+    QString m_itchUrl;
 };
 
 #endif // MODMETADATAMODALCONTENT_H

@@ -149,6 +149,7 @@ void NexusRegistrationModalContent::onFetchClicked() {
     }
 
     m_currentModId = result.modId;
+    m_url = QStringLiteral("https://www.nexusmods.com/foxhole/mods/%1").arg(result.modId);
 
     if (!m_client->hasApiKey()) {
         showAuthPage();
