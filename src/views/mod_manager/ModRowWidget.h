@@ -7,8 +7,10 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QEvent>
+#include <QPoint>
 
 class ConflictTooltip;
+class QContextMenuEvent;
 struct ConflictInfo;
 
 class ModRowWidget : public QWidget {
@@ -35,6 +37,7 @@ signals:
     void conflictDetailsRequested(const QString &modId);
     void registerWithNexusRequested(const QString &modId);
     void registerWithItchRequested(const QString &modId);
+    void contextMenuRequested(const QPoint &globalPos);
 
 protected:
     void changeEvent(QEvent *event) override;

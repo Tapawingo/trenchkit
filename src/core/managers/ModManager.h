@@ -7,6 +7,7 @@
 #include <QMap>
 #include <QMutex>
 #include <QString>
+#include <QStringList>
 
 class ModManager : public QObject {
     Q_OBJECT
@@ -32,6 +33,7 @@ public:
     bool enableMod(const QString &modId);
     bool disableMod(const QString &modId);
     bool setAllModsEnabled(bool enabled);
+    bool setModsEnabled(const QStringList &modIds, bool enabled);
     bool setModPriority(const QString &modId, int priority);
     bool batchSetModPriorities(const QMap<QString, int> &priorityMap);
     bool updateModMetadata(const ModInfo &updatedMod);
