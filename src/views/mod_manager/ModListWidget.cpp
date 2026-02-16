@@ -30,6 +30,8 @@
 #include <QScrollBar>
 #include <QLineEdit>
 #include <QKeyEvent>
+#include <QCheckBox>
+#include <QSignalBlocker>
 
 ModListWidget::ModListWidget(QWidget *parent)
     : QWidget(parent)
@@ -84,7 +86,13 @@ void ModListWidget::setupUi() {
 
     auto *titleLayout = new QHBoxLayout();
     titleLayout->setSpacing(Theme::Spacing::MOD_LIST_TITLE_SPACING);
-    titleLayout->setContentsMargins(0, 0, 0, 0);
+    titleLayout->setContentsMargins(Theme::Spacing::MOD_ROW_PADDING_HORIZONTAL, 0, 0, 0);
+
+    m_enableAllCheckBox = new QCheckBox(this);
+    m_enableAllCheckBox->setObjectName("modEnableAllCheckBox");
+    m_enableAllCheckBox->setTristate(true);
+    m_enableAllCheckBox->setCursor(Qt::PointingHandCursor);
+    m_enableAllCheckBox->setToolTip(tr("Enable or disable all mods"));
 
     m_titleLabel = new QLabel(tr("Installed Mods:"), this);
     m_titleLabel->setObjectName("modListTitle");
@@ -96,6 +104,7 @@ void ModListWidget::setupUi() {
     m_checkUpdatesButton->setObjectName("checkUpdatesButton");
     m_checkUpdatesButton->setCursor(Qt::PointingHandCursor);
 
+    titleLayout->addWidget(m_enableAllCheckBox);
     titleLayout->addWidget(m_titleLabel);
     titleLayout->addWidget(m_modCountLabel);
     titleLayout->addStretch();
@@ -103,6 +112,8 @@ void ModListWidget::setupUi() {
 
     connect(m_checkUpdatesButton, &QPushButton::clicked,
             this, &ModListWidget::onCheckUpdatesClicked);
+    connect(m_enableAllCheckBox, &QCheckBox::clicked,
+            this, &ModListWidget::onEnableAllClicked);
 
     m_searchContainer = new QWidget(this);
     auto *searchLayout = new QHBoxLayout(m_searchContainer);
@@ -174,6 +185,12 @@ void ModListWidget::refreshModList() {
     m_modList->clear();
 
     QList<ModInfo> mods = m_modManager->getMods();
+    int enabledCount = 0;
+    for (const ModInfo &mod : mods) {
+        if (mod.enabled) {
+            enabledCount++;
+        }
+    }
     QList<ModInfo> filteredMods;
     filteredMods.reserve(mods.size());
     for (const ModInfo &mod : mods) {
@@ -196,6 +213,23 @@ void ModListWidget::refreshModList() {
             .arg(mods.size()));
     } else {
         m_modCountLabel->setText(QString::number(mods.size()) + " Total");
+    }
+
+    if (m_enableAllCheckBox) {
+        QSignalBlocker blocker(m_enableAllCheckBox);
+        if (mods.isEmpty()) {
+            m_enableAllCheckBox->setEnabled(false);
+            m_enableAllCheckBox->setCheckState(Qt::Unchecked);
+        } else {
+            m_enableAllCheckBox->setEnabled(true);
+            if (enabledCount == 0) {
+                m_enableAllCheckBox->setCheckState(Qt::Unchecked);
+            } else if (enabledCount == mods.size()) {
+                m_enableAllCheckBox->setCheckState(Qt::Checked);
+            } else {
+                m_enableAllCheckBox->setCheckState(Qt::PartiallyChecked);
+            }
+        }
     }
 
     for (int i = 0; i < filteredMods.size(); ++i) {
@@ -275,6 +309,10 @@ void ModListWidget::changeEvent(QEvent *event) {
 void ModListWidget::retranslateUi() {
     if (m_titleLabel) m_titleLabel->setText(tr("Installed Mods:"));
     if (m_checkUpdatesButton) m_checkUpdatesButton->setText(tr("Check for Updates"));
+    if (m_enableAllCheckBox) {
+        m_enableAllCheckBox->setText(QString());
+        m_enableAllCheckBox->setToolTip(tr("Enable or disable all mods"));
+    }
 }
 
 void ModListWidget::resizeEvent(QResizeEvent *event) {
@@ -316,6 +354,29 @@ void ModListWidget::onModEnabledChanged(const QString &modId, bool enabled) {
     } else {
         m_modManager->disableMod(modId);
     }
+}
+
+void ModListWidget::onEnableAllClicked() {
+    if (m_updating || !m_modManager || !m_enableAllCheckBox) {
+        return;
+    }
+
+    QList<ModInfo> mods = m_modManager->getMods();
+    if (mods.isEmpty()) {
+        return;
+    }
+
+    int enabledCount = 0;
+    for (const ModInfo &mod : mods) {
+        if (mod.enabled) {
+            enabledCount++;
+        }
+    }
+
+    bool enableAll = enabledCount < mods.size();
+    m_enableAllCheckBox->setEnabled(false);
+    m_modManager->setAllModsEnabled(enableAll);
+    m_enableAllCheckBox->setEnabled(true);
 }
 
 void ModListWidget::onAddModClicked() {

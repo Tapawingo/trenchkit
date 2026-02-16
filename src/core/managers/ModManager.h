@@ -31,6 +31,7 @@ public:
                    const QDateTime &uploadDate = QDateTime());
     bool enableMod(const QString &modId);
     bool disableMod(const QString &modId);
+    bool setAllModsEnabled(bool enabled);
     bool setModPriority(const QString &modId, int priority);
     bool batchSetModPriorities(const QMap<QString, int> &priorityMap);
     bool updateModMetadata(const ModInfo &updatedMod);
