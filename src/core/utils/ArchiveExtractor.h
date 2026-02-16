@@ -19,6 +19,7 @@ public:
     };
 
     ExtractResult extractPakFiles(const QString &zipPath);
+    static bool isArchiveFile(const QString &filePath);
 
     static void cleanupTempDir(const QString &tempDir);
 
@@ -31,6 +32,7 @@ private:
     };
 
     ArchiveFormat detectFormat(const QString &filePath) const;
+    ArchiveFormat detectFormatBySignature(const QString &filePath) const;
     ExtractResult extractWithLibarchive(const QString &archivePath);
     ExtractResult extractWithZip(const QString &archivePath);
     bool isPakFile(const QString &fileName) const;
