@@ -11,6 +11,7 @@
 #include <QRegularExpression>
 #include <QCheckBox>
 #include <QStringList>
+#include <QUrl>
 
 class NexusModsClient;
 class NexusModsAuth;
@@ -93,13 +94,16 @@ private:
     int getSelectedRow() const;
     int getSelectedCount() const;
     void showSelectionContextMenu(const QPoint &globalPos);
+    QUrl buildNexusUrl(const ModInfo &mod) const;
+    QUrl buildItchUrl(const ModInfo &mod) const;
     void startNexusRegistrationQueue(const QStringList &modIds);
     void startItchRegistrationQueue(const QStringList &modIds);
     void applyNexusRegistration(const QString &modId, const QList<NexusFileInfo> &files,
                                 const QString &nexusModId, const QString &author,
-                                const QString &description);
+                                const QString &description, const QString &nexusUrl);
     void applyItchRegistration(const QString &modId, const QList<ItchUploadInfo> &uploads,
-                               const QString &itchGameId, const QString &author);
+                               const QString &itchGameId, const QString &author,
+                               const QString &itchUrl);
     QString extractVersionFromFilename(const QString &filename) const;
     void handlePakFile(const QString &pakPath);
     void handleArchiveFile(const QString &archivePath);

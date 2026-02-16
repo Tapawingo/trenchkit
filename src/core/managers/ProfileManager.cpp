@@ -813,7 +813,9 @@ bool ProfileManager::importProfile(const QString &filePath, QString &importedPro
                 updated.description = meta.description;
                 updated.nexusModId = meta.nexusModId;
                 updated.nexusFileId = meta.nexusFileId;
+                updated.nexusUrl = meta.nexusUrl;
                 updated.itchGameId = meta.itchGameId;
+                updated.itchUrl = meta.itchUrl;
                 updated.version = meta.version;
                 updated.author = meta.author;
                 updated.uploadDate = meta.uploadDate;
@@ -828,8 +830,10 @@ bool ProfileManager::importProfile(const QString &filePath, QString &importedPro
         const QList<ModInfo> beforeMods = m_modManager->getMods();
         if (!m_modManager->addMod(pakPath, QString(),
                                   meta.nexusModId, meta.nexusFileId,
+                                  meta.nexusUrl,
                                   meta.author, meta.description, meta.version,
-                                  meta.itchGameId, meta.uploadDate)) {
+                                  meta.itchGameId, meta.itchUrl,
+                                  meta.uploadDate)) {
             return false;
         }
 
@@ -859,7 +863,9 @@ bool ProfileManager::importProfile(const QString &filePath, QString &importedPro
         updated.description = meta.description;
         updated.nexusModId = meta.nexusModId;
         updated.nexusFileId = meta.nexusFileId;
+        updated.nexusUrl = meta.nexusUrl;
         updated.itchGameId = meta.itchGameId;
+        updated.itchUrl = meta.itchUrl;
         updated.version = meta.version;
         updated.author = meta.author;
         updated.uploadDate = meta.uploadDate;
@@ -886,8 +892,10 @@ bool ProfileManager::importProfile(const QString &filePath, QString &importedPro
         const QList<ModInfo> beforeMods = m_modManager->getMods();
         if (!m_modManager->addMod(pakPath, candidateName,
                                   meta.nexusModId, meta.nexusFileId,
+                                  meta.nexusUrl,
                                   meta.author, meta.description, meta.version,
-                                  meta.itchGameId, meta.uploadDate)) {
+                                  meta.itchGameId, meta.itchUrl,
+                                  meta.uploadDate)) {
             return false;
         }
 
@@ -915,7 +923,9 @@ bool ProfileManager::importProfile(const QString &filePath, QString &importedPro
         updated.description = meta.description;
         updated.nexusModId = meta.nexusModId;
         updated.nexusFileId = meta.nexusFileId;
+        updated.nexusUrl = meta.nexusUrl;
         updated.itchGameId = meta.itchGameId;
+        updated.itchUrl = meta.itchUrl;
         updated.version = meta.version;
         updated.author = meta.author;
         updated.uploadDate = meta.uploadDate;

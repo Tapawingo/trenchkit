@@ -21,8 +21,14 @@ QJsonObject ModInfo::toJson() const {
     if (!nexusFileId.isEmpty()) {
         json["nexusFileId"] = nexusFileId;
     }
+    if (!nexusUrl.isEmpty()) {
+        json["nexusUrl"] = nexusUrl;
+    }
     if (!itchGameId.isEmpty()) {
         json["itchGameId"] = itchGameId;
+    }
+    if (!itchUrl.isEmpty()) {
+        json["itchUrl"] = itchUrl;
     }
     if (!version.isEmpty()) {
         json["version"] = version;
@@ -64,8 +70,14 @@ ModInfo ModInfo::fromJson(const QJsonObject &json) {
     if (json.contains("nexusFileId")) {
         mod.nexusFileId = json["nexusFileId"].toString();
     }
+    if (json.contains("nexusUrl")) {
+        mod.nexusUrl = json["nexusUrl"].toString();
+    }
     if (json.contains("itchGameId")) {
         mod.itchGameId = json["itchGameId"].toString();
+    }
+    if (json.contains("itchUrl")) {
+        mod.itchUrl = json["itchUrl"].toString();
     }
     if (json.contains("version")) {
         mod.version = json["version"].toString();

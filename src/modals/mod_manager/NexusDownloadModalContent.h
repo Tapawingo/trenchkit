@@ -19,6 +19,7 @@ class QStackedWidget;
 struct NexusDownloadResult {
     QString filePath;
     QString modId;
+    QString url;
     NexusFileInfo fileInfo;
     QString author;
     QString description;
@@ -60,6 +61,7 @@ private:
     struct PendingMod {
         QString modId;
         QString fileId;
+        QString url;
     };
 
     void setupUi();

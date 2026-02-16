@@ -15,6 +15,7 @@ ModMetadataModalContent::ModMetadataModalContent(const ModInfo &mod, QWidget *pa
     , m_priority(mod.priority)
     , m_enabled(mod.enabled)
     , m_numberedFileName(mod.numberedFileName)
+    , m_itchUrl(mod.itchUrl)
 {
     setTitle(tr("Edit Mod Metadata"));
     setupUi(mod);
@@ -58,10 +59,20 @@ void ModMetadataModalContent::setupUi(const ModInfo &mod) {
     m_nexusFileIdEdit->setPlaceholderText(tr("e.g., 12345"));
     formLayout->addRow(tr("Nexusmods File ID:"), m_nexusFileIdEdit);
 
+    m_nexusUrlEdit = new QLineEdit(mod.nexusUrl, scrollContent);
+    m_nexusUrlEdit->setMinimumHeight(32);
+    m_nexusUrlEdit->setPlaceholderText(tr("https://www.nexusmods.com/foxhole/mods/12345"));
+    formLayout->addRow(tr("Nexusmods URL:"), m_nexusUrlEdit);
+
     m_itchGameIdEdit = new QLineEdit(mod.itchGameId, scrollContent);
     m_itchGameIdEdit->setMinimumHeight(32);
     m_itchGameIdEdit->setPlaceholderText(tr("e.g., 1276966"));
     formLayout->addRow(tr("Itch.io Game ID:"), m_itchGameIdEdit);
+
+    m_itchUrlEdit = new QLineEdit(mod.itchUrl, scrollContent);
+    m_itchUrlEdit->setMinimumHeight(32);
+    m_itchUrlEdit->setPlaceholderText(tr("https://creator.itch.io/game-name"));
+    formLayout->addRow(tr("Itch.io URL:"), m_itchUrlEdit);
 
     m_versionEdit = new QLineEdit(mod.version, scrollContent);
     m_versionEdit->setMinimumHeight(32);
@@ -106,7 +117,9 @@ ModInfo ModMetadataModalContent::getModInfo() const {
     mod.description = m_descriptionEdit->toPlainText();
     mod.nexusModId = m_nexusModIdEdit->text();
     mod.nexusFileId = m_nexusFileIdEdit->text();
+    mod.nexusUrl = m_nexusUrlEdit ? m_nexusUrlEdit->text().trimmed() : mod.nexusUrl;
     mod.itchGameId = m_itchGameIdEdit->text();
+    mod.itchUrl = m_itchUrlEdit ? m_itchUrlEdit->text().trimmed() : m_itchUrl;
     mod.version = m_versionEdit->text();
     mod.author = m_authorEdit->text();
     mod.installDate = m_installDateEdit->dateTime();
