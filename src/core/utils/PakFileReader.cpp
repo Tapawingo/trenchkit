@@ -38,6 +38,166 @@ PakFileReader::ParseResult PakFileReader::extractFilePaths(const QString &pakFil
     return result;
 }
 
+bool PakFileReader::extractFile(const QString &pakFilePath,
+                                const QStringList &candidatePaths,
+                                QByteArray *data,
+                                QString *error) {
+    if (!data) {
+        if (error) {
+            *error = "No output buffer provided";
+        }
+        return false;
+    }
+
+    QFile file(pakFilePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        if (error) {
+            *error = "Failed to open file";
+        }
+        return false;
+    }
+
+    PakFooter footer;
+    if (!readFooter(file, footer)) {
+        if (error) {
+            *error = "Failed to read footer or invalid .pak file";
+        }
+        return false;
+    }
+
+    if (footer.magic != PakFooter::MAGIC) {
+        if (error) {
+            *error = "Not a valid .pak file";
+        }
+        return false;
+    }
+
+    if (footer.version != 1 && footer.version != 2 && footer.version != 3 &&
+        footer.version != 4 && footer.version != 7) {
+        if (error) {
+            *error = QString("Unsupported .pak version: %1").arg(footer.version);
+        }
+        return false;
+    }
+
+    if (!file.seek(footer.indexOffset)) {
+        if (error) {
+            *error = "Failed to seek to index";
+        }
+        return false;
+    }
+
+    QDataStream stream(&file);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    QString mountPoint = readString(file);
+    if (mountPoint.isNull()) {
+        if (error) {
+            *error = "Failed to read mount point";
+        }
+        return false;
+    }
+
+    quint32 recordCount = 0;
+    stream >> recordCount;
+    if (stream.status() != QDataStream::Ok) {
+        if (error) {
+            *error = "Failed to read index record count";
+        }
+        return false;
+    }
+
+    QStringList candidatesLower;
+    candidatesLower.reserve(candidatePaths.size());
+    for (const QString &path : candidatePaths) {
+        QString normalized = path;
+        normalized.replace('\\', '/');
+        candidatesLower.append(normalized.toLower());
+    }
+
+    FileEntry matchedEntry;
+    bool found = false;
+
+    for (quint32 i = 0; i < recordCount; ++i) {
+        QString fileName = readString(file);
+        if (fileName.isNull()) {
+            if (error) {
+                *error = "Failed to read index entry";
+            }
+            return false;
+        }
+
+        FileEntry entry;
+        entry.path = fileName;
+
+        if (!readEntry(file, footer.version, entry)) {
+            if (error) {
+                *error = "Failed to read entry metadata";
+            }
+            return false;
+        }
+
+        if (!found && matchesCandidate(fileName, candidatesLower)) {
+            matchedEntry = entry;
+            found = true;
+        }
+    }
+
+    if (!found) {
+        if (error) {
+            *error = "Manifest not found in pak";
+        }
+        return false;
+    }
+
+    if (matchedEntry.encrypted) {
+        if (error) {
+            *error = "Manifest is encrypted in pak";
+        }
+        return false;
+    }
+
+    if (matchedEntry.compressionMethod != 0) {
+        if (error) {
+            *error = "Manifest is compressed in pak";
+        }
+        return false;
+    }
+
+    if (matchedEntry.uncompressedSize == 0 || matchedEntry.compressedSize == 0) {
+        if (error) {
+            *error = "Manifest entry has invalid size";
+        }
+        return false;
+    }
+
+    static const quint64 kMaxManifestSize = 512 * 1024;
+    if (matchedEntry.uncompressedSize > kMaxManifestSize) {
+        if (error) {
+            *error = "Manifest is too large";
+        }
+        return false;
+    }
+
+    if (!file.seek(static_cast<qint64>(matchedEntry.offset))) {
+        if (error) {
+            *error = "Failed to seek to manifest data";
+        }
+        return false;
+    }
+
+    QByteArray buffer = file.read(static_cast<qint64>(matchedEntry.uncompressedSize));
+    if (buffer.size() != static_cast<int>(matchedEntry.uncompressedSize)) {
+        if (error) {
+            *error = "Failed to read manifest data";
+        }
+        return false;
+    }
+
+    *data = buffer;
+    return true;
+}
+
 bool PakFileReader::readFooter(QFile &file, PakFooter &footer) {
     if (file.size() < PakFooter::SIZE) {
         return false;
@@ -143,6 +303,66 @@ bool PakFileReader::readIndex(QFile &file, quint64 indexOffset, quint32 version,
     }
 
     return true;
+}
+
+bool PakFileReader::readEntry(QFile &file, quint32 version, FileEntry &entry) {
+    QDataStream stream(&file);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream >> entry.offset;
+    stream >> entry.compressedSize;
+    stream >> entry.uncompressedSize;
+    stream >> entry.compressionMethod;
+
+    if (version <= 1) {
+        quint64 timestamp = 0;
+        stream >> timestamp;
+    }
+
+    quint8 hash[20];
+    for (int i = 0; i < 20; ++i) {
+        stream >> hash[i];
+    }
+
+    if (version >= 3) {
+        if (entry.compressionMethod != 0) {
+            quint32 blockCount = 0;
+            stream >> blockCount;
+            entry.compressionBlocks.reserve(blockCount);
+            for (quint32 i = 0; i < blockCount; ++i) {
+                quint64 blockStart = 0;
+                quint64 blockEnd = 0;
+                stream >> blockStart;
+                stream >> blockEnd;
+                entry.compressionBlocks.append({blockStart, blockEnd});
+            }
+        }
+
+        quint8 encrypted = 0;
+        stream >> encrypted;
+        entry.encrypted = (encrypted != 0);
+
+        quint32 blockSize = 0;
+        stream >> blockSize;
+        entry.compressionBlockSize = blockSize;
+    }
+
+    return stream.status() == QDataStream::Ok;
+}
+
+bool PakFileReader::matchesCandidate(const QString &fileName, const QStringList &candidatesLower) {
+    QString normalized = fileName;
+    normalized.replace('\\', '/');
+    QString lower = normalized.toLower();
+    for (const QString &candidate : candidatesLower) {
+        if (lower == candidate) {
+            return true;
+        }
+        if (lower.endsWith('/' + candidate)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 QString PakFileReader::readString(QIODevice &device) {

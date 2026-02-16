@@ -35,6 +35,7 @@
 - Install mod from Itch.io
 - Check for mod updates
 - Check for mod conflicts
+- Check for mod dependencies (requires mod manifest)
 
 ## Usage Guide
 

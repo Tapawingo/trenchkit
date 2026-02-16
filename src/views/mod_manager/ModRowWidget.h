@@ -27,6 +27,8 @@ public:
     void hideUpdateButton();
     void setConflictInfo(const ConflictInfo &info);
     void clearConflictIndicator();
+    void setNotice(const QString &text, const QString &iconType);
+    void setDependencyStatus(const QString &text);
 
 signals:
     void enabledChanged(const QString &modId, bool enabled);
@@ -51,6 +53,7 @@ private:
     void updateStyling();
     void updateNameEliding();
     QString formatConflictTooltip(const ConflictInfo &info) const;
+    QString noticeIconPath(const QString &iconType) const;
 
     QString m_modId;
     QString m_fullModName;
@@ -59,8 +62,12 @@ private:
     QLabel *m_dateLabel;
     QPushButton *m_updateButton;
     QPushButton *m_conflictButton;
+    QPushButton *m_dependencyButton;
+    QPushButton *m_noticeButton;
     ConflictTooltip *m_conflictTooltip = nullptr;
     QString m_conflictTooltipText;
+    QString m_dependencyText;
+    QString m_noticeText;
     bool m_selected = false;
 };
 

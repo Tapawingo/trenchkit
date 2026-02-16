@@ -76,6 +76,27 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
     mainLayout->addWidget(m_conflictButton);
 
+    m_dependencyButton = new QPushButton(this);
+    m_dependencyButton->setObjectName("modDependencyButton");
+    m_dependencyButton->setVisible(false);
+    m_dependencyButton->setIcon(QIcon(":/icon_dependency_missing.png"));
+    m_dependencyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    m_dependencyButton->setCursor(Qt::PointingHandCursor);
+    m_dependencyButton->setFlat(true);
+    m_dependencyButton->setFocusPolicy(Qt::NoFocus);
+
+    mainLayout->addWidget(m_dependencyButton);
+
+    m_noticeButton = new QPushButton(this);
+    m_noticeButton->setObjectName("modNoticeButton");
+    m_noticeButton->setVisible(false);
+    m_noticeButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    m_noticeButton->setCursor(Qt::PointingHandCursor);
+    m_noticeButton->setFlat(true);
+    m_noticeButton->setFocusPolicy(Qt::NoFocus);
+
+    mainLayout->addWidget(m_noticeButton);
+
     m_updateButton = new QPushButton(this);
     m_updateButton->setObjectName("modUpdateButton");
     m_updateButton->setVisible(false);
@@ -106,6 +127,7 @@ void ModRowWidget::updateModInfo(const ModInfo &mod) {
     m_nameLabel->setToolTip(mod.name);
     m_nameLabel->setText(mod.name);
     m_dateLabel->setText(tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm")));
+    setNotice(mod.noticeText, mod.noticeIcon);
 }
 
 void ModRowWidget::setSelected(bool selected) {
@@ -182,6 +204,16 @@ void ModRowWidget::resizeEvent(QResizeEvent *event) {
         m_conflictButton->setFixedWidth(buttonHeight);
     }
 
+    if (m_dependencyButton && m_dependencyButton->isVisible()) {
+        int buttonHeight = m_dependencyButton->height();
+        m_dependencyButton->setFixedWidth(buttonHeight);
+    }
+
+    if (m_noticeButton && m_noticeButton->isVisible()) {
+        int buttonHeight = m_noticeButton->height();
+        m_noticeButton->setFixedWidth(buttonHeight);
+    }
+
     updateNameEliding();
 }
 
@@ -253,6 +285,37 @@ void ModRowWidget::setConflictInfo(const ConflictInfo &info) {
     }
 }
 
+void ModRowWidget::setNotice(const QString &text, const QString &iconType) {
+    if (!m_noticeButton) {
+        return;
+    }
+
+    m_noticeText = text.trimmed();
+    if (m_noticeText.isEmpty()) {
+        if (m_noticeButton->isVisible()) {
+            m_noticeButton->setVisible(false);
+            QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
+        }
+        return;
+    }
+
+    const QString iconPath = noticeIconPath(iconType);
+    if (!iconPath.isEmpty()) {
+        m_noticeButton->setIcon(QIcon(iconPath));
+    }
+    m_noticeButton->setToolTip(m_noticeText);
+
+    if (!m_noticeButton->isVisible()) {
+        m_noticeButton->setVisible(true);
+        QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
+    }
+
+    int buttonHeight = m_noticeButton->height();
+    if (buttonHeight > 0) {
+        m_noticeButton->setFixedWidth(buttonHeight);
+    }
+}
+
 void ModRowWidget::clearConflictIndicator() {
     bool wasVisible = false;
     if (m_conflictButton) {
@@ -267,6 +330,49 @@ void ModRowWidget::clearConflictIndicator() {
     if (wasVisible) {
         QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
     }
+}
+
+void ModRowWidget::setDependencyStatus(const QString &text) {
+    if (!m_dependencyButton) {
+        return;
+    }
+
+    m_dependencyText = text.trimmed();
+    if (m_dependencyText.isEmpty()) {
+        if (m_dependencyButton->isVisible()) {
+            m_dependencyButton->setVisible(false);
+            QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
+        }
+        return;
+    }
+
+    m_dependencyButton->setToolTip(m_dependencyText);
+    if (!m_dependencyButton->isVisible()) {
+        m_dependencyButton->setVisible(true);
+        QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
+    }
+
+    int buttonHeight = m_dependencyButton->height();
+    if (buttonHeight > 0) {
+        m_dependencyButton->setFixedWidth(buttonHeight);
+    }
+}
+
+QString ModRowWidget::noticeIconPath(const QString &iconType) const {
+    const QString icon = iconType.trimmed().toLower();
+    if (icon == QStringLiteral("warning")) {
+        return QStringLiteral(":/icon_notice_warning.png");
+    }
+    if (icon == QStringLiteral("error")) {
+        return QStringLiteral(":/icon_notice_error.png");
+    }
+    if (icon == QStringLiteral("question")) {
+        return QStringLiteral(":/icon_notice_question.png");
+    }
+    if (icon == QStringLiteral("lightbulb")) {
+        return QStringLiteral(":/icon_notice_lightbulb.png");
+    }
+    return QStringLiteral(":/icon_notice_info.png");
 }
 
 QString ModRowWidget::formatConflictTooltip(const ConflictInfo &info) const {

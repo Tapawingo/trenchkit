@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QRegularExpression>
 #include <QSet>
+#include "core/utils/ModManifestReader.h"
 
 ModManager::ModManager(QObject *parent)
     : QObject(parent)
@@ -48,6 +49,13 @@ bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
         return false;
     }
 
+    ModManifest manifest;
+    QString manifestError;
+    const bool hasManifest = ModManifestReader::readFromPak(pakFilePath, &manifest, &manifestError);
+    if (!hasManifest && !manifestError.isEmpty()) {
+        qDebug() << "Manifest not loaded for" << pakFilePath << ":" << manifestError;
+    }
+
     ModInfo mod;
     mod.id = ModInfo::generateId();
 
@@ -76,6 +84,43 @@ bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
     mod.author = author;
     mod.description = description;
     mod.version = version;
+
+    if (hasManifest) {
+        mod.manifestId = manifest.id;
+        mod.manifestAuthors = manifest.authors;
+        mod.manifestTags = manifest.tags;
+        mod.noticeText = manifest.noticeText;
+        mod.noticeIcon = manifest.noticeIcon;
+        mod.homepageUrl = manifest.homepageUrl;
+        mod.manifestDependencies.clear();
+        for (const auto &dep : manifest.dependencies) {
+            ModInfo::Dependency modDep;
+            modDep.id = dep.id;
+            modDep.minVersion = dep.minVersion;
+            modDep.maxVersion = dep.maxVersion;
+            modDep.required = dep.required;
+            mod.manifestDependencies.append(modDep);
+        }
+
+        if (modName.isEmpty() && !manifest.name.isEmpty()) {
+            mod.name = manifest.name;
+        }
+        if (mod.author.isEmpty() && !manifest.authors.isEmpty()) {
+            mod.author = manifest.authors.join(", ");
+        }
+        if (mod.description.isEmpty() && !manifest.description.isEmpty()) {
+            mod.description = manifest.description;
+        }
+        if (mod.version.isEmpty() && !manifest.version.isEmpty()) {
+            mod.version = manifest.version;
+        }
+        if (mod.nexusUrl.isEmpty() && !manifest.nexusUrl.isEmpty()) {
+            mod.nexusUrl = manifest.nexusUrl;
+        }
+        if (mod.itchUrl.isEmpty() && !manifest.itchUrl.isEmpty()) {
+            mod.itchUrl = manifest.itchUrl;
+        }
+    }
 
     QString destPath = m_modsStoragePath + "/" + mod.fileName;
     if (!QFile::copy(pakFilePath, destPath)) {
@@ -856,6 +901,49 @@ void ModManager::detectUnregisteredMods() {
             newMod.name = cleanModName(originalFileName);
             newMod.installDate = QFileInfo(pakFilePath).lastModified();
             newMod.enabled = true;
+
+            ModManifest manifest;
+            QString manifestError;
+            const bool hasManifest = ModManifestReader::readFromPak(pakFilePath, &manifest, &manifestError);
+            if (!hasManifest && !manifestError.isEmpty()) {
+                qDebug() << "Manifest not loaded for" << pakFilePath << ":" << manifestError;
+            }
+            if (hasManifest) {
+                newMod.manifestId = manifest.id;
+                newMod.manifestAuthors = manifest.authors;
+                newMod.manifestTags = manifest.tags;
+                newMod.noticeText = manifest.noticeText;
+                newMod.noticeIcon = manifest.noticeIcon;
+                newMod.homepageUrl = manifest.homepageUrl;
+                newMod.manifestDependencies.clear();
+                for (const auto &dep : manifest.dependencies) {
+                    ModInfo::Dependency modDep;
+                    modDep.id = dep.id;
+                    modDep.minVersion = dep.minVersion;
+                    modDep.maxVersion = dep.maxVersion;
+                    modDep.required = dep.required;
+                    newMod.manifestDependencies.append(modDep);
+                }
+
+                if (!manifest.name.isEmpty()) {
+                    newMod.name = manifest.name;
+                }
+                if (!manifest.authors.isEmpty()) {
+                    newMod.author = manifest.authors.join(", ");
+                }
+                if (!manifest.description.isEmpty()) {
+                    newMod.description = manifest.description;
+                }
+                if (!manifest.version.isEmpty()) {
+                    newMod.version = manifest.version;
+                }
+                if (!manifest.nexusUrl.isEmpty()) {
+                    newMod.nexusUrl = manifest.nexusUrl;
+                }
+                if (!manifest.itchUrl.isEmpty()) {
+                    newMod.itchUrl = manifest.itchUrl;
+                }
+            }
 
             QString destPath = m_modsStoragePath + "/" + originalFileName;
 
