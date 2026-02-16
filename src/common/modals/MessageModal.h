@@ -4,6 +4,7 @@
 #include "BaseModalContent.h"
 #include <QString>
 
+class QEvent;
 class QLabel;
 class QPushButton;
 class ModalManager;
@@ -42,12 +43,20 @@ public:
     static void critical(ModalManager *manager, const QString &title, const QString &text);
     static bool question(ModalManager *manager, const QString &title, const QString &text);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private:
     void setupUi(const QString &text, Icon icon, StandardButtons buttons);
+    void retranslateUi();
     QString getIconText(Icon icon);
 
     QLabel *m_textLabel;
     QLabel *m_iconLabel;
+    QPushButton *m_yesButton = nullptr;
+    QPushButton *m_noButton = nullptr;
+    QPushButton *m_okButton = nullptr;
+    QPushButton *m_cancelButton = nullptr;
     StandardButton m_clickedButton = NoButton;
 };
 

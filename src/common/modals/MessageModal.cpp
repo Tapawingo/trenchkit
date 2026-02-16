@@ -1,6 +1,7 @@
 #include "MessageModal.h"
 #include "ModalManager.h"
 #include "core/utils/Theme.h"
+#include <QEvent>
 #include <QLabel>
 #include <QPushButton>
 #include <QHBoxLayout>
@@ -39,44 +40,60 @@ void MessageModal::setupUi(const QString &text, Icon icon, StandardButtons butto
     bodyLayout()->addLayout(contentLayout);
 
     if (buttons & Yes) {
-        auto *yesButton = new QPushButton("Yes", this);
-        yesButton->setCursor(Qt::PointingHandCursor);
-        connect(yesButton, &QPushButton::clicked, this, [this]() {
+        m_yesButton = new QPushButton(tr("Yes"), this);
+        m_yesButton->setCursor(Qt::PointingHandCursor);
+        connect(m_yesButton, &QPushButton::clicked, this, [this]() {
             m_clickedButton = Yes;
             accept();
         });
-        footerLayout()->addWidget(yesButton);
+        footerLayout()->addWidget(m_yesButton);
     }
 
     if (buttons & No) {
-        auto *noButton = new QPushButton("No", this);
-        noButton->setCursor(Qt::PointingHandCursor);
-        connect(noButton, &QPushButton::clicked, this, [this]() {
+        m_noButton = new QPushButton(tr("No"), this);
+        m_noButton->setCursor(Qt::PointingHandCursor);
+        connect(m_noButton, &QPushButton::clicked, this, [this]() {
             m_clickedButton = No;
             reject();
         });
-        footerLayout()->addWidget(noButton);
+        footerLayout()->addWidget(m_noButton);
     }
 
     if (buttons & Ok) {
-        auto *okButton = new QPushButton("OK", this);
-        okButton->setCursor(Qt::PointingHandCursor);
-        connect(okButton, &QPushButton::clicked, this, [this]() {
+        m_okButton = new QPushButton(tr("OK"), this);
+        m_okButton->setCursor(Qt::PointingHandCursor);
+        connect(m_okButton, &QPushButton::clicked, this, [this]() {
             m_clickedButton = Ok;
             accept();
         });
-        footerLayout()->addWidget(okButton);
+        footerLayout()->addWidget(m_okButton);
     }
 
     if (buttons & Cancel) {
-        auto *cancelButton = new QPushButton("Cancel", this);
-        cancelButton->setCursor(Qt::PointingHandCursor);
-        connect(cancelButton, &QPushButton::clicked, this, [this]() {
+        m_cancelButton = new QPushButton(tr("Cancel"), this);
+        m_cancelButton->setCursor(Qt::PointingHandCursor);
+        connect(m_cancelButton, &QPushButton::clicked, this, [this]() {
             m_clickedButton = Cancel;
             reject();
         });
-        footerLayout()->addWidget(cancelButton);
+        footerLayout()->addWidget(m_cancelButton);
     }
+
+    retranslateUi();
+}
+
+void MessageModal::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    BaseModalContent::changeEvent(event);
+}
+
+void MessageModal::retranslateUi() {
+    if (m_yesButton) m_yesButton->setText(tr("Yes"));
+    if (m_noButton) m_noButton->setText(tr("No"));
+    if (m_okButton) m_okButton->setText(tr("OK"));
+    if (m_cancelButton) m_cancelButton->setText(tr("Cancel"));
 }
 
 QString MessageModal::getIconText(Icon icon) {

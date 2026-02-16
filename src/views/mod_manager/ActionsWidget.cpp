@@ -4,17 +4,18 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QEvent>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QDir>
 
 ActionsWidget::ActionsWidget(QWidget *parent)
     : QWidget(parent)
-    , m_addButton(new QPushButton("Add Mod", this))
-    , m_removeButton(new QPushButton("Remove Mod", this))
-    , m_moveUpButton(new QPushButton("Move Up", this))
-    , m_moveDownButton(new QPushButton("Move Down", this))
-    , m_exploreFolderButton(new QPushButton("Explore Mod Folder", this))
+    , m_addButton(new QPushButton(this))
+    , m_removeButton(new QPushButton(this))
+    , m_moveUpButton(new QPushButton(this))
+    , m_moveDownButton(new QPushButton(this))
+    , m_exploreFolderButton(new QPushButton(this))
 {
     setupUi();
     setupConnections();
@@ -52,9 +53,9 @@ void ActionsWidget::setupUi() {
 
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
-    auto *titleLabel = new QLabel("Actions", this);
-    titleLabel->setObjectName("modActionsTitle");
-    frameLayout->addWidget(titleLabel);
+    m_titleLabel = new QLabel(this);
+    m_titleLabel->setObjectName("modActionsTitle");
+    frameLayout->addWidget(m_titleLabel);
 
     m_addButton->setCursor(Qt::PointingHandCursor);
     m_removeButton->setEnabled(false);
@@ -76,6 +77,24 @@ void ActionsWidget::setupUi() {
     frameLayout->addWidget(m_exploreFolderButton);
 
     setLayout(layout);
+
+    retranslateUi();
+}
+
+void ActionsWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void ActionsWidget::retranslateUi() {
+    m_titleLabel->setText(tr("Actions"));
+    m_addButton->setText(tr("Add Mod"));
+    m_removeButton->setText(tr("Remove Mod"));
+    m_moveUpButton->setText(tr("Move Up"));
+    m_moveDownButton->setText(tr("Move Down"));
+    m_exploreFolderButton->setText(tr("Explore Mod Folder"));
 }
 
 void ActionsWidget::setupConnections() {
@@ -112,7 +131,7 @@ void ActionsWidget::onMoveDownClicked() {
 
 void ActionsWidget::onExploreFolderClicked() {
     if (m_foxholeInstallPath.isEmpty()) {
-        emit errorOccurred("Foxhole installation path not set");
+        emit errorOccurred(tr("Foxhole installation path not set"));
         return;
     }
 
@@ -120,7 +139,7 @@ void ActionsWidget::onExploreFolderClicked() {
     QDir dir(paksPath);
 
     if (!dir.exists()) {
-        emit errorOccurred("Paks folder not found: " + paksPath);
+        emit errorOccurred(tr("Paks folder not found: %1").arg(paksPath));
         return;
     }
 

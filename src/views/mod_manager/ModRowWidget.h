@@ -6,6 +6,7 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QEvent>
 
 class ConflictTooltip;
 struct ConflictInfo;
@@ -36,12 +37,14 @@ signals:
     void registerWithItchRequested(const QString &modId);
 
 protected:
+    void changeEvent(QEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
 private:
     void setupUi(const ModInfo &mod);
+    void retranslateUi();
     void updateStyling();
     void updateNameEliding();
     QString formatConflictTooltip(const ConflictInfo &info) const;

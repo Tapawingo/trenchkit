@@ -28,7 +28,7 @@ NexusRegistrationModalContent::NexusRegistrationModalContent(NexusModsClient *cl
     , m_localModId(modId)
     , m_localModName(modName)
 {
-    setTitle("Register Mod with Nexus Mods");
+    setTitle(tr("Register Mod with Nexus Mods"));
     setupUi();
     setPreferredSize(QSize(550, 400));
 
@@ -48,17 +48,17 @@ void NexusRegistrationModalContent::setupUi() {
 
     bodyLayout()->addWidget(m_stack);
 
-    m_fetchButton = new QPushButton("Fetch Mod Info", this);
+    m_fetchButton = new QPushButton(tr("Fetch Mod Info"), this);
     m_fetchButton->setDefault(true);
     connect(m_fetchButton, &QPushButton::clicked, this, &NexusRegistrationModalContent::onFetchClicked);
     footerLayout()->addWidget(m_fetchButton);
 
-    m_authenticateButton = new QPushButton("Authenticate", this);
+    m_authenticateButton = new QPushButton(tr("Authenticate"), this);
     m_authenticateButton->setDefault(true);
     connect(m_authenticateButton, &QPushButton::clicked, this, &NexusRegistrationModalContent::onAuthenticateClicked);
     footerLayout()->addWidget(m_authenticateButton);
 
-    m_cancelButton = new QPushButton("Cancel", this);
+    m_cancelButton = new QPushButton(tr("Cancel"), this);
     m_cancelButton->setAutoDefault(false);
     connect(m_cancelButton, &QPushButton::clicked, this, &NexusRegistrationModalContent::reject);
     footerLayout()->addWidget(m_cancelButton);
@@ -71,7 +71,7 @@ QWidget* NexusRegistrationModalContent::createInputPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    auto *modLabel = new QLabel(QString("Registering: <b>%1</b>").arg(m_localModName), page);
+    auto *modLabel = new QLabel(tr("Registering: <b>%1</b>").arg(m_localModName), page);
     modLabel->setWordWrap(true);
     modLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                            .arg(Theme::Colors::TEXT_PRIMARY));
@@ -79,7 +79,7 @@ QWidget* NexusRegistrationModalContent::createInputPage() {
 
     layout->addSpacing(10);
 
-    auto *instructionLabel = new QLabel("Enter Nexus Mods URL for this mod:", page);
+    auto *instructionLabel = new QLabel(tr("Enter Nexus Mods URL for this mod:"), page);
     instructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                                    .arg(Theme::Colors::TEXT_SECONDARY));
     layout->addWidget(instructionLabel);
@@ -99,12 +99,12 @@ QWidget* NexusRegistrationModalContent::createAuthPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    auto *instructionLabel = new QLabel("Authentication required to access Nexus Mods API.", page);
+    auto *instructionLabel = new QLabel(tr("Authentication required to access Nexus Mods API."), page);
     instructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                                    .arg(Theme::Colors::TEXT_SECONDARY));
     layout->addWidget(instructionLabel);
 
-    m_authStatusLabel = new QLabel("Click Authenticate to begin...", page);
+    m_authStatusLabel = new QLabel(tr("Click Authenticate to begin..."), page);
     m_authStatusLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 12px; }")
                                     .arg(Theme::Colors::TEXT_MUTED));
     m_authStatusLabel->setWordWrap(true);
@@ -121,7 +121,7 @@ void NexusRegistrationModalContent::showInputPage() {
 }
 
 void NexusRegistrationModalContent::showAuthPage() {
-    m_authStatusLabel->setText("Click Authenticate to begin...");
+    m_authStatusLabel->setText(tr("Click Authenticate to begin..."));
     m_authenticateButton->setEnabled(true);
     m_stack->setCurrentIndex(AuthPage);
     updateFooterButtons();
@@ -138,13 +138,13 @@ void NexusRegistrationModalContent::updateFooterButtons() {
 void NexusRegistrationModalContent::onFetchClicked() {
     QString url = m_urlEdit->text().trimmed();
     if (url.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "Please enter a URL");
+        MessageModal::warning(m_modalManager, tr("Error"), tr("Please enter a URL"));
         return;
     }
 
     auto result = NexusUrlParser::parseUrl(url);
     if (!result.isValid) {
-        MessageModal::warning(m_modalManager, "Invalid URL", result.error);
+        MessageModal::warning(m_modalManager, tr("Invalid URL"), result.error);
         return;
     }
 
@@ -160,23 +160,23 @@ void NexusRegistrationModalContent::onFetchClicked() {
 
 void NexusRegistrationModalContent::onAuthenticateClicked() {
     m_authenticateButton->setEnabled(false);
-    m_authStatusLabel->setText("Connecting to authentication server...");
+    m_authStatusLabel->setText(tr("Connecting to authentication server..."));
     m_auth->startAuthentication();
 }
 
 void NexusRegistrationModalContent::onAuthStarted(const QString &browserUrl) {
-    m_authStatusLabel->setText(QString("Opening browser for authentication...\n\nIf browser doesn't open, visit:\n%1").arg(browserUrl));
+    m_authStatusLabel->setText(tr("Opening browser for authentication...\n\nIf browser doesn't open, visit:\n%1").arg(browserUrl));
     QDesktopServices::openUrl(QUrl(browserUrl));
 }
 
 void NexusRegistrationModalContent::onAuthComplete(const QString &apiKey) {
     m_client->setApiKey(apiKey);
-    m_authStatusLabel->setText("Authentication successful! Fetching mod information...");
+    m_authStatusLabel->setText(tr("Authentication successful! Fetching mod information..."));
     m_client->getModInfo(m_currentModId);
 }
 
 void NexusRegistrationModalContent::onAuthFailed(const QString &error) {
-    m_authStatusLabel->setText(QString("Authentication failed: %1").arg(error));
+    m_authStatusLabel->setText(tr("Authentication failed: %1").arg(error));
     m_authenticateButton->setEnabled(true);
 }
 
@@ -196,7 +196,7 @@ void NexusRegistrationModalContent::onModFilesReceived(const QList<NexusFileInfo
     }
 
     if (filtered.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "No files found for this mod");
+        MessageModal::warning(m_modalManager, tr("Error"), tr("No files found for this mod"));
         showInputPage();
         return;
     }
@@ -243,8 +243,8 @@ void NexusRegistrationModalContent::onModFilesReceived(const QList<NexusFileInfo
 
     auto *selectionModal = new FileSelectionModalContent(
         items,
-        QString("Select File - %1").arg(m_localModName),
-        QString("Select the file that matches your local mod '%1':").arg(m_localModName),
+        tr("Select File - %1").arg(m_localModName),
+        tr("Select the file that matches your local mod '%1':").arg(m_localModName),
         false
     );
 
@@ -275,7 +275,7 @@ void NexusRegistrationModalContent::onModFilesReceived(const QList<NexusFileInfo
 }
 
 void NexusRegistrationModalContent::onError(const QString &error) {
-    MessageModal::warning(m_modalManager, "Error", error);
+    MessageModal::warning(m_modalManager, tr("Error"), error);
     showInputPage();
 }
 

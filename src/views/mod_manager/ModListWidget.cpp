@@ -86,17 +86,17 @@ void ModListWidget::setupUi() {
     titleLayout->setSpacing(Theme::Spacing::MOD_LIST_TITLE_SPACING);
     titleLayout->setContentsMargins(0, 0, 0, 0);
 
-    auto *titleLabel = new QLabel("Installed Mods:", this);
-    titleLabel->setObjectName("modListTitle");
+    m_titleLabel = new QLabel(tr("Installed Mods:"), this);
+    m_titleLabel->setObjectName("modListTitle");
 
     m_modCountLabel->setObjectName("modCountLabel");
-    m_modCountLabel->setText("0");
+    m_modCountLabel->setText(QStringLiteral("0"));
 
-    m_checkUpdatesButton = new QPushButton("Check for Updates", this);
+    m_checkUpdatesButton = new QPushButton(tr("Check for Updates"), this);
     m_checkUpdatesButton->setObjectName("checkUpdatesButton");
     m_checkUpdatesButton->setCursor(Qt::PointingHandCursor);
 
-    titleLayout->addWidget(titleLabel);
+    titleLayout->addWidget(m_titleLabel);
     titleLayout->addWidget(m_modCountLabel);
     titleLayout->addStretch();
     titleLayout->addWidget(m_checkUpdatesButton);
@@ -263,6 +263,18 @@ void ModListWidget::rescanConflicts() {
     if (m_conflictDetector) {
         m_conflictDetector->scanForConflicts();
     }
+}
+
+void ModListWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void ModListWidget::retranslateUi() {
+    if (m_titleLabel) m_titleLabel->setText(tr("Installed Mods:"));
+    if (m_checkUpdatesButton) m_checkUpdatesButton->setText(tr("Check for Updates"));
 }
 
 void ModListWidget::resizeEvent(QResizeEvent *event) {
@@ -652,7 +664,7 @@ void ModListWidget::setItchUpdateService(ItchModUpdateService *service) {
 
 void ModListWidget::onCheckUpdatesClicked() {
     m_checkUpdatesButton->setEnabled(false);
-    m_checkUpdatesButton->setText("Checking...");
+    m_checkUpdatesButton->setText(tr("Checking..."));
 
     m_pendingUpdateChecks = 0;
     m_totalUpdatesFound = 0;
@@ -687,12 +699,10 @@ void ModListWidget::onUpdateCheckComplete(int updatesFound) {
 
     if (m_pendingUpdateChecks <= 0) {
         m_checkUpdatesButton->setEnabled(true);
-        m_checkUpdatesButton->setText(QString("Check for Updates (%1)").arg(m_totalUpdatesFound));
+        m_checkUpdatesButton->setText(tr("Check for Updates (%1)").arg(m_totalUpdatesFound));
 
         QTimer::singleShot(5000, this, [this]() {
-            if (m_checkUpdatesButton->text().contains('(')) {
-                m_checkUpdatesButton->setText("Check for Updates");
-            }
+            m_checkUpdatesButton->setText(tr("Check for Updates"));
         });
     }
 }
@@ -716,12 +726,10 @@ void ModListWidget::onItchUpdateCheckComplete(int updatesFound) {
 
     if (m_pendingUpdateChecks <= 0) {
         m_checkUpdatesButton->setEnabled(true);
-        m_checkUpdatesButton->setText(QString("Check for Updates (%1)").arg(m_totalUpdatesFound));
+        m_checkUpdatesButton->setText(tr("Check for Updates (%1)").arg(m_totalUpdatesFound));
 
         QTimer::singleShot(5000, this, [this]() {
-            if (m_checkUpdatesButton->text().contains('(')) {
-                m_checkUpdatesButton->setText("Check for Updates");
-            }
+            m_checkUpdatesButton->setText(tr("Check for Updates"));
         });
     }
 }

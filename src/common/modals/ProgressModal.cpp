@@ -1,5 +1,6 @@
 #include "ProgressModal.h"
 #include "core/utils/Theme.h"
+#include <QEvent>
 #include <QLabel>
 #include <QProgressBar>
 #include <QPushButton>
@@ -38,6 +39,13 @@ void ProgressModal::setupUi(const QString &labelText, const QString &cancelButto
     } else {
         m_cancelButton = nullptr;
     }
+}
+
+void ProgressModal::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        // Label text and cancel button text are caller-provided; no hardcoded strings to retranslate.
+    }
+    BaseModalContent::changeEvent(event);
 }
 
 void ProgressModal::setRange(int minimum, int maximum) {

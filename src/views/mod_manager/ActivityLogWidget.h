@@ -3,8 +3,10 @@
 
 #include <QWidget>
 #include <QString>
+#include <QEvent>
 #include "LogEntryWidget.h"
 
+class QLabel;
 class QListWidget;
 
 class ActivityLogWidget : public QWidget {
@@ -19,11 +21,16 @@ public:
     void addLogEntry(const QString &message, LogLevel level = LogLevel::Info);
     void clearLog();
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private:
     void setupUi();
+    void retranslateUi();
 
     static constexpr int MAX_LOG_ENTRIES = 1000;
 
+    QLabel *m_titleLabel = nullptr;
     QListWidget *m_logList;
 };
 

@@ -33,12 +33,8 @@ void InstallPathWidget::setupUi() {
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
 
-    // Title
-    m_titleLabel->setText("Foxhole Installation");
     m_titleLabel->setObjectName("installPathTitle");
 
-    // Path input
-    m_pathLineEdit->setPlaceholderText("Select Foxhole installation folder...");
     m_pathLineEdit->setObjectName("installPathInput");
     m_pathLineEdit->setFocusPolicy(Qt::ClickFocus);
 
@@ -74,6 +70,20 @@ void InstallPathWidget::setupUi() {
     m_layout->addWidget(frame);
 
     setLayout(m_layout);
+
+    retranslateUi();
+}
+
+void InstallPathWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void InstallPathWidget::retranslateUi() {
+    m_titleLabel->setText(tr("Foxhole Installation"));
+    m_pathLineEdit->setPlaceholderText(tr("Select Foxhole installation folder..."));
 }
 
 void InstallPathWidget::setupConnections() {
@@ -99,7 +109,7 @@ bool InstallPathWidget::isValidPath() const {
 void InstallPathWidget::onBrowseClicked() {
     QString dir = QFileDialog::getExistingDirectory(
         this,
-        "Select Foxhole Installation Folder",
+        tr("Select Foxhole Installation Folder"),
         m_currentPath.isEmpty() ? QDir::homePath() : m_currentPath,
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
     );
@@ -123,13 +133,13 @@ void InstallPathWidget::validatePath(const QString &path) {
         style()->unpolish(m_statusLabel);
         style()->polish(m_statusLabel);
     } else if (m_isValid) {
-        m_statusLabel->setText("✓ Valid Foxhole installation");
+        m_statusLabel->setText(tr("✓ Valid Foxhole installation"));
         m_statusLabel->setProperty("status", "valid");
         style()->unpolish(m_statusLabel);
         style()->polish(m_statusLabel);
         emit validPathSelected(path);
     } else {
-        m_statusLabel->setText("✗ Invalid Foxhole installation");
+        m_statusLabel->setText(tr("✗ Invalid Foxhole installation"));
         m_statusLabel->setProperty("status", "invalid");
         style()->unpolish(m_statusLabel);
         style()->polish(m_statusLabel);
@@ -207,13 +217,13 @@ void InstallPathWidget::onDetectionComplete() {
 void InstallPathWidget::updateLoadingAnimation() {
     m_loadingDots = (m_loadingDots + 1) % 4;
     QString dots(m_loadingDots, '.');
-    m_statusLabel->setText("Detecting Foxhole installation" + dots);
+    m_statusLabel->setText(tr("Detecting Foxhole installation") + dots);
 }
 
 void InstallPathWidget::setLoadingState(bool loading) {
     if (loading) {
         m_loadingDots = 0;
-        m_statusLabel->setText("Detecting Foxhole installation.");
+        m_statusLabel->setText(tr("Detecting Foxhole installation") + QStringLiteral("."));
         m_statusLabel->setProperty("status", "loading");
         style()->unpolish(m_statusLabel);
         style()->polish(m_statusLabel);

@@ -11,6 +11,7 @@
 #include "core/api/ItchAuth.h"
 #include "core/utils/ArchiveExtractor.h"
 #include "core/utils/Theme.h"
+#include <QEvent>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QFileDialog>
@@ -36,7 +37,7 @@ AddModModalContent::AddModModalContent(ModManager *modManager,
     , m_itchAuth(itchAuth)
     , m_modalManager(modalManager)
 {
-    setTitle("Add Mod");
+    setTitle(tr("Add Mod"));
     setupUi();
     setPreferredSize(QSize(350, 280));
 
@@ -53,19 +54,19 @@ AddModModalContent::AddModModalContent(ModManager *modManager,
 void AddModModalContent::setupUi() {
     bodyLayout()->setSpacing(16);
 
-    m_fromFileButton = new QPushButton("From File", this);
+    m_fromFileButton = new QPushButton(tr("From File"), this);
     m_fromFileButton->setMinimumHeight(40);
     m_fromFileButton->setCursor(Qt::PointingHandCursor);
     connect(m_fromFileButton, &QPushButton::clicked, this, &AddModModalContent::onFromFileClicked);
     bodyLayout()->addWidget(m_fromFileButton);
 
-    m_fromNexusButton = new QPushButton("From Nexus Mods", this);
+    m_fromNexusButton = new QPushButton(tr("From Nexus Mods"), this);
     m_fromNexusButton->setMinimumHeight(40);
     m_fromNexusButton->setCursor(Qt::PointingHandCursor);
     connect(m_fromNexusButton, &QPushButton::clicked, this, &AddModModalContent::onFromNexusClicked);
     bodyLayout()->addWidget(m_fromNexusButton);
 
-    m_fromItchButton = new QPushButton("From itch.io", this);
+    m_fromItchButton = new QPushButton(tr("From itch.io"), this);
     m_fromItchButton->setMinimumHeight(40);
     m_fromItchButton->setCursor(Qt::PointingHandCursor);
     connect(m_fromItchButton, &QPushButton::clicked, this, &AddModModalContent::onFromItchClicked);
@@ -73,21 +74,38 @@ void AddModModalContent::setupUi() {
 
     bodyLayout()->addStretch();
 
-    auto *cancelButton = new QPushButton("Cancel", this);
-    cancelButton->setCursor(Qt::PointingHandCursor);
-    connect(cancelButton, &QPushButton::clicked, this, &AddModModalContent::reject);
-    footerLayout()->addWidget(cancelButton);
+    m_cancelButton = new QPushButton(tr("Cancel"), this);
+    m_cancelButton->setCursor(Qt::PointingHandCursor);
+    connect(m_cancelButton, &QPushButton::clicked, this, &AddModModalContent::reject);
+    footerLayout()->addWidget(m_cancelButton);
+
+    retranslateUi();
+}
+
+void AddModModalContent::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    BaseModalContent::changeEvent(event);
+}
+
+void AddModModalContent::retranslateUi() {
+    setTitle(tr("Add Mod"));
+    m_fromFileButton->setText(tr("From File"));
+    m_fromNexusButton->setText(tr("From Nexus Mods"));
+    m_fromItchButton->setText(tr("From itch.io"));
+    m_cancelButton->setText(tr("Cancel"));
 }
 
 void AddModModalContent::onFromFileClicked() {
     QString filePath = QFileDialog::getOpenFileName(
         this,
-        "Select Mod File",
+        tr("Select Mod File"),
         QString(),
-        "Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
-        "Pak Files (*.pak);;"
-        "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
-        "All Files (*.*)"
+        tr("Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+           "Pak Files (*.pak);;"
+           "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+           "All Files (*.*)")
     );
 
     if (filePath.isEmpty()) {
@@ -117,12 +135,12 @@ void AddModModalContent::handleArchiveFile(const QString &archivePath, const QSt
     auto result = extractor.extractPakFiles(archivePath);
 
     if (!result.success) {
-        MessageModal::warning(m_modalManager, "Error", result.error);
+        MessageModal::warning(m_modalManager, tr("Error"), result.error);
         return;
     }
 
     if (result.pakFiles.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "No .pak files found in archive");
+        MessageModal::warning(m_modalManager, tr("Error"), tr("No .pak files found in archive"));
         ArchiveExtractor::cleanupTempDir(result.tempDir);
         return;
     }
@@ -204,7 +222,7 @@ void AddModModalContent::handlePakFile(const QString &pakPath, const QString &ne
     }
 
     if (!m_modManager->addMod(pakPath, modName, nexusModId, nexusFileId, author, description, version, itchGameId, uploadDate)) {
-        MessageModal::warning(m_modalManager, "Error", "Failed to add mod: " + modName);
+        MessageModal::warning(m_modalManager, tr("Error"), tr("Failed to add mod: %1").arg(modName));
     } else {
         emit modAdded(modName);
     }
@@ -330,7 +348,7 @@ void AddModModalContent::startProcessingFiles(const QList<FileToProcess> &files)
     m_filesToProcess = files;
     m_currentFileIndex = 0;
 
-    setTitle("Processing Files");
+    setTitle(tr("Processing Files"));
 
     m_fromFileButton->setVisible(false);
     m_fromNexusButton->setVisible(false);
@@ -359,7 +377,7 @@ void AddModModalContent::startProcessingFiles(const QList<FileToProcess> &files)
 
 void AddModModalContent::processNextFile() {
     if (m_currentFileIndex >= m_filesToProcess.size()) {
-        setTitle("Add Mod");
+        setTitle(tr("Add Mod"));
         m_fromFileButton->setVisible(true);
         m_fromNexusButton->setVisible(true);
         m_fromItchButton->setVisible(true);
@@ -372,7 +390,7 @@ void AddModModalContent::processNextFile() {
     }
 
     const FileToProcess &fileData = m_filesToProcess[m_currentFileIndex];
-    m_processingLabel->setText(QString("Processing file %1 of %2...")
+    m_processingLabel->setText(tr("Processing file %1 of %2...")
         .arg(m_currentFileIndex + 1).arg(m_filesToProcess.size()));
     m_processingProgress->setValue(m_currentFileIndex);
 

@@ -14,7 +14,7 @@ ConflictResolutionModalContent::ConflictResolutionModalContent(const ModInfo &in
     , m_existing(existing)
     , m_checksumMatch(checksumMatch)
 {
-    setTitle("Mod Conflict");
+    setTitle(tr("Mod Conflict"));
     setupUi();
     setPreferredSize(QSize(520, 240));
 }
@@ -26,9 +26,9 @@ void ConflictResolutionModalContent::setupUi() {
                             .arg(Theme::Colors::TEXT_SECONDARY));
     bodyLayout()->addWidget(label);
 
-    auto *ignoreButton = new QPushButton("Ignore", this);
-    auto *overwriteButton = new QPushButton("Overwrite", this);
-    auto *duplicateButton = new QPushButton("Duplicate", this);
+    auto *ignoreButton = new QPushButton(tr("Ignore"), this);
+    auto *overwriteButton = new QPushButton(tr("Overwrite"), this);
+    auto *duplicateButton = new QPushButton(tr("Duplicate"), this);
 
     ignoreButton->setCursor(Qt::PointingHandCursor);
     overwriteButton->setCursor(Qt::PointingHandCursor);
@@ -56,13 +56,13 @@ QString ConflictResolutionModalContent::buildMessage() const {
     QString incomingLabel = m_incoming.name.isEmpty() ? m_incoming.fileName : m_incoming.name;
     QString existingLabel = m_existing.name.isEmpty() ? m_existing.fileName : m_existing.name;
 
-    QString message = QString("The mod \"%1\" conflicts with an existing mod \"%2\".\n")
+    QString message = tr("The mod \"%1\" conflicts with an existing mod \"%2\".\n")
         .arg(incomingLabel, existingLabel);
 
     if (m_checksumMatch) {
-        message += "The files appear to be identical.\n";
+        message += tr("The files appear to be identical.\n");
     }
 
-    message += "\nChoose how to proceed:";
+    message += tr("\nChoose how to proceed:");
     return message;
 }

@@ -16,7 +16,7 @@ ModMetadataModalContent::ModMetadataModalContent(const ModInfo &mod, QWidget *pa
     , m_enabled(mod.enabled)
     , m_numberedFileName(mod.numberedFileName)
 {
-    setTitle("Edit Mod Metadata");
+    setTitle(tr("Edit Mod Metadata"));
     setupUi(mod);
     setPreferredSize(QSize(500, 750));
 }
@@ -36,63 +36,63 @@ void ModMetadataModalContent::setupUi(const ModInfo &mod) {
 
     m_nameEdit = new QLineEdit(mod.name, scrollContent);
     m_nameEdit->setMinimumHeight(32);
-    formLayout->addRow("Name:", m_nameEdit);
+    formLayout->addRow(tr("Name:"), m_nameEdit);
 
     m_fileNameEdit = new QLineEdit(mod.fileName, scrollContent);
     m_fileNameEdit->setMinimumHeight(32);
-    formLayout->addRow("File Name:", m_fileNameEdit);
+    formLayout->addRow(tr("File Name:"), m_fileNameEdit);
 
     m_descriptionEdit = new QTextEdit(mod.description, scrollContent);
     m_descriptionEdit->setMinimumHeight(100);
     m_descriptionEdit->setMaximumHeight(100);
     m_descriptionEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    formLayout->addRow("Description:", m_descriptionEdit);
+    formLayout->addRow(tr("Description:"), m_descriptionEdit);
 
     m_nexusModIdEdit = new QLineEdit(mod.nexusModId, scrollContent);
     m_nexusModIdEdit->setMinimumHeight(32);
-    m_nexusModIdEdit->setPlaceholderText("e.g., 12345");
-    formLayout->addRow("Nexusmods Mod ID:", m_nexusModIdEdit);
+    m_nexusModIdEdit->setPlaceholderText(tr("e.g., 12345"));
+    formLayout->addRow(tr("Nexusmods Mod ID:"), m_nexusModIdEdit);
 
     m_nexusFileIdEdit = new QLineEdit(mod.nexusFileId, scrollContent);
     m_nexusFileIdEdit->setMinimumHeight(32);
-    m_nexusFileIdEdit->setPlaceholderText("e.g., 12345");
-    formLayout->addRow("Nexusmods File ID:", m_nexusFileIdEdit);
+    m_nexusFileIdEdit->setPlaceholderText(tr("e.g., 12345"));
+    formLayout->addRow(tr("Nexusmods File ID:"), m_nexusFileIdEdit);
 
     m_itchGameIdEdit = new QLineEdit(mod.itchGameId, scrollContent);
     m_itchGameIdEdit->setMinimumHeight(32);
-    m_itchGameIdEdit->setPlaceholderText("e.g., 1276966");
-    formLayout->addRow("Itch.io Game ID:", m_itchGameIdEdit);
+    m_itchGameIdEdit->setPlaceholderText(tr("e.g., 1276966"));
+    formLayout->addRow(tr("Itch.io Game ID:"), m_itchGameIdEdit);
 
     m_versionEdit = new QLineEdit(mod.version, scrollContent);
     m_versionEdit->setMinimumHeight(32);
-    m_versionEdit->setPlaceholderText("e.g., 1.0.0");
-    formLayout->addRow("Version:", m_versionEdit);
+    m_versionEdit->setPlaceholderText(tr("e.g., 1.0.0"));
+    formLayout->addRow(tr("Version:"), m_versionEdit);
 
     m_authorEdit = new QLineEdit(mod.author, scrollContent);
     m_authorEdit->setMinimumHeight(32);
-    formLayout->addRow("Author:", m_authorEdit);
+    formLayout->addRow(tr("Author:"), m_authorEdit);
 
     m_installDateEdit = new QDateTimeEdit(mod.installDate, scrollContent);
     m_installDateEdit->setDisplayFormat("yyyy-MM-dd hh:mm:ss");
     m_installDateEdit->setCalendarPopup(true);
-    formLayout->addRow("Install Date:", m_installDateEdit);
+    formLayout->addRow(tr("Install Date:"), m_installDateEdit);
 
     m_uploadDateEdit = new QDateTimeEdit(mod.uploadDate.isValid() ? mod.uploadDate : QDateTime::currentDateTime(), scrollContent);
     m_uploadDateEdit->setDisplayFormat("yyyy-MM-dd hh:mm:ss");
     m_uploadDateEdit->setCalendarPopup(true);
-    m_uploadDateEdit->setSpecialValueText("Not Set");
+    m_uploadDateEdit->setSpecialValueText(tr("Not Set"));
     m_uploadDateEdit->setMinimumDateTime(QDateTime());
-    formLayout->addRow("Upload Date:", m_uploadDateEdit);
+    formLayout->addRow(tr("Upload Date:"), m_uploadDateEdit);
 
     scrollArea->setWidget(scrollContent);
     bodyLayout()->addWidget(scrollArea);
 
-    auto *okButton = new QPushButton("OK", this);
+    auto *okButton = new QPushButton(tr("OK"), this);
     okButton->setCursor(Qt::PointingHandCursor);
     connect(okButton, &QPushButton::clicked, this, &ModMetadataModalContent::accept);
     footerLayout()->addWidget(okButton);
 
-    auto *cancelButton = new QPushButton("Cancel", this);
+    auto *cancelButton = new QPushButton(tr("Cancel"), this);
     cancelButton->setCursor(Qt::PointingHandCursor);
     connect(cancelButton, &QPushButton::clicked, this, &ModMetadataModalContent::reject);
     footerLayout()->addWidget(cancelButton);

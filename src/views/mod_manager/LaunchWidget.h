@@ -7,7 +7,9 @@
 #include <QProcess>
 #include <QElapsedTimer>
 #include <QPointer>
+#include <QEvent>
 
+class QAction;
 class QToolButton;
 class ModManager;
 class ModalManager;
@@ -35,8 +37,12 @@ private slots:
     void onLaunchWithoutMods();
     void onGameProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private:
     void setupUi();
+    void retranslateUi();
     void setupConnections();
     QString getFoxholeExecutablePath() const;
     void onGamePollTimeout();
@@ -56,7 +62,10 @@ private:
     bool m_waitingForGameExit = false;
     QPointer<MessageModal> m_waitingModal;
 
-    QToolButton *m_launchButton;
+    QToolButton *m_launchButton = nullptr;
+    QAction *m_playWithModsAction = nullptr;
+    QAction *m_playWithoutModsAction = nullptr;
+    bool m_launchWithMods = true;
 };
 
 #endif // LAUNCHWIDGET_H

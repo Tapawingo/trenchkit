@@ -29,7 +29,7 @@ ModUpdateModalContent::ModUpdateModalContent(const ModInfo &mod,
     , m_nexusClient(nexusClient)
     , m_modalManager(modalManager)
 {
-    setTitle("Updating Mod");
+    setTitle(tr("Updating Mod"));
     setupUi();
     setPreferredSize(QSize(400, 220));
 
@@ -46,13 +46,13 @@ ModUpdateModalContent::ModUpdateModalContent(const ModInfo &mod,
 }
 
 void ModUpdateModalContent::setupUi() {
-    m_titleLabel = new QLabel(QString("Updating: %1").arg(m_mod.name), this);
+    m_titleLabel = new QLabel(tr("Updating: %1").arg(m_mod.name), this);
     m_titleLabel->setWordWrap(true);
     m_titleLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; font-weight: bold; }")
                                .arg(Theme::Colors::TEXT_SECONDARY));
     bodyLayout()->addWidget(m_titleLabel);
 
-    m_versionLabel = new QLabel(QString("Version %1 → %2")
+    m_versionLabel = new QLabel(tr("Version %1 → %2")
                                    .arg(m_updateInfo.currentVersion,
                                         m_updateInfo.availableVersion),
                                this);
@@ -65,14 +65,14 @@ void ModUpdateModalContent::setupUi() {
     m_progressBar->setValue(0);
     bodyLayout()->addWidget(m_progressBar);
 
-    m_statusLabel = new QLabel("Preparing download...", this);
+    m_statusLabel = new QLabel(tr("Preparing download..."), this);
     m_statusLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 12px; }")
                                 .arg(Theme::Colors::TEXT_MUTED));
     bodyLayout()->addWidget(m_statusLabel);
 
     bodyLayout()->addStretch();
 
-    m_cancelButton = new QPushButton("Cancel", this);
+    m_cancelButton = new QPushButton(tr("Cancel"), this);
     m_cancelButton->setCursor(Qt::PointingHandCursor);
     connect(m_cancelButton, &QPushButton::clicked, this, &ModUpdateModalContent::onCancelClicked);
     footerLayout()->addWidget(m_cancelButton);
@@ -80,12 +80,12 @@ void ModUpdateModalContent::setupUi() {
 
 void ModUpdateModalContent::startDownload() {
     if (!m_nexusClient || !m_modManager) {
-        MessageModal::critical(m_modalManager, "Error", "Missing required services");
+        MessageModal::critical(m_modalManager, tr("Error"), tr("Missing required services"));
         reject();
         return;
     }
 
-    m_statusLabel->setText("Getting download link...");
+    m_statusLabel->setText(tr("Getting download link..."));
     m_nexusClient->getDownloadLink(m_mod.nexusModId, m_updateInfo.availableFileId);
 }
 
@@ -94,7 +94,7 @@ void ModUpdateModalContent::onDownloadLinkReceived(const QString &url) {
                           .arg(m_mod.nexusModId, m_updateInfo.availableFileId);
     QString savePath = generateTempPath(fileName);
 
-    m_statusLabel->setText("Downloading...");
+    m_statusLabel->setText(tr("Downloading..."));
     m_nexusClient->downloadFile(QUrl(url), savePath);
 }
 
@@ -105,46 +105,46 @@ void ModUpdateModalContent::onDownloadProgress(qint64 received, qint64 total) {
 
         qint64 receivedMB = received / (1024 * 1024);
         qint64 totalMB = total / (1024 * 1024);
-        m_statusLabel->setText(QString("Downloading: %1 MB / %2 MB")
+        m_statusLabel->setText(tr("Downloading: %1 MB / %2 MB")
                                   .arg(receivedMB).arg(totalMB));
     }
 }
 
 void ModUpdateModalContent::onDownloadFinished(const QString &savePath) {
     m_downloadedPath = savePath;
-    m_statusLabel->setText("Installing update...");
+    m_statusLabel->setText(tr("Installing update..."));
     m_progressBar->setValue(100);
 
     if (!m_modManager->replaceMod(m_mod.id, savePath,
                                   m_updateInfo.availableVersion,
                                   m_updateInfo.availableFileId)) {
         QFile::remove(savePath);
-        MessageModal::critical(m_modalManager, "Error", "Failed to install mod update");
+        MessageModal::critical(m_modalManager, tr("Error"), tr("Failed to install mod update"));
         reject();
         return;
     }
 
     QFile::remove(savePath);
 
-    m_statusLabel->setText("Update complete!");
-    MessageModal::information(m_modalManager, "Success",
-                             QString("Mod updated successfully to version %1")
+    m_statusLabel->setText(tr("Update complete!"));
+    MessageModal::information(m_modalManager, tr("Success"),
+                             tr("Mod updated successfully to version %1")
                                  .arg(m_updateInfo.availableVersion));
     accept();
 }
 
 void ModUpdateModalContent::onError(const QString &error) {
-    m_statusLabel->setText(QString("Error: %1").arg(error));
+    m_statusLabel->setText(tr("Error: %1").arg(error));
 
     if (error == "PREMIUM_REQUIRED") {
         QString modUrl = QString("https://www.nexusmods.com/foxhole/mods/%1?tab=files&file_id=%2")
                             .arg(m_mod.nexusModId, m_updateInfo.availableFileId);
 
         auto *modal = new MessageModal(
-            "Premium Required",
-            "Direct updates via API require a Nexus Mods Premium account.\n\n"
+            tr("Premium Required"),
+            tr("Direct updates via API require a Nexus Mods Premium account.\n\n"
             "Your browser will open to the download page where you can download the file manually.\n\n"
-            "The update will be installed with existing metadata preserved.",
+            "The update will be installed with existing metadata preserved."),
             MessageModal::Information,
             MessageModal::Ok | MessageModal::Cancel
         );
@@ -154,9 +154,9 @@ void ModUpdateModalContent::onError(const QString &error) {
                 QDesktopServices::openUrl(QUrl(modUrl));
 
                 auto *selectModal = new MessageModal(
-                    "Select Downloaded File",
-                    "Please download the file from your browser.\n\n"
-                    "Once the download is complete, click OK to locate the file.",
+                    tr("Select Downloaded File"),
+                    tr("Please download the file from your browser.\n\n"
+                    "Once the download is complete, click OK to locate the file."),
                     MessageModal::Information,
                     MessageModal::Ok | MessageModal::Cancel
                 );
@@ -165,31 +165,31 @@ void ModUpdateModalContent::onError(const QString &error) {
                     if (selectModal->clickedButton() == MessageModal::Ok) {
                         QString filePath = QFileDialog::getOpenFileName(
                             this,
-                            "Select Downloaded File",
+                            tr("Select Downloaded File"),
                             QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
-                            "Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+                            tr("Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
                             "Pak Files (*.pak);;"
                             "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
-                            "All Files (*.*)"
+                            "All Files (*.*)")
                         );
 
                         if (!filePath.isEmpty()) {
                             m_downloadedPath = filePath;
-                            m_statusLabel->setText("Installing update...");
+                            m_statusLabel->setText(tr("Installing update..."));
                             m_progressBar->setValue(100);
 
                             if (!m_modManager->replaceMod(m_mod.id, filePath,
                                                           m_updateInfo.availableVersion,
                                                           m_updateInfo.availableFileId)) {
                                 QFile::remove(filePath);
-                                MessageModal::critical(m_modalManager, "Error", "Failed to install mod update");
+                                MessageModal::critical(m_modalManager, tr("Error"), tr("Failed to install mod update"));
                                 reject();
                                 return;
                             }
 
-                            m_statusLabel->setText("Update complete!");
-                            MessageModal::information(m_modalManager, "Success",
-                                                     QString("Mod updated successfully to version %1")
+                            m_statusLabel->setText(tr("Update complete!"));
+                            MessageModal::information(m_modalManager, tr("Success"),
+                                                     tr("Mod updated successfully to version %1")
                                                          .arg(m_updateInfo.availableVersion));
                             accept();
                         } else {
@@ -208,7 +208,7 @@ void ModUpdateModalContent::onError(const QString &error) {
 
         m_modalManager->showModal(modal);
     } else {
-        MessageModal::critical(m_modalManager, "Error", error);
+        MessageModal::critical(m_modalManager, tr("Error"), error);
         reject();
     }
 }

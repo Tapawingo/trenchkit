@@ -95,6 +95,8 @@ qt_add_executable(TrenchKit
   core/utils/ItchUrlParser.cpp
   core/utils/PakFileReader.h
   core/utils/PakFileReader.cpp
+  core/utils/TranslationManager.h
+  core/utils/TranslationManager.cpp
 
   common/modals/ModalManager.h
   common/modals/ModalManager.cpp
@@ -166,6 +168,8 @@ target_include_directories(TrenchKit
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+qt_add_translations(TrenchKit TS_FILE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/i18n)
 
 # Post-build: Copy platform-specific TLS backend
 set(QT_TLS_PLUGIN_DIR "${Qt6_DIR}/../../../plugins/tls")

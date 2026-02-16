@@ -5,6 +5,7 @@
 #include <QListWidget>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QEvent>
 
 ActivityLogWidget::ActivityLogWidget(QWidget *parent)
     : QWidget(parent)
@@ -28,9 +29,9 @@ void ActivityLogWidget::setupUi() {
 
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
-    auto *titleLabel = new QLabel("Logs", this);
-    titleLabel->setObjectName("activityLogTitle");
-    frameLayout->addWidget(titleLabel);
+    m_titleLabel = new QLabel(this);
+    m_titleLabel->setObjectName("activityLogTitle");
+    frameLayout->addWidget(m_titleLabel);
 
     m_logList->setSpacing(Theme::Spacing::LOG_LIST_ITEM_SPACING);
     m_logList->setSelectionMode(QAbstractItemView::NoSelection);
@@ -41,6 +42,19 @@ void ActivityLogWidget::setupUi() {
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     setLayout(layout);
+
+    retranslateUi();
+}
+
+void ActivityLogWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void ActivityLogWidget::retranslateUi() {
+    m_titleLabel->setText(tr("Logs"));
 }
 
 void ActivityLogWidget::addLogEntry(const QString &message, LogLevel level) {

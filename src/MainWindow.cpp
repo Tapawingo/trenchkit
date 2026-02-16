@@ -109,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onUpdateCheckError);
     connect(m_updater, &UpdaterService::checkingStarted, this, [this]() {
         if (m_settingsWidget) {
-            m_settingsWidget->setCheckStatus("Checking...");
+            m_settingsWidget->setCheckStatus(tr("Checking..."));
         }
     });
 
@@ -132,7 +132,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Add initial log entry
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
-    log->addLogEntry("TrenchKit Started", ActivityLogWidget::LogLevel::Info);
+    log->addLogEntry(tr("TrenchKit Started"), ActivityLogWidget::LogLevel::Info);
 
     QTimer::singleShot(0, this, &MainWindow::startUpdateCheck);
 }
@@ -149,6 +149,13 @@ void MainWindow::showEvent(QShowEvent *event) {
         m_firstShow = false;
         QTimer::singleShot(0, this, &MainWindow::loadSettings);
     }
+}
+
+void MainWindow::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        ui->titleBar->setTitle(tr("TrenchKit - Foxhole Mod Manager"));
+    }
+    QMainWindow::changeEvent(event);
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
@@ -185,7 +192,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
 }
 
 void MainWindow::setupTitleBar() {
-    ui->titleBar->setTitle("TrenchKit - Foxhole Mod Manager");
+    ui->titleBar->setTitle(tr("TrenchKit - Foxhole Mod Manager"));
     ui->titleBar->setIcon(QIcon(":/icon.png"));
     ui->titleBar->setUpdateVisible(false);
 
@@ -228,12 +235,12 @@ void MainWindow::setupProfileManager() {
     connect(m_profileManagerWidget, &ProfileManagerWidget::profileLoadRequested,
             this, [this, log](const QString &profileId) {
         m_modListWidget->refreshModList();
-        log->addLogEntry("Profile Loaded", ActivityLogWidget::LogLevel::Info);
+        log->addLogEntry(tr("Profile Loaded"), ActivityLogWidget::LogLevel::Info);
     });
 
     connect(m_profileManager, &ProfileManager::errorOccurred,
             this, [this](const QString &error) {
-        MessageModal::warning(m_modalManager, "Profile Error", error);
+        MessageModal::warning(m_modalManager, tr("Profile Error"), error);
     });
 }
 
@@ -269,7 +276,7 @@ void MainWindow::setupRightPanel() {
 
     connect(m_rightPanelWidget, &RightPanelWidget::errorOccurred,
             this, [this](const QString &error) {
-        MessageModal::warning(m_modalManager, "Error", error);
+        MessageModal::warning(m_modalManager, tr("Error"), error);
     });
 
     // Connect activity log
@@ -277,24 +284,24 @@ void MainWindow::setupRightPanel() {
 
     // ModListWidget logging
     connect(m_modListWidget, &ModListWidget::modAdded, this, [log](const QString &name) {
-        log->addLogEntry("Mod Added: " + name, ActivityLogWidget::LogLevel::Success);
+        log->addLogEntry(tr("Mod Added: %1").arg(name), ActivityLogWidget::LogLevel::Success);
     });
     connect(m_modListWidget, &ModListWidget::modRemoved, this, [log](const QString &name) {
-        log->addLogEntry("Mod Removed: " + name, ActivityLogWidget::LogLevel::Info);
+        log->addLogEntry(tr("Mod Removed: %1").arg(name), ActivityLogWidget::LogLevel::Info);
     });
     connect(m_modListWidget, &ModListWidget::modReordered, this, [log]() {
-        log->addLogEntry("Mods Reordered", ActivityLogWidget::LogLevel::Info);
+        log->addLogEntry(tr("Mods Reordered"), ActivityLogWidget::LogLevel::Info);
     });
 
     // BackupWidget logging
     connect(m_rightPanelWidget->findChild<BackupWidget*>(), &BackupWidget::backupCreated,
             this, [log](int fileCount) {
-        log->addLogEntry(QString("Backup Created: %1 files").arg(fileCount),
+        log->addLogEntry(tr("Backup Created: %1 files").arg(fileCount),
                         ActivityLogWidget::LogLevel::Success);
     });
     connect(m_rightPanelWidget->findChild<BackupWidget*>(), &BackupWidget::backupRestored,
             this, [this, log](const QString &backupName) {
-        log->addLogEntry("Backup Restored: " + backupName, ActivityLogWidget::LogLevel::Success);
+        log->addLogEntry(tr("Backup Restored: %1").arg(backupName), ActivityLogWidget::LogLevel::Success);
         if (m_modManager && m_modManager->loadMods()) {
             m_modManager->syncEnabledModsWithPaks();
         }
@@ -307,12 +314,12 @@ void MainWindow::setupRightPanel() {
     // LaunchWidget logging
     connect(m_rightPanelWidget->findChild<LaunchWidget*>(), &LaunchWidget::gameLaunched,
             this, [log](bool withMods) {
-        QString mode = withMods ? "With Mods" : "Vanilla";
-        log->addLogEntry("Game Launched: " + mode, ActivityLogWidget::LogLevel::Info);
+        QString mode = withMods ? tr("With Mods") : tr("Vanilla");
+        log->addLogEntry(tr("Game Launched: %1").arg(mode), ActivityLogWidget::LogLevel::Info);
     });
     connect(m_rightPanelWidget->findChild<LaunchWidget*>(), &LaunchWidget::modsRestored,
             this, [log](int modCount) {
-        log->addLogEntry(QString("Mods Restored: %1 mods").arg(modCount),
+        log->addLogEntry(tr("Mods Restored: %1 mods").arg(modCount),
                         ActivityLogWidget::LogLevel::Success);
     });
 }
@@ -346,7 +353,7 @@ void MainWindow::setupSettingsOverlay() {
 void MainWindow::loadSettings() {
     QSettings settings("TrenchKit", "FoxholeModManager");
 
-    m_modListWidget->setLoadingState(true, "Loading mods");
+    m_modListWidget->setLoadingState(true, tr("Loading mods"));
 
     QFuture<bool> modLoadFuture = QtConcurrent::run([this]() {
         return m_modManager->loadMods();
@@ -385,7 +392,7 @@ void MainWindow::loadSettings() {
             if (isValid) {
                 m_installPathWidget->setInstallPath(savedPath);
 
-                m_modListWidget->setLoadingState(true, "Detecting mods");
+                m_modListWidget->setLoadingState(true, tr("Detecting mods"));
                 QFuture<void> detectionFuture = QtConcurrent::run([this]() {
                     m_modManager->detectUnregisteredMods();
                 });
@@ -413,9 +420,9 @@ void MainWindow::onInstallPathChanged(const QString &path) {
     m_installPathReady = false;
 
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
-    log->addLogEntry("Install Path Updated", ActivityLogWidget::LogLevel::Info);
+    log->addLogEntry(tr("Install Path Updated"), ActivityLogWidget::LogLevel::Info);
 
-    m_modListWidget->setLoadingState(true, "Detecting mods");
+    m_modListWidget->setLoadingState(true, tr("Detecting mods"));
     QFuture<void> detectionFuture = QtConcurrent::run([this]() {
         m_modManager->detectUnregisteredMods();
     });
@@ -499,7 +506,7 @@ void MainWindow::onSettingsApplied(bool autoCheck) {
 
 void MainWindow::onUpdateClicked() {
     if (!m_updateAvailable) {
-        MessageModal::information(m_modalManager, "Up To Date", "No updates are available.");
+        MessageModal::information(m_modalManager, tr("Up To Date"), tr("No updates are available."));
         return;
     }
     beginUpdateDownload();
@@ -508,13 +515,13 @@ void MainWindow::onUpdateClicked() {
 void MainWindow::onUpdateCheckError(const QString &message) {
     qWarning() << "Updater:" << message;
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
-    log->addLogEntry("Update check failed", ActivityLogWidget::LogLevel::Warning);
+    log->addLogEntry(tr("Update check failed"), ActivityLogWidget::LogLevel::Warning);
     if (m_settingsWidget) {
-        m_settingsWidget->setCheckStatus("Update check failed");
+        m_settingsWidget->setCheckStatus(tr("Update check failed"));
     }
     if (m_updateDialog) {
         closeUpdateDialog();
-        MessageModal::warning(m_modalManager, "Update Error", message);
+        MessageModal::warning(m_modalManager, tr("Update Error"), message);
     }
 }
 
@@ -523,9 +530,9 @@ void MainWindow::onUpdateAvailable(const UpdaterService::ReleaseInfo &release) {
     m_updateAvailable = true;
     ui->titleBar->setUpdateVisible(true);
     ActivityLogWidget *log = m_rightPanelWidget->getActivityLog();
-    log->addLogEntry("Update available", ActivityLogWidget::LogLevel::Info);
+    log->addLogEntry(tr("Update available"), ActivityLogWidget::LogLevel::Info);
     if (m_settingsWidget) {
-        m_settingsWidget->setCheckStatus(QString("Update available: %1").arg(release.version.toString()));
+        m_settingsWidget->setCheckStatus(tr("Update available: %1").arg(release.version.toString()));
     }
 }
 
@@ -534,7 +541,7 @@ void MainWindow::onUpdateUpToDate(const UpdaterService::ReleaseInfo &latest) {
     m_updateAvailable = false;
     ui->titleBar->setUpdateVisible(false);
     if (m_settingsWidget) {
-        m_settingsWidget->setCheckStatus("Up to date");
+        m_settingsWidget->setCheckStatus(tr("Up to date"));
     }
 }
 
@@ -547,7 +554,7 @@ void MainWindow::onUpdateDownloadProgress(qint64 received, qint64 total) {
         const double receivedMb = received / 1024.0 / 1024.0;
         const double totalMb = total / 1024.0 / 1024.0;
         m_updateDialog->setLabelText(
-            QString("Downloading update (%1 / %2 MB)")
+            tr("Downloading update (%1 / %2 MB)")
                 .arg(receivedMb, 0, 'f', 1)
                 .arg(totalMb, 0, 'f', 1));
         if (!m_updateInstallStarted && received >= total && !m_pendingUpdatePath.isEmpty()) {
@@ -560,7 +567,7 @@ void MainWindow::onUpdateDownloadProgress(qint64 received, qint64 total) {
         }
     } else {
         m_updateDialog->setRange(0, 0);
-        m_updateDialog->setLabelText("Downloading update...");
+        m_updateDialog->setLabelText(tr("Downloading update..."));
     }
 }
 
@@ -572,7 +579,7 @@ void MainWindow::onUpdateDownloadFinished(const QString &savePath) {
     if (m_updateDialog) {
         m_updateDialog->setCancelButton(nullptr);
         m_updateDialog->setRange(0, 0);
-        m_updateDialog->setLabelText("Installing update...");
+        m_updateDialog->setLabelText(tr("Installing update..."));
     }
     const QString updatesDir = m_settingsWidget
         ? m_settingsWidget->resolvedDownloadDir()
@@ -588,7 +595,7 @@ void MainWindow::onUpdateDownloadFinished(const QString &savePath) {
 
     QString error;
     if (!stageUpdate(savePath, version, updatesDir, &error)) {
-        MessageModal::warning(m_modalManager, "Update Error", error);
+        MessageModal::warning(m_modalManager, tr("Update Error"), error);
         return;
     }
 
@@ -600,7 +607,7 @@ void MainWindow::onUpdateDownloadFinished(const QString &savePath) {
 void MainWindow::beginUpdateDownload() {
     const QString assetName = selectUpdateAssetName();
     if (assetName.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Update Error", "No compatible update asset was found.");
+        MessageModal::warning(m_modalManager, tr("Update Error"), tr("No compatible update asset was found."));
         return;
     }
 
@@ -614,7 +621,7 @@ void MainWindow::beginUpdateDownload() {
         }
     }
     if (!found) {
-        MessageModal::warning(m_modalManager, "Update Error", "No compatible update asset was found.");
+        MessageModal::warning(m_modalManager, tr("Update Error"), tr("No compatible update asset was found."));
         return;
     }
 
@@ -641,8 +648,8 @@ void MainWindow::showUpdateDialog() {
         m_updateDialog->close();
         m_updateDialog->deleteLater();
     }
-    m_updateDialog = new QProgressDialog("Downloading update...", "Cancel", 0, 100, this);
-    m_updateDialog->setWindowTitle("Update Download");
+    m_updateDialog = new QProgressDialog(tr("Downloading update..."), tr("Cancel"), 0, 100, this);
+    m_updateDialog->setWindowTitle(tr("Update Download"));
     m_updateDialog->setWindowModality(Qt::ApplicationModal);
     m_updateDialog->setAutoClose(false);
     m_updateDialog->setAutoReset(false);
@@ -696,13 +703,13 @@ bool MainWindow::stageUpdate(const QString &archivePath,
     QDir dir(stagingDir);
     if (dir.exists() && !dir.removeRecursively()) {
         if (error) {
-            *error = "Failed to clear existing staging directory.";
+            *error = tr("Failed to clear existing staging directory.");
         }
         return false;
     }
     if (!dir.mkpath(".")) {
         if (error) {
-            *error = "Failed to create staging directory.";
+            *error = tr("Failed to create staging directory.");
         }
         return false;
     }
@@ -710,7 +717,7 @@ bool MainWindow::stageUpdate(const QString &archivePath,
     QString extractError;
     if (!UpdateArchiveExtractor::extractArchive(archivePath, stagingDir, &extractError)) {
         if (error) {
-            *error = QString("Failed to extract update: %1").arg(extractError);
+            *error = tr("Failed to extract update: %1").arg(extractError);
         }
         return false;
     }
@@ -729,7 +736,7 @@ void MainWindow::launchUpdater(const QString &stagingDir, const QString &updates
 #endif
 
     if (!QFileInfo::exists(updaterExe)) {
-        MessageModal::warning(m_modalManager, "Update Error", "Updater helper was not found.");
+        MessageModal::warning(m_modalManager, tr("Update Error"), tr("Updater helper was not found."));
         return;
     }
 
@@ -744,7 +751,7 @@ void MainWindow::launchUpdater(const QString &stagingDir, const QString &updates
     qint64 pid = 0;
     const bool started = QProcess::startDetached(updaterExe, args, appDir, &pid);
     if (!started) {
-        MessageModal::warning(m_modalManager, "Update Error", "Failed to launch updater helper.");
+        MessageModal::warning(m_modalManager, tr("Update Error"), tr("Failed to launch updater helper."));
         return;
     }
     QCoreApplication::quit();

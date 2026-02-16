@@ -3,7 +3,9 @@
 
 #include <QWidget>
 #include <QString>
+#include <QEvent>
 
+class QLabel;
 class QPushButton;
 class QFrame;
 
@@ -26,6 +28,9 @@ signals:
 public slots:
     void onModSelectionChanged(int selectedRow, int totalMods);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private slots:
     void onAddModClicked();
     void onRemoveModClicked();
@@ -35,6 +40,7 @@ private slots:
 
 private:
     void setupUi();
+    void retranslateUi();
     void setupConnections();
     QFrame* createSeparator();
 
@@ -42,6 +48,7 @@ private:
     int m_selectedRow = -1;
     int m_totalMods = 0;
 
+    QLabel *m_titleLabel = nullptr;
     QPushButton *m_addButton;
     QPushButton *m_removeButton;
     QPushButton *m_moveUpButton;

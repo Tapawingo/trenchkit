@@ -11,13 +11,13 @@ BackupSelectionModalContent::BackupSelectionModalContent(const QStringList &back
     : BaseModalContent(parent)
     , m_backups(backups)
 {
-    setTitle("Restore Backup");
+    setTitle(tr("Restore Backup"));
     setupUi(displayNames);
     setPreferredSize(QSize(500, 400));
 }
 
 void BackupSelectionModalContent::setupUi(const QStringList &displayNames) {
-    auto *label = new QLabel("Select a backup to restore:", this);
+    auto *label = new QLabel(tr("Select a backup to restore:"), this);
     label->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                         .arg(Theme::Colors::TEXT_SECONDARY));
     bodyLayout()->addWidget(label);
@@ -58,12 +58,12 @@ void BackupSelectionModalContent::setupUi(const QStringList &displayNames) {
 
     bodyLayout()->addWidget(m_listWidget);
 
-    auto *okButton = new QPushButton("OK", this);
+    auto *okButton = new QPushButton(tr("OK"), this);
     okButton->setCursor(Qt::PointingHandCursor);
     connect(okButton, &QPushButton::clicked, this, &BackupSelectionModalContent::accept);
     footerLayout()->addWidget(okButton);
 
-    auto *cancelButton = new QPushButton("Cancel", this);
+    auto *cancelButton = new QPushButton(tr("Cancel"), this);
     cancelButton->setCursor(Qt::PointingHandCursor);
     connect(cancelButton, &QPushButton::clicked, this, &BackupSelectionModalContent::reject);
     footerLayout()->addWidget(cancelButton);

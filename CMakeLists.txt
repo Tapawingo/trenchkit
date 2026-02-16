@@ -15,7 +15,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Network Concurrent Test WebSockets)
+find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets Network Concurrent Test WebSockets LinguistTools)
 
 # Fetch zip library for archive extraction (MIT, zero dependencies)
 include(FetchContent)
@@ -63,7 +63,7 @@ set_target_properties(archive_static PROPERTIES
   AUTORCC OFF
 )
 
-qt_standard_project_setup()
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES nb)
 
 add_subdirectory(updater)
 add_subdirectory(src)

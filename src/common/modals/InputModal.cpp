@@ -1,5 +1,6 @@
 #include "InputModal.h"
 #include "core/utils/Theme.h"
+#include <QEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -28,15 +29,29 @@ void InputModal::setupUi(const QString &label, const QString &defaultValue) {
     connect(m_lineEdit, &QLineEdit::returnPressed, this, &InputModal::accept);
     bodyLayout()->addWidget(m_lineEdit);
 
-    auto *okButton = new QPushButton("OK", this);
-    okButton->setDefault(true);
-    connect(okButton, &QPushButton::clicked, this, &InputModal::accept);
-    footerLayout()->addWidget(okButton);
+    m_okButton = new QPushButton(tr("OK"), this);
+    m_okButton->setDefault(true);
+    connect(m_okButton, &QPushButton::clicked, this, &InputModal::accept);
+    footerLayout()->addWidget(m_okButton);
 
-    auto *cancelButton = new QPushButton("Cancel", this);
-    cancelButton->setAutoDefault(false);
-    connect(cancelButton, &QPushButton::clicked, this, &InputModal::reject);
-    footerLayout()->addWidget(cancelButton);
+    m_cancelButton = new QPushButton(tr("Cancel"), this);
+    m_cancelButton->setAutoDefault(false);
+    connect(m_cancelButton, &QPushButton::clicked, this, &InputModal::reject);
+    footerLayout()->addWidget(m_cancelButton);
+
+    retranslateUi();
+}
+
+void InputModal::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    BaseModalContent::changeEvent(event);
+}
+
+void InputModal::retranslateUi() {
+    m_okButton->setText(tr("OK"));
+    m_cancelButton->setText(tr("Cancel"));
 }
 
 QString InputModal::textValue() const {

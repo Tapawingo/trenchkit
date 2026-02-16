@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QString>
+#include <QEvent>
 
 class ModManager;
 class ModalManager;
@@ -24,6 +25,9 @@ public:
 
     ActivityLogWidget* getActivityLog() const { return m_activityLogWidget; }
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 signals:
     void addModRequested();
     void removeModRequested();
@@ -36,6 +40,7 @@ public slots:
 
 private:
     void setupUi();
+    void retranslateUi();
     void setupConnections();
 
     ModManager *m_modManager = nullptr;

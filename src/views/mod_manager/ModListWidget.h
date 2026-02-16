@@ -57,6 +57,7 @@ public slots:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    void changeEvent(QEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
@@ -80,6 +81,7 @@ private slots:
 
 private:
     void setupUi();
+    void retranslateUi();
     QString getSelectedModId() const;
     int getSelectedRow() const;
     QString extractVersionFromFilename(const QString &filename) const;
@@ -101,6 +103,7 @@ private:
     ModConflictDetector *m_conflictDetector = nullptr;
     DraggableModList *m_modList;
 
+    QLabel *m_titleLabel = nullptr;
     QLabel *m_loadingLabel;
     QLabel *m_modCountLabel;
     QPushButton *m_checkUpdatesButton;

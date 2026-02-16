@@ -41,7 +41,7 @@ bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
                         const QDateTime &uploadDate) {
     QFileInfo fileInfo(pakFilePath);
     if (!fileInfo.exists() || !fileInfo.isFile()) {
-        emit errorOccurred("Mod file does not exist: " + pakFilePath);
+        emit errorOccurred(tr("Mod file does not exist: %1").arg(pakFilePath));
         return false;
     }
 
@@ -74,7 +74,7 @@ bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
 
     QString destPath = m_modsStoragePath + "/" + mod.fileName;
     if (!QFile::copy(pakFilePath, destPath)) {
-        emit errorOccurred("Failed to copy mod file to storage");
+        emit errorOccurred(tr("Failed to copy mod file to storage"));
         return false;
     }
 
@@ -100,7 +100,7 @@ bool ModManager::removeMod(const QString &modId) {
                                [&modId](const ModInfo &mod) { return mod.id == modId; });
 
         if (it == m_mods.end()) {
-            emit errorOccurred("Mod not found: " + modId);
+            emit errorOccurred(tr("Mod not found: %1").arg(modId));
             return false;
         }
 
@@ -147,13 +147,13 @@ bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
                                [&modId](const ModInfo &mod) { return mod.id == modId; });
 
         if (it == m_mods.end()) {
-            emit errorOccurred("Mod not found: " + modId);
+            emit errorOccurred(tr("Mod not found: %1").arg(modId));
             return false;
         }
 
         QFileInfo newFileInfo(newPakPath);
         if (!newFileInfo.exists() || !newFileInfo.isFile()) {
-            emit errorOccurred("New mod file does not exist: " + newPakPath);
+            emit errorOccurred(tr("New mod file does not exist: %1").arg(newPakPath));
             return false;
         }
 
@@ -165,7 +165,7 @@ bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
 
     if (wasEnabled) {
         if (!disableMod(modId)) {
-            emit errorOccurred("Failed to disable mod before replacement");
+            emit errorOccurred(tr("Failed to disable mod before replacement"));
             return false;
         }
     }
@@ -173,7 +173,7 @@ bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
     QString oldPath = m_modsStoragePath + "/" + fileName;
     if (QFile::exists(oldPath)) {
         if (!QFile::remove(oldPath)) {
-            emit errorOccurred("Failed to remove old mod file");
+            emit errorOccurred(tr("Failed to remove old mod file"));
             if (wasEnabled) {
                 QMutexLocker locker(&m_modsMutex);
                 auto it = std::find_if(m_mods.begin(), m_mods.end(),
@@ -190,7 +190,7 @@ bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
 
     QString destPath = m_modsStoragePath + "/" + fileName;
     if (!QFile::copy(newPakPath, destPath)) {
-        emit errorOccurred("Failed to copy new mod file to storage");
+        emit errorOccurred(tr("Failed to copy new mod file to storage"));
         return false;
     }
 
@@ -212,7 +212,7 @@ bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
 
     if (wasEnabled) {
         if (!enableMod(modId)) {
-            emit errorOccurred("Failed to re-enable mod after replacement");
+            emit errorOccurred(tr("Failed to re-enable mod after replacement"));
         }
     }
 
@@ -233,7 +233,7 @@ bool ModManager::enableMod(const QString &modId) {
                                [&modId](const ModInfo &mod) { return mod.id == modId; });
 
         if (it == m_mods.end()) {
-            emit errorOccurred("Mod not found: " + modId);
+            emit errorOccurred(tr("Mod not found: %1").arg(modId));
             return false;
         }
 
@@ -249,7 +249,7 @@ bool ModManager::enableMod(const QString &modId) {
     }
 
     if (!copyModToPaks(modCopy)) {
-        emit errorOccurred("Failed to enable mod: " + modCopy.name);
+        emit errorOccurred(tr("Failed to enable mod: %1").arg(modCopy.name));
         return false;
     }
 
@@ -280,7 +280,7 @@ bool ModManager::disableMod(const QString &modId) {
                                [&modId](const ModInfo &mod) { return mod.id == modId; });
 
         if (it == m_mods.end()) {
-            emit errorOccurred("Mod not found: " + modId);
+            emit errorOccurred(tr("Mod not found: %1").arg(modId));
             return false;
         }
 
@@ -296,7 +296,7 @@ bool ModManager::disableMod(const QString &modId) {
     }
 
     if (!removeModFromPaks(modCopy)) {
-        emit errorOccurred("Failed to disable mod: " + modCopy.name);
+        emit errorOccurred(tr("Failed to disable mod: %1").arg(modCopy.name));
         return false;
     }
 
@@ -386,7 +386,7 @@ bool ModManager::updateModMetadata(const ModInfo &updatedMod) {
                            [&updatedMod](const ModInfo &mod) { return mod.id == updatedMod.id; });
 
     if (it == m_mods.end()) {
-        emit errorOccurred("Mod not found: " + updatedMod.id);
+        emit errorOccurred(tr("Mod not found: %1").arg(updatedMod.id));
         return false;
     }
 
@@ -460,7 +460,7 @@ bool ModManager::loadMods() {
 
     QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isArray()) {
-        emit errorOccurred("Invalid mods metadata format");
+        emit errorOccurred(tr("Invalid mods metadata format"));
         return false;
     }
 
@@ -490,7 +490,7 @@ bool ModManager::saveMods() {
     QFile file(metadataPath);
 
     if (!file.open(QIODevice::WriteOnly)) {
-        emit errorOccurred("Failed to save mods metadata");
+        emit errorOccurred(tr("Failed to save mods metadata"));
         return false;
     }
 
@@ -524,13 +524,13 @@ bool ModManager::copyModToPaks(const ModInfo &mod) {
 
     QDir paksDir(paksPath);
     if (!paksDir.exists()) {
-        emit errorOccurred("Paks directory not found: " + paksPath);
+        emit errorOccurred(tr("Paks directory not found: %1").arg(paksPath));
         return false;
     }
 
     QString sourcePath = m_modsStoragePath + "/" + mod.fileName;
     if (!QFile::exists(sourcePath)) {
-        emit errorOccurred("Mod file not found in storage: " + sourcePath);
+        emit errorOccurred(tr("Mod file not found in storage: %1").arg(sourcePath));
         return false;
     }
 

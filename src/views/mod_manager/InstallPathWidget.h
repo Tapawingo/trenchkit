@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QString>
 #include <QFutureWatcher>
+#include <QEvent>
 
 class QLabel;
 class QLineEdit;
@@ -23,6 +24,9 @@ public:
     bool isValidPath() const;
     void startAutoDetection();
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 signals:
     void pathChanged(const QString &path);
     void validPathSelected(const QString &path);
@@ -36,6 +40,7 @@ private slots:
 
 private:
     void setupUi();
+    void retranslateUi();
     void setupConnections();
     void validatePath(const QString &path);
     bool checkFoxholeInstallation(const QString &path) const;

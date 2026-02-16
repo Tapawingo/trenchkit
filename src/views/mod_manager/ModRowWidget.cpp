@@ -52,7 +52,6 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     leftSection->addLayout(topLayout);
 
     m_dateLabel = new QLabel(this);
-    m_dateLabel->setText("Installed: " + mod.installDate.toString("yyyy-MM-dd hh:mm"));
     m_dateLabel->setObjectName("modDateLabel");
 
     leftSection->addWidget(m_dateLabel);
@@ -98,6 +97,8 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     connect(m_updateButton, &QPushButton::clicked, this, [this]() {
         emit updateRequested(m_modId);
     });
+
+    retranslateUi();
 }
 
 void ModRowWidget::updateModInfo(const ModInfo &mod) {
@@ -105,7 +106,7 @@ void ModRowWidget::updateModInfo(const ModInfo &mod) {
     m_fullModName = mod.name;
     m_nameLabel->setToolTip(mod.name);
     m_nameLabel->setText(mod.name);
-    m_dateLabel->setText("Installed: " + mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    m_dateLabel->setText(tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm")));
 }
 
 void ModRowWidget::setSelected(bool selected) {
@@ -129,16 +130,26 @@ void ModRowWidget::updateNameEliding() {
     }
 }
 
+void ModRowWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void ModRowWidget::retranslateUi() {
+}
+
 void ModRowWidget::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
 
-    QAction *renameAction = menu.addAction("Rename");
-    QAction *editMetaAction = menu.addAction("Edit Metadata");
+    QAction *renameAction = menu.addAction(tr("Rename"));
+    QAction *editMetaAction = menu.addAction(tr("Edit Metadata"));
     menu.addSeparator();
-    QAction *registerNexusAction = menu.addAction("Register with Nexus Mods");
-    QAction *registerItchAction = menu.addAction("Register with itch.io");
+    QAction *registerNexusAction = menu.addAction(tr("Register with Nexus Mods"));
+    QAction *registerItchAction = menu.addAction(tr("Register with itch.io"));
     menu.addSeparator();
-    QAction *removeAction = menu.addAction("Remove");
+    QAction *removeAction = menu.addAction(tr("Remove"));
 
     QAction *selectedAction = menu.exec(event->globalPos());
 
@@ -161,7 +172,7 @@ void ModRowWidget::setUpdateAvailable(bool available, const QString &version) {
         m_updateButton->setVisible(available);
         if (available) {
             if (!version.isEmpty()) {
-                m_updateButton->setToolTip(QStringLiteral("Update to version %1").arg(version));
+                m_updateButton->setToolTip(tr("Update to version %1").arg(version));
             }
             int buttonHeight = m_updateButton->height();
             if (buttonHeight > 0) {
@@ -282,11 +293,11 @@ void ModRowWidget::clearConflictIndicator() {
 }
 
 QString ModRowWidget::formatConflictTooltip(const ConflictInfo &info) const {
-    QString tooltip = QString("<b><img src=\":/icon_conflict.png\" width=\"14\" height=\"14\"> "
-                              "File Conflicts (%1 files)</b><br><br>")
-        .arg(info.fileConflictCount);
+    QString tooltip = QStringLiteral("<b><img src=\":/icon_conflict.png\" width=\"14\" height=\"14\"> ")
+        + tr("File Conflicts (%1 files)").arg(info.fileConflictCount)
+        + QStringLiteral("</b><br><br>");
 
-    tooltip += "<b>Conflicts with:</b><br>";
+    tooltip += QStringLiteral("<b>") + tr("Conflicts with:") + QStringLiteral("</b><br>");
 
     for (int i = 0; i < info.conflictingModNames.size(); ++i) {
         QString modName = info.conflictingModNames[i];
@@ -296,9 +307,9 @@ QString ModRowWidget::formatConflictTooltip(const ConflictInfo &info) const {
         QString color = "";
 
         if (otherPriority < info.modPriority) {
-            loadOrder = " <i>(loads before this)</i>";
+            loadOrder = QStringLiteral(" <i>") + tr("(loads before this)") + QStringLiteral("</i>");
         } else {
-            loadOrder = " <i>(loads after this)</i>";
+            loadOrder = QStringLiteral(" <i>") + tr("(loads after this)") + QStringLiteral("</i>");
             if (info.isEntirelyOverwritten()) {
                 color = " style='color: #f48771;'";
             }
@@ -308,21 +319,21 @@ QString ModRowWidget::formatConflictTooltip(const ConflictInfo &info) const {
     }
 
     if (!info.conflictingFilePaths.isEmpty()) {
-        tooltip += "<br><b>Sample conflicts:</b><br>";
+        tooltip += QStringLiteral("<br><b>") + tr("Sample conflicts:") + QStringLiteral("</b><br>");
         int sampleCount = qMin(5, info.conflictingFilePaths.size());
         for (int i = 0; i < sampleCount; ++i) {
             const QString &filePath = info.conflictingFilePaths[i];
 
             if (info.overwrittenFilePaths.contains(filePath)) {
-                tooltip += QString("• <span style='color: #f48771;'>%1 (overwritten)</span><br>")
-                    .arg(filePath);
+                tooltip += QStringLiteral("• <span style='color: #f48771;'>")
+                    + tr("%1 (overwritten)").arg(filePath)
+                    + QStringLiteral("</span><br>");
             } else {
                 tooltip += QString("• %1<br>").arg(filePath);
             }
         }
         if (info.conflictingFilePaths.size() > 5) {
-            tooltip += QString("• ... and %1 more<br>")
-                .arg(info.conflictingFilePaths.size() - 5);
+            tooltip += QStringLiteral("• ") + tr("... and %1 more").arg(info.conflictingFilePaths.size() - 5) + QStringLiteral("<br>");
         }
     }
 

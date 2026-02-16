@@ -29,7 +29,7 @@ ItchRegistrationModalContent::ItchRegistrationModalContent(ItchClient *client,
     , m_localModId(modId)
     , m_localModName(modName)
 {
-    setTitle("Register Mod with itch.io");
+    setTitle(tr("Register Mod with itch.io"));
     setupUi();
     setPreferredSize(QSize(550, 400));
 
@@ -45,17 +45,17 @@ void ItchRegistrationModalContent::setupUi() {
 
     bodyLayout()->addWidget(m_stack);
 
-    m_fetchButton = new QPushButton("Fetch Game Info", this);
+    m_fetchButton = new QPushButton(tr("Fetch Game Info"), this);
     m_fetchButton->setDefault(true);
     connect(m_fetchButton, &QPushButton::clicked, this, &ItchRegistrationModalContent::onFetchClicked);
     footerLayout()->addWidget(m_fetchButton);
 
-    m_authenticateButton = new QPushButton("Submit", this);
+    m_authenticateButton = new QPushButton(tr("Submit"), this);
     m_authenticateButton->setDefault(true);
     connect(m_authenticateButton, &QPushButton::clicked, this, &ItchRegistrationModalContent::onAuthenticateClicked);
     footerLayout()->addWidget(m_authenticateButton);
 
-    m_cancelButton = new QPushButton("Cancel", this);
+    m_cancelButton = new QPushButton(tr("Cancel"), this);
     m_cancelButton->setAutoDefault(false);
     connect(m_cancelButton, &QPushButton::clicked, this, &ItchRegistrationModalContent::reject);
     footerLayout()->addWidget(m_cancelButton);
@@ -68,7 +68,7 @@ QWidget* ItchRegistrationModalContent::createInputPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    auto *modLabel = new QLabel(QString("Registering: <b>%1</b>").arg(m_localModName), page);
+    auto *modLabel = new QLabel(tr("Registering: <b>%1</b>").arg(m_localModName), page);
     modLabel->setWordWrap(true);
     modLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                            .arg(Theme::Colors::TEXT_PRIMARY));
@@ -76,7 +76,7 @@ QWidget* ItchRegistrationModalContent::createInputPage() {
 
     layout->addSpacing(10);
 
-    auto *instructionLabel = new QLabel("Enter itch.io URL for this mod:", page);
+    auto *instructionLabel = new QLabel(tr("Enter itch.io URL for this mod:"), page);
     instructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                                    .arg(Theme::Colors::TEXT_SECONDARY));
     layout->addWidget(instructionLabel);
@@ -96,7 +96,7 @@ QWidget* ItchRegistrationModalContent::createAuthPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    auto *titleLabel = new QLabel("<b>API Key Required</b>", page);
+    auto *titleLabel = new QLabel(tr("<b>API Key Required</b>"), page);
     titleLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                              .arg(Theme::Colors::TEXT_SECONDARY));
     layout->addWidget(titleLabel);
@@ -106,17 +106,17 @@ QWidget* ItchRegistrationModalContent::createAuthPage() {
     m_authStatusLabel->setOpenExternalLinks(true);
     m_authStatusLabel->setWordWrap(true);
     m_authStatusLabel->setText(
-        "To access itch.io, you need an API key.<br><br>"
+        tr("To access itch.io, you need an API key.<br><br>"
         "1. Visit <a href='https://itch.io/user/settings/api-keys'>https://itch.io/user/settings/api-keys</a><br>"
         "2. Click \"Generate new API key\"<br>"
-        "3. Copy the key and paste it below:"
+        "3. Copy the key and paste it below:")
     );
     m_authStatusLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 12px; }")
                                     .arg(Theme::Colors::TEXT_SECONDARY));
     layout->addWidget(m_authStatusLabel);
 
     m_apiKeyEdit = new QLineEdit(page);
-    m_apiKeyEdit->setPlaceholderText("Paste your API key here...");
+    m_apiKeyEdit->setPlaceholderText(tr("Paste your API key here..."));
     m_apiKeyEdit->setEchoMode(QLineEdit::Password);
     connect(m_apiKeyEdit, &QLineEdit::returnPressed, this, &ItchRegistrationModalContent::onAuthenticateClicked);
     layout->addWidget(m_apiKeyEdit);
@@ -147,13 +147,13 @@ void ItchRegistrationModalContent::updateFooterButtons() {
 void ItchRegistrationModalContent::onFetchClicked() {
     QString url = m_urlEdit->text().trimmed();
     if (url.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "Please enter a URL");
+        MessageModal::warning(m_modalManager, tr("Error"), tr("Please enter a URL"));
         return;
     }
 
     auto result = ItchUrlParser::parseUrl(url);
     if (!result.isValid) {
-        MessageModal::warning(m_modalManager, "Invalid URL", result.error);
+        MessageModal::warning(m_modalManager, tr("Invalid URL"), result.error);
         return;
     }
 
@@ -170,13 +170,13 @@ void ItchRegistrationModalContent::onFetchClicked() {
 void ItchRegistrationModalContent::onAuthenticateClicked() {
     QString apiKey = m_apiKeyEdit->text().trimmed();
     if (apiKey.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "Please enter an API key");
+        MessageModal::warning(m_modalManager, tr("Error"), tr("Please enter an API key"));
         return;
     }
 
     m_client->setApiKey(apiKey);
     m_authenticateButton->setEnabled(false);
-    m_authStatusLabel->setText("API key saved. Fetching game information...");
+    m_authStatusLabel->setText(tr("API key saved. Fetching game information..."));
 
     auto result = ItchUrlParser::parseUrl(m_pendingUrl);
 
@@ -194,7 +194,7 @@ void ItchRegistrationModalContent::onAuthComplete(const QString &apiKey) {
 }
 
 void ItchRegistrationModalContent::onAuthFailed(const QString &error) {
-    m_authStatusLabel->setText(QString("Authentication failed: %1").arg(error));
+    m_authStatusLabel->setText(tr("Authentication failed: %1").arg(error));
     m_authenticateButton->setEnabled(true);
 }
 
@@ -207,7 +207,7 @@ void ItchRegistrationModalContent::onGameInfoReceived(const QString &gameId, con
 
 void ItchRegistrationModalContent::onUploadsReceived(const QList<ItchUploadInfo> &uploads) {
     if (uploads.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "No files found for this game");
+        MessageModal::warning(m_modalManager, tr("Error"), tr("No files found for this game"));
         showInputPage();
         return;
     }
@@ -238,8 +238,8 @@ void ItchRegistrationModalContent::onUploadsReceived(const QList<ItchUploadInfo>
 
     auto *selectionModal = new FileSelectionModalContent(
         items,
-        QString("Select Upload - %1").arg(m_localModName),
-        QString("Select the upload that matches your local mod '%1':").arg(m_localModName),
+        tr("Select Upload - %1").arg(m_localModName),
+        tr("Select the upload that matches your local mod '%1':").arg(m_localModName),
         false
     );
 
@@ -270,7 +270,7 @@ void ItchRegistrationModalContent::onUploadsReceived(const QList<ItchUploadInfo>
 }
 
 void ItchRegistrationModalContent::onError(const QString &error) {
-    MessageModal::warning(m_modalManager, "Error", error);
+    MessageModal::warning(m_modalManager, tr("Error"), error);
     showInputPage();
 }
 

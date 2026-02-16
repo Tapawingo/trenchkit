@@ -10,6 +10,7 @@
 #include "core/api/ItchAuth.h"
 #include "core/utils/Logger.h"
 #include "core/utils/Theme.h"
+#include "core/utils/TranslationManager.h"
 #include "common/widgets/PanelFrame.h"
 #include "common/widgets/GradientFrame.h"
 
@@ -48,6 +49,60 @@ SettingsWidget::SettingsWidget(QWidget *parent, UpdaterService *updater)
     loadSettings(false);
 }
 
+void SettingsWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void SettingsWidget::retranslateUi() {
+    if (m_titleLabel) m_titleLabel->setText(tr("Settings"));
+    if (m_languageLabel) m_languageLabel->setText(tr("Language"));
+    if (m_languageCombo) {
+        m_languageCombo->setItemText(0, tr("System default"));
+    }
+    if (m_updaterHeader) m_updaterHeader->setText(tr("Updater"));
+    if (m_currentVersionLabel) m_currentVersionLabel->setText(tr("Current version"));
+    if (m_sourceLabel) m_sourceLabel->setText(tr("Source"));
+    if (m_channelLabel) m_channelLabel->setText(tr("Update channel"));
+    if (m_updateChannelCombo) {
+        m_updateChannelCombo->setItemText(0, tr("Stable"));
+        m_updateChannelCombo->setItemText(1, tr("Pre-release"));
+    }
+    if (m_autoCheckLabel) m_autoCheckLabel->setText(tr("Check for updates on startup"));
+    if (m_downloadLabel) m_downloadLabel->setText(tr("Download location (optional)"));
+    if (m_downloadDirEdit) m_downloadDirEdit->setPlaceholderText(tr("Default: AppData/Local/TrenchKit/updates"));
+    if (m_downloadBrowseButton) m_downloadBrowseButton->setText(tr("Browse..."));
+    if (m_checkLabel) m_checkLabel->setText(tr("Check for updates now"));
+    if (m_checkNowButton) m_checkNowButton->setText(tr("Check now"));
+    if (m_shortcutsHeader) m_shortcutsHeader->setText(tr("Shortcuts"));
+    if (m_desktopShortcutLabel) m_desktopShortcutLabel->setText(tr("Desktop shortcut"));
+    if (m_addDesktopShortcutButton) m_addDesktopShortcutButton->setText(tr("Add Desktop Shortcut"));
+    if (m_startMenuLabel) m_startMenuLabel->setText(tr("Start menu"));
+    if (m_addStartMenuShortcutButton) m_addStartMenuShortcutButton->setText(tr("Add to Start Menu"));
+    if (m_nexusHeader) m_nexusHeader->setText(tr("Nexus Mods Integration"));
+    if (m_nexusConnectionLabel) m_nexusConnectionLabel->setText(tr("Connection status"));
+    if (m_nexusAuthLabel) m_nexusAuthLabel->setText(tr("Authentication"));
+    if (m_nexusAuthButton) m_nexusAuthButton->setText(tr("Authenticate (SSO)"));
+    if (m_nexusClearButton) m_nexusClearButton->setText(tr("Clear API Key"));
+    if (m_itchHeader) m_itchHeader->setText(tr("Itch.io Integration"));
+    if (m_itchConnectionLabel) m_itchConnectionLabel->setText(tr("Connection status"));
+    if (m_itchAuthLabel) m_itchAuthLabel->setText(tr("Authentication"));
+    if (m_itchAuthButton) m_itchAuthButton->setText(tr("Add API Key"));
+    if (m_itchClearButton) m_itchClearButton->setText(tr("Clear API Key"));
+    if (m_loggingHeader) m_loggingHeader->setText(tr("Logging"));
+    if (m_logLocationLabel) m_logLocationLabel->setText(tr("Log files location"));
+    if (m_logActionsLabel) m_logActionsLabel->setText(tr("Access logs"));
+    if (m_openLogsButton) m_openLogsButton->setText(tr("Open Log Folder"));
+    if (m_copyLogPathButton) m_copyLogPathButton->setText(tr("Copy Log Path"));
+    if (m_fileAssocHeader) m_fileAssocHeader->setText(tr("File Associations"));
+    if (m_tkprofileLabel) m_tkprofileLabel->setText(tr("Profile files (.tkprofile)"));
+    if (m_tkprofileAssociateButton) m_tkprofileAssociateButton->setText(tr("Set as Default Handler"));
+    if (m_settingsCancelButton) m_settingsCancelButton->setText(tr("Cancel"));
+    if (m_settingsSaveButton) m_settingsSaveButton->setText(tr("Save"));
+}
+
 bool SettingsWidget::applyStoredSettings() {
     loadSettings(true);
     return m_autoCheckCheckbox ? m_autoCheckCheckbox->isChecked() : false;
@@ -65,7 +120,7 @@ void SettingsWidget::setCurrentVersion(const QString &version) {
 
 void SettingsWidget::setCheckStatus(const QString &status) {
     if (m_checkStatusLabel) {
-        m_checkStatusLabel->setText(status.isEmpty() ? QStringLiteral("Idle") : status);
+        m_checkStatusLabel->setText(status.isEmpty() ? tr("Idle") : status);
     }
 }
 
@@ -120,229 +175,241 @@ void SettingsWidget::buildUi() {
     containerLayout->setVerticalSpacing(Theme::Spacing::SETTINGS_ROW_SPACING);
     containerLayout->setColumnStretch(0, 1);
     containerLayout->setColumnStretch(1, 2);
-    containerLayout->setRowStretch(24, 1);
+    containerLayout->setRowStretch(26, 1);
 
-    auto *title = new QLabel("Settings", m_panel);
-    title->setObjectName("settingsTitle");
-    title->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(title, 0, 0, 1, 2);
+    m_titleLabel = new QLabel(tr("Settings"), m_panel);
+    m_titleLabel->setObjectName("settingsTitle");
+    m_titleLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_titleLabel, 0, 0, 1, 2);
 
-    auto *updaterHeader = new QLabel("Updater", m_panel);
-    updaterHeader->setObjectName("settingsSectionHeader");
-    updaterHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(updaterHeader, 1, 0, 1, 2);
+    m_languageLabel = new QLabel(tr("Language"), m_panel);
+    m_languageLabel->setObjectName("settingsSectionHeader");
+    m_languageLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_languageLabel, 1, 0, 1, 2);
 
-    auto *versionLabel = new QLabel("Current version", m_panel);
-    versionLabel->setObjectName("settingsLabel");
-    versionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(versionLabel, 2, 0);
+    m_languageCombo = new QComboBox(m_panel);
+    m_languageCombo->addItem(tr("System default"), QStringLiteral("system"));
+    m_languageCombo->addItem(QStringLiteral("English"), QStringLiteral("en"));
+    m_languageCombo->addItem(QString::fromUtf8("Norsk Bokm\xc3\xa5l"), QStringLiteral("nb"));
+    m_languageCombo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_languageCombo, 2, 0, 1, 2);
 
-    m_versionLabel = new QLabel("—", m_panel);
+    m_updaterHeader = new QLabel(tr("Updater"), m_panel);
+    m_updaterHeader->setObjectName("settingsSectionHeader");
+    m_updaterHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_updaterHeader, 3, 0, 1, 2);
+
+    m_currentVersionLabel = new QLabel(tr("Current version"), m_panel);
+    m_currentVersionLabel->setObjectName("settingsLabel");
+    m_currentVersionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_currentVersionLabel, 4, 0);
+
+    m_versionLabel = new QLabel(QStringLiteral("—"), m_panel);
     m_versionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_versionLabel, 2, 1);
+    containerLayout->addWidget(m_versionLabel, 4, 1);
 
-    auto *sourceLabel = new QLabel("Source", m_panel);
-    sourceLabel->setObjectName("settingsLabel");
-    sourceLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(sourceLabel, 3, 0);
+    m_sourceLabel = new QLabel(tr("Source"), m_panel);
+    m_sourceLabel->setObjectName("settingsLabel");
+    m_sourceLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_sourceLabel, 5, 0);
 
     m_updateSourceEdit = new QLineEdit(m_panel);
-    m_updateSourceEdit->setPlaceholderText("https://github.com/Tapawingo/TrenchKit");
+    m_updateSourceEdit->setPlaceholderText(QStringLiteral("https://github.com/Tapawingo/TrenchKit"));
     m_updateSourceEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_updateSourceEdit->setFocusPolicy(Qt::ClickFocus);
-    containerLayout->addWidget(m_updateSourceEdit, 3, 1);
+    containerLayout->addWidget(m_updateSourceEdit, 5, 1);
 
-    auto *channelLabel = new QLabel("Update channel", m_panel);
-    channelLabel->setObjectName("settingsLabel");
-    channelLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(channelLabel, 4, 0);
+    m_channelLabel = new QLabel(tr("Update channel"), m_panel);
+    m_channelLabel->setObjectName("settingsLabel");
+    m_channelLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_channelLabel, 6, 0);
 
     m_updateChannelCombo = new QComboBox(m_panel);
-    m_updateChannelCombo->addItem("Stable", "stable");
-    m_updateChannelCombo->addItem("Pre-release", "prerelease");
+    m_updateChannelCombo->addItem(tr("Stable"), QStringLiteral("stable"));
+    m_updateChannelCombo->addItem(tr("Pre-release"), QStringLiteral("prerelease"));
     m_updateChannelCombo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_updateChannelCombo, 4, 1);
+    containerLayout->addWidget(m_updateChannelCombo, 6, 1);
 
-    auto *autoCheckLabel = new QLabel("Check for updates on startup", m_panel);
-    autoCheckLabel->setObjectName("settingsLabel");
-    autoCheckLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(autoCheckLabel, 5, 0);
+    m_autoCheckLabel = new QLabel(tr("Check for updates on startup"), m_panel);
+    m_autoCheckLabel->setObjectName("settingsLabel");
+    m_autoCheckLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_autoCheckLabel, 7, 0);
 
     m_autoCheckCheckbox = new QCheckBox(m_panel);
     m_autoCheckCheckbox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_autoCheckCheckbox, 5, 1);
+    containerLayout->addWidget(m_autoCheckCheckbox, 7, 1);
 
-    auto *downloadLabel = new QLabel("Download location (optional)", m_panel);
-    downloadLabel->setObjectName("settingsLabel");
-    downloadLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(downloadLabel, 6, 0);
+    m_downloadLabel = new QLabel(tr("Download location (optional)"), m_panel);
+    m_downloadLabel->setObjectName("settingsLabel");
+    m_downloadLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_downloadLabel, 8, 0);
 
     auto *downloadRow = new QHBoxLayout();
     m_downloadDirEdit = new QLineEdit(m_panel);
-    m_downloadDirEdit->setPlaceholderText("Default: AppData/Local/TrenchKit/updates");
+    m_downloadDirEdit->setPlaceholderText(tr("Default: AppData/Local/TrenchKit/updates"));
     m_downloadDirEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_downloadDirEdit->setFocusPolicy(Qt::ClickFocus);
-    m_downloadBrowseButton = new QPushButton("Browse...", m_panel);
+    m_downloadBrowseButton = new QPushButton(tr("Browse..."), m_panel);
     m_downloadBrowseButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_downloadBrowseButton->setCursor(Qt::PointingHandCursor);
     downloadRow->addWidget(m_downloadDirEdit);
     downloadRow->addWidget(m_downloadBrowseButton);
-    containerLayout->addLayout(downloadRow, 6, 1);
+    containerLayout->addLayout(downloadRow, 8, 1);
 
-    auto *checkLabel = new QLabel("Check for updates now", m_panel);
-    checkLabel->setObjectName("settingsLabel");
-    checkLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(checkLabel, 7, 0);
+    m_checkLabel = new QLabel(tr("Check for updates now"), m_panel);
+    m_checkLabel->setObjectName("settingsLabel");
+    m_checkLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_checkLabel, 9, 0);
 
-    m_checkNowButton = new QPushButton("Check now", m_panel);
+    m_checkNowButton = new QPushButton(tr("Check now"), m_panel);
     m_checkNowButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     m_checkNowButton->setCursor(Qt::PointingHandCursor);
-    containerLayout->addWidget(m_checkNowButton, 7, 1);
+    containerLayout->addWidget(m_checkNowButton, 9, 1);
 
-    m_checkStatusLabel = new QLabel("Idle", m_panel);
+    m_checkStatusLabel = new QLabel(tr("Idle"), m_panel);
     m_checkStatusLabel->setObjectName("settingsStatus");
     m_checkStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_checkStatusLabel, 8, 1);
+    containerLayout->addWidget(m_checkStatusLabel, 10, 1);
 
-    auto *shortcutsHeader = new QLabel("Shortcuts", m_panel);
-    shortcutsHeader->setObjectName("settingsSectionHeader");
-    shortcutsHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(shortcutsHeader, 9, 0, 1, 2);
+    m_shortcutsHeader = new QLabel(tr("Shortcuts"), m_panel);
+    m_shortcutsHeader->setObjectName("settingsSectionHeader");
+    m_shortcutsHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_shortcutsHeader, 11, 0, 1, 2);
 
-    auto *desktopShortcutLabel = new QLabel("Desktop shortcut", m_panel);
-    desktopShortcutLabel->setObjectName("settingsLabel");
-    desktopShortcutLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(desktopShortcutLabel, 10, 0);
+    m_desktopShortcutLabel = new QLabel(tr("Desktop shortcut"), m_panel);
+    m_desktopShortcutLabel->setObjectName("settingsLabel");
+    m_desktopShortcutLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_desktopShortcutLabel, 12, 0);
 
-    m_addDesktopShortcutButton = new QPushButton("Add Desktop Shortcut", m_panel);
+    m_addDesktopShortcutButton = new QPushButton(tr("Add Desktop Shortcut"), m_panel);
     m_addDesktopShortcutButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_addDesktopShortcutButton->setCursor(Qt::PointingHandCursor);
-    containerLayout->addWidget(m_addDesktopShortcutButton, 10, 1);
+    containerLayout->addWidget(m_addDesktopShortcutButton, 12, 1);
 
-    auto *startMenuLabel = new QLabel("Start menu", m_panel);
-    startMenuLabel->setObjectName("settingsLabel");
-    startMenuLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(startMenuLabel, 11, 0);
+    m_startMenuLabel = new QLabel(tr("Start menu"), m_panel);
+    m_startMenuLabel->setObjectName("settingsLabel");
+    m_startMenuLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_startMenuLabel, 13, 0);
 
-    m_addStartMenuShortcutButton = new QPushButton("Add to Start Menu", m_panel);
+    m_addStartMenuShortcutButton = new QPushButton(tr("Add to Start Menu"), m_panel);
     m_addStartMenuShortcutButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_addStartMenuShortcutButton->setCursor(Qt::PointingHandCursor);
-    containerLayout->addWidget(m_addStartMenuShortcutButton, 11, 1);
+    containerLayout->addWidget(m_addStartMenuShortcutButton, 13, 1);
 
-    auto *nexusHeader = new QLabel("Nexus Mods Integration", m_panel);
-    nexusHeader->setObjectName("settingsSectionHeader");
-    nexusHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(nexusHeader, 12, 0, 1, 2);
+    m_nexusHeader = new QLabel(tr("Nexus Mods Integration"), m_panel);
+    m_nexusHeader->setObjectName("settingsSectionHeader");
+    m_nexusHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_nexusHeader, 14, 0, 1, 2);
 
-    auto *nexusLabel = new QLabel("Connection status", m_panel);
-    nexusLabel->setObjectName("settingsLabel");
-    nexusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(nexusLabel, 13, 0);
+    m_nexusConnectionLabel = new QLabel(tr("Connection status"), m_panel);
+    m_nexusConnectionLabel->setObjectName("settingsLabel");
+    m_nexusConnectionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_nexusConnectionLabel, 15, 0);
 
-    m_nexusStatusLabel = new QLabel("Not connected", m_panel);
+    m_nexusStatusLabel = new QLabel(tr("Not connected"), m_panel);
     m_nexusStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_nexusStatusLabel, 13, 1);
+    containerLayout->addWidget(m_nexusStatusLabel, 15, 1);
 
-    auto *nexusActionsLabel = new QLabel("Authentication", m_panel);
-    nexusActionsLabel->setObjectName("settingsLabel");
-    nexusActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(nexusActionsLabel, 14, 0);
+    m_nexusAuthLabel = new QLabel(tr("Authentication"), m_panel);
+    m_nexusAuthLabel->setObjectName("settingsLabel");
+    m_nexusAuthLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_nexusAuthLabel, 16, 0);
 
     auto *nexusButtonRow = new QHBoxLayout();
-    m_nexusAuthButton = new QPushButton("Authenticate (SSO)", m_panel);
+    m_nexusAuthButton = new QPushButton(tr("Authenticate (SSO)"), m_panel);
     m_nexusAuthButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_nexusAuthButton->setCursor(Qt::PointingHandCursor);
-    m_nexusClearButton = new QPushButton("Clear API Key", m_panel);
+    m_nexusClearButton = new QPushButton(tr("Clear API Key"), m_panel);
     m_nexusClearButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_nexusClearButton->setCursor(Qt::PointingHandCursor);
     nexusButtonRow->addWidget(m_nexusAuthButton);
     nexusButtonRow->addWidget(m_nexusClearButton);
     nexusButtonRow->addStretch();
-    containerLayout->addLayout(nexusButtonRow, 14, 1);
+    containerLayout->addLayout(nexusButtonRow, 16, 1);
 
-    auto *itchHeader = new QLabel("Itch.io Integration", m_panel);
-    itchHeader->setObjectName("settingsSectionHeader");
-    itchHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(itchHeader, 15, 0, 1, 2);
+    m_itchHeader = new QLabel(tr("Itch.io Integration"), m_panel);
+    m_itchHeader->setObjectName("settingsSectionHeader");
+    m_itchHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_itchHeader, 17, 0, 1, 2);
 
-    auto *itchLabel = new QLabel("Connection status", m_panel);
-    itchLabel->setObjectName("settingsLabel");
-    itchLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(itchLabel, 16, 0);
+    m_itchConnectionLabel = new QLabel(tr("Connection status"), m_panel);
+    m_itchConnectionLabel->setObjectName("settingsLabel");
+    m_itchConnectionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_itchConnectionLabel, 18, 0);
 
-    m_itchStatusLabel = new QLabel("Not connected", m_panel);
+    m_itchStatusLabel = new QLabel(tr("Not connected"), m_panel);
     m_itchStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_itchStatusLabel, 16, 1);
+    containerLayout->addWidget(m_itchStatusLabel, 18, 1);
 
-    auto *itchActionsLabel = new QLabel("Authentication", m_panel);
-    itchActionsLabel->setObjectName("settingsLabel");
-    itchActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(itchActionsLabel, 17, 0);
+    m_itchAuthLabel = new QLabel(tr("Authentication"), m_panel);
+    m_itchAuthLabel->setObjectName("settingsLabel");
+    m_itchAuthLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_itchAuthLabel, 19, 0);
 
     auto *itchButtonRow = new QHBoxLayout();
-    m_itchAuthButton = new QPushButton("Add API Key", m_panel);
+    m_itchAuthButton = new QPushButton(tr("Add API Key"), m_panel);
     m_itchAuthButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_itchAuthButton->setCursor(Qt::PointingHandCursor);
-    m_itchClearButton = new QPushButton("Clear API Key", m_panel);
+    m_itchClearButton = new QPushButton(tr("Clear API Key"), m_panel);
     m_itchClearButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_itchClearButton->setCursor(Qt::PointingHandCursor);
     itchButtonRow->addWidget(m_itchAuthButton);
     itchButtonRow->addWidget(m_itchClearButton);
     itchButtonRow->addStretch();
-    containerLayout->addLayout(itchButtonRow, 17, 1);
+    containerLayout->addLayout(itchButtonRow, 19, 1);
 
-    auto *loggingHeader = new QLabel("Logging", m_panel);
-    loggingHeader->setObjectName("settingsSectionHeader");
-    loggingHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(loggingHeader, 18, 0, 1, 2);
+    m_loggingHeader = new QLabel(tr("Logging"), m_panel);
+    m_loggingHeader->setObjectName("settingsSectionHeader");
+    m_loggingHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_loggingHeader, 20, 0, 1, 2);
 
-    auto *logLocationLabel = new QLabel("Log files location", m_panel);
-    logLocationLabel->setObjectName("settingsLabel");
-    logLocationLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(logLocationLabel, 19, 0);
+    m_logLocationLabel = new QLabel(tr("Log files location"), m_panel);
+    m_logLocationLabel->setObjectName("settingsLabel");
+    m_logLocationLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_logLocationLabel, 21, 0);
 
     m_logPathLabel = new QLabel(Logger::instance().logDirectory(), m_panel);
     m_logPathLabel->setWordWrap(true);
     m_logPathLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     m_logPathLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_logPathLabel, 19, 1);
+    containerLayout->addWidget(m_logPathLabel, 21, 1);
 
-    auto *logActionsLabel = new QLabel("Access logs", m_panel);
-    logActionsLabel->setObjectName("settingsLabel");
-    logActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(logActionsLabel, 20, 0);
+    m_logActionsLabel = new QLabel(tr("Access logs"), m_panel);
+    m_logActionsLabel->setObjectName("settingsLabel");
+    m_logActionsLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_logActionsLabel, 22, 0);
 
     auto *logButtonRow = new QHBoxLayout();
-    m_openLogsButton = new QPushButton("Open Log Folder", m_panel);
+    m_openLogsButton = new QPushButton(tr("Open Log Folder"), m_panel);
     m_openLogsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_openLogsButton->setCursor(Qt::PointingHandCursor);
-    m_copyLogPathButton = new QPushButton("Copy Log Path", m_panel);
+    m_copyLogPathButton = new QPushButton(tr("Copy Log Path"), m_panel);
     m_copyLogPathButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_copyLogPathButton->setCursor(Qt::PointingHandCursor);
     logButtonRow->addWidget(m_openLogsButton);
     logButtonRow->addWidget(m_copyLogPathButton);
     logButtonRow->addStretch();
-    containerLayout->addLayout(logButtonRow, 20, 1);
+    containerLayout->addLayout(logButtonRow, 22, 1);
 
-    auto *fileAssocHeader = new QLabel("File Associations", m_panel);
-    fileAssocHeader->setObjectName("settingsSectionHeader");
-    fileAssocHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(fileAssocHeader, 21, 0, 1, 2);
+    m_fileAssocHeader = new QLabel(tr("File Associations"), m_panel);
+    m_fileAssocHeader->setObjectName("settingsSectionHeader");
+    m_fileAssocHeader->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_fileAssocHeader, 23, 0, 1, 2);
 
-    auto *tkprofileLabel = new QLabel("Profile files (.tkprofile)", m_panel);
-    tkprofileLabel->setObjectName("settingsLabel");
-    tkprofileLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(tkprofileLabel, 22, 0);
+    m_tkprofileLabel = new QLabel(tr("Profile files (.tkprofile)"), m_panel);
+    m_tkprofileLabel->setObjectName("settingsLabel");
+    m_tkprofileLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    containerLayout->addWidget(m_tkprofileLabel, 24, 0);
 
-    m_tkprofileStatusLabel = new QLabel("Not associated", m_panel);
+    m_tkprofileStatusLabel = new QLabel(tr("Not associated"), m_panel);
     m_tkprofileStatusLabel->setObjectName("settingsStatus");
     m_tkprofileStatusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-    containerLayout->addWidget(m_tkprofileStatusLabel, 22, 1);
+    containerLayout->addWidget(m_tkprofileStatusLabel, 24, 1);
 
-    m_tkprofileAssociateButton = new QPushButton("Set as Default Handler", m_panel);
+    m_tkprofileAssociateButton = new QPushButton(tr("Set as Default Handler"), m_panel);
     m_tkprofileAssociateButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_tkprofileAssociateButton->setCursor(Qt::PointingHandCursor);
-    containerLayout->addWidget(m_tkprofileAssociateButton, 23, 1);
+    containerLayout->addWidget(m_tkprofileAssociateButton, 25, 1);
 
     scrollArea->setWidget(m_container);
     panelLayout->addWidget(scrollArea);
@@ -359,9 +426,9 @@ void SettingsWidget::buildUi() {
         Theme::Spacing::SETTINGS_CONTAINER_MARGIN);
     footerLayout->setSpacing(0);
 
-    m_settingsCancelButton = new QPushButton("Cancel", m_footer);
+    m_settingsCancelButton = new QPushButton(tr("Cancel"), m_footer);
     m_settingsCancelButton->setCursor(Qt::PointingHandCursor);
-    m_settingsSaveButton = new QPushButton("Save", m_footer);
+    m_settingsSaveButton = new QPushButton(tr("Save"), m_footer);
     m_settingsSaveButton->setCursor(Qt::PointingHandCursor);
     footerLayout->addWidget(m_settingsCancelButton, 0, Qt::AlignLeft);
     footerLayout->addStretch();
@@ -381,8 +448,8 @@ void SettingsWidget::buildUi() {
         if (!parseGithubRepo(m_updateSourceEdit ? m_updateSourceEdit->text().trimmed() : QString(),
                              &owner, &repo)) {
             if (m_modalManager) {
-                MessageModal::warning(m_modalManager, "Updater Settings",
-                                     "Please enter a valid GitHub repository URL (e.g. https://github.com/owner/repo).");
+                MessageModal::warning(m_modalManager, tr("Updater Settings"),
+                                     tr("Please enter a valid GitHub repository URL (e.g. https://github.com/owner/repo)."));
             }
             return;
         }
@@ -394,14 +461,14 @@ void SettingsWidget::buildUi() {
             m_updater->setIncludePrereleases(channel == "prerelease");
         }
         if (m_checkStatusLabel) {
-            m_checkStatusLabel->setText("Checking...");
+            m_checkStatusLabel->setText(tr("Checking..."));
         }
         emit manualCheckRequested();
     });
     connect(m_downloadBrowseButton, &QPushButton::clicked, this, [this]() {
         const QString dir = QFileDialog::getExistingDirectory(
             this,
-            "Select Download Folder",
+            tr("Select Download Folder"),
             m_downloadDirEdit ? m_downloadDirEdit->text() : QString());
         if (!dir.isEmpty() && m_downloadDirEdit) {
             m_downloadDirEdit->setText(dir);
@@ -427,8 +494,8 @@ void SettingsWidget::applySettings() {
     QString repo;
     if (!parseGithubRepo(sourceText, &owner, &repo)) {
         if (m_modalManager) {
-            MessageModal::warning(m_modalManager, "Updater Settings",
-                                 "Please enter a valid GitHub repository URL (e.g. https://github.com/owner/repo).");
+            MessageModal::warning(m_modalManager, tr("Updater Settings"),
+                                 tr("Please enter a valid GitHub repository URL (e.g. https://github.com/owner/repo)."));
         }
         return;
     }
@@ -446,6 +513,12 @@ void SettingsWidget::applySettings() {
     settings.setValue("updater/autoCheck", m_autoCheckCheckbox->isChecked());
     settings.setValue("updater/downloadDir",
                       m_downloadDirEdit ? m_downloadDirEdit->text() : QString());
+
+    if (m_languageCombo) {
+        const QString lang = m_languageCombo->currentData().toString();
+        settings.setValue(QStringLiteral("app/language"), lang);
+        TranslationManager::instance().setLanguage(lang);
+    }
 
     emit settingsApplied(m_autoCheckCheckbox->isChecked());
 }
@@ -491,10 +564,20 @@ void SettingsWidget::loadSettings(bool applyToUpdater) {
         setCurrentVersion(m_updater->currentVersion().toString());
     }
 
+    if (m_languageCombo) {
+        const QString lang = settings.value(QStringLiteral("app/language"), QStringLiteral("system")).toString();
+        const int langIndex = m_languageCombo->findData(lang);
+        if (langIndex >= 0) {
+            m_languageCombo->setCurrentIndex(langIndex);
+        } else {
+            m_languageCombo->setCurrentIndex(0);
+        }
+    }
+
     if (m_tkprofileStatusLabel) {
         m_tkprofileStatusLabel->setText(isTkprofileAssociationSet()
-            ? QStringLiteral("Associated")
-            : QStringLiteral("Not associated"));
+            ? tr("Associated")
+            : tr("Not associated"));
     }
 }
 
@@ -700,10 +783,10 @@ void SettingsWidget::onCopyLogPathClicked() {
     clipboard->setText(logPath);
 
     if (m_copyLogPathButton) {
-        m_copyLogPathButton->setText("Copied!");
+        m_copyLogPathButton->setText(tr("Copied!"));
         QTimer::singleShot(2000, this, [this]() {
             if (m_copyLogPathButton) {
-                m_copyLogPathButton->setText("Copy Log Path");
+                m_copyLogPathButton->setText(tr("Copy Log Path"));
             }
         });
     }
@@ -758,27 +841,27 @@ void SettingsWidget::onAddDesktopShortcutClicked() {
 
     if (QFile::exists(shortcutPath)) {
         if (m_modalManager) {
-            MessageModal::information(m_modalManager, "Shortcut Already Exists",
-                "A desktop shortcut for TrenchKit already exists.");
+            MessageModal::information(m_modalManager, tr("Shortcut Already Exists"),
+                tr("A desktop shortcut for TrenchKit already exists."));
         }
         return;
     }
 
-    bool success = createShortcut(shortcutPath, exePath, "TrenchKit - Foxhole Mod Manager");
+    bool success = createShortcut(shortcutPath, exePath, QStringLiteral("TrenchKit - Foxhole Mod Manager"));
 
     if (m_modalManager) {
         if (success) {
-            MessageModal::information(m_modalManager, "Success",
-                "Desktop shortcut created successfully.");
+            MessageModal::information(m_modalManager, tr("Success"),
+                tr("Desktop shortcut created successfully."));
         } else {
-            MessageModal::warning(m_modalManager, "Error",
-                "Failed to create desktop shortcut.");
+            MessageModal::warning(m_modalManager, tr("Error"),
+                tr("Failed to create desktop shortcut."));
         }
     }
 #else
     if (m_modalManager) {
-        MessageModal::information(m_modalManager, "Not Supported",
-            "Shortcut creation is only supported on Windows.");
+        MessageModal::information(m_modalManager, tr("Not Supported"),
+            tr("Shortcut creation is only supported on Windows."));
     }
 #endif
 }
@@ -793,27 +876,27 @@ void SettingsWidget::onAddStartMenuShortcutClicked() {
 
     if (QFile::exists(shortcutPath)) {
         if (m_modalManager) {
-            MessageModal::information(m_modalManager, "Shortcut Already Exists",
-                "A Start Menu shortcut for TrenchKit already exists.");
+            MessageModal::information(m_modalManager, tr("Shortcut Already Exists"),
+                tr("A Start Menu shortcut for TrenchKit already exists."));
         }
         return;
     }
 
-    bool success = createShortcut(shortcutPath, exePath, "TrenchKit - Foxhole Mod Manager");
+    bool success = createShortcut(shortcutPath, exePath, QStringLiteral("TrenchKit - Foxhole Mod Manager"));
 
     if (m_modalManager) {
         if (success) {
-            MessageModal::information(m_modalManager, "Success",
-                "Start Menu shortcut created successfully.");
+            MessageModal::information(m_modalManager, tr("Success"),
+                tr("Start Menu shortcut created successfully."));
         } else {
-            MessageModal::warning(m_modalManager, "Error",
-                "Failed to create Start Menu shortcut.");
+            MessageModal::warning(m_modalManager, tr("Error"),
+                tr("Failed to create Start Menu shortcut."));
         }
     }
 #else
     if (m_modalManager) {
-        MessageModal::information(m_modalManager, "Not Supported",
-            "Shortcut creation is only supported on Windows.");
+        MessageModal::information(m_modalManager, tr("Not Supported"),
+            tr("Shortcut creation is only supported on Windows."));
     }
 #endif
 }
@@ -822,20 +905,20 @@ void SettingsWidget::onAssociateTkprofileClicked() {
 #ifdef Q_OS_WIN
     if (registerTkprofileAssociation()) {
         if (m_tkprofileStatusLabel) {
-            m_tkprofileStatusLabel->setText(QStringLiteral("Associated"));
+            m_tkprofileStatusLabel->setText(tr("Associated"));
         }
         if (m_modalManager) {
-            MessageModal::information(m_modalManager, "File Association",
-                "TrenchKit is now the default handler for .tkprofile files.");
+            MessageModal::information(m_modalManager, tr("File Association"),
+                tr("TrenchKit is now the default handler for .tkprofile files."));
         }
     } else if (m_modalManager) {
-        MessageModal::warning(m_modalManager, "File Association",
-            "Failed to register .tkprofile file association.");
+        MessageModal::warning(m_modalManager, tr("File Association"),
+            tr("Failed to register .tkprofile file association."));
     }
 #else
     if (m_modalManager) {
-        MessageModal::information(m_modalManager, "Not Supported",
-            "File associations are only supported on Windows.");
+        MessageModal::information(m_modalManager, tr("Not Supported"),
+            tr("File associations are only supported on Windows."));
     }
 #endif
 }

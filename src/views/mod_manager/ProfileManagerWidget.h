@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QString>
+#include <QEvent>
 
 class QLabel;
 class QListWidgetItem;
@@ -24,6 +25,9 @@ public:
     void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
     void refreshProfileList();
     bool importProfileFromPath(const QString &filePath);
+
+protected:
+    void changeEvent(QEvent *event) override;
 
 signals:
     void profileSelected(const QString &profileId);
@@ -47,6 +51,7 @@ private slots:
 private:
     bool runImport(const QString &filePath);
     void setupUi();
+    void retranslateUi();
     void setupConnections();
     QString getSelectedProfileId() const;
     void updateButtonStates();

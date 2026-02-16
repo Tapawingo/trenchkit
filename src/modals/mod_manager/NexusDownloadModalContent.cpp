@@ -7,6 +7,7 @@
 #include "core/utils/NexusUrlParser.h"
 #include "core/utils/Theme.h"
 #include <algorithm>
+#include <QEvent>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QProgressBar>
@@ -30,7 +31,7 @@ NexusDownloadModalContent::NexusDownloadModalContent(NexusModsClient *client,
     , m_modalManager(modalManager)
     , m_currentDownloadIndex(0)
 {
-    setTitle("Download from Nexus Mods");
+    setTitle(tr("Download from Nexus Mods"));
     setupUi();
     setPreferredSize(QSize(500, 350));
 
@@ -54,22 +55,24 @@ void NexusDownloadModalContent::setupUi() {
 
     bodyLayout()->addWidget(m_stack);
 
-    m_downloadButton = new QPushButton("Download", this);
+    m_downloadButton = new QPushButton(tr("Download"), this);
     m_downloadButton->setDefault(true);
     connect(m_downloadButton, &QPushButton::clicked, this, &NexusDownloadModalContent::onDownloadClicked);
     footerLayout()->addWidget(m_downloadButton);
 
-    m_authenticateButton = new QPushButton("Authenticate", this);
+    m_authenticateButton = new QPushButton(tr("Authenticate"), this);
     m_authenticateButton->setDefault(true);
     connect(m_authenticateButton, &QPushButton::clicked, this, &NexusDownloadModalContent::onAuthenticateClicked);
     footerLayout()->addWidget(m_authenticateButton);
 
-    m_cancelButton = new QPushButton("Cancel", this);
+    m_cancelButton = new QPushButton(tr("Cancel"), this);
     m_cancelButton->setAutoDefault(false);
     connect(m_cancelButton, &QPushButton::clicked, this, &NexusDownloadModalContent::reject);
     footerLayout()->addWidget(m_cancelButton);
 
     showInputPage();
+
+    retranslateUi();
 }
 
 QWidget* NexusDownloadModalContent::createInputPage() {
@@ -77,10 +80,10 @@ QWidget* NexusDownloadModalContent::createInputPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    auto *instructionLabel = new QLabel("Enter Nexus Mods URL for a Foxhole mod:", page);
-    instructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
+    m_inputInstructionLabel = new QLabel(tr("Enter Nexus Mods URL for a Foxhole mod:"), page);
+    m_inputInstructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                                    .arg(Theme::Colors::TEXT_SECONDARY));
-    layout->addWidget(instructionLabel);
+    layout->addWidget(m_inputInstructionLabel);
 
     m_urlEdit = new QLineEdit(page);
     m_urlEdit->setPlaceholderText("https://www.nexusmods.com/foxhole/mods/...");
@@ -97,12 +100,12 @@ QWidget* NexusDownloadModalContent::createAuthPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    auto *instructionLabel = new QLabel("Authentication required to access Nexus Mods API.", page);
-    instructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
+    m_authInstructionLabel = new QLabel(tr("Authentication required to access Nexus Mods API."), page);
+    m_authInstructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                                    .arg(Theme::Colors::TEXT_SECONDARY));
-    layout->addWidget(instructionLabel);
+    layout->addWidget(m_authInstructionLabel);
 
-    m_authStatusLabel = new QLabel("Click Authenticate to begin...", page);
+    m_authStatusLabel = new QLabel(tr("Click Authenticate to begin..."), page);
     m_authStatusLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 12px; }")
                                     .arg(Theme::Colors::TEXT_MUTED));
     m_authStatusLabel->setWordWrap(true);
@@ -118,7 +121,7 @@ QWidget* NexusDownloadModalContent::createDownloadPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    m_statusLabel = new QLabel("Preparing download...", page);
+    m_statusLabel = new QLabel(tr("Preparing download..."), page);
     m_statusLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                                 .arg(Theme::Colors::TEXT_SECONDARY));
     layout->addWidget(m_statusLabel);
@@ -133,13 +136,28 @@ QWidget* NexusDownloadModalContent::createDownloadPage() {
     return page;
 }
 
+void NexusDownloadModalContent::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    BaseModalContent::changeEvent(event);
+}
+
+void NexusDownloadModalContent::retranslateUi() {
+    setTitle(tr("Download from Nexus Mods"));
+    m_downloadButton->setText(tr("Download"));
+    m_authenticateButton->setText(tr("Authenticate"));
+    m_cancelButton->setText(tr("Cancel"));
+    m_inputInstructionLabel->setText(tr("Enter Nexus Mods URL for a Foxhole mod:"));
+}
+
 void NexusDownloadModalContent::showInputPage() {
     m_stack->setCurrentIndex(InputPage);
     updateFooterButtons();
 }
 
 void NexusDownloadModalContent::showAuthPage() {
-    m_authStatusLabel->setText("Click Authenticate to begin...");
+    m_authStatusLabel->setText(tr("Click Authenticate to begin..."));
     m_authenticateButton->setEnabled(true);
     m_stack->setCurrentIndex(AuthPage);
     updateFooterButtons();
@@ -147,7 +165,7 @@ void NexusDownloadModalContent::showAuthPage() {
 
 void NexusDownloadModalContent::showDownloadPage() {
     m_progressBar->setValue(0);
-    m_statusLabel->setText("Preparing download...");
+    m_statusLabel->setText(tr("Preparing download..."));
     m_stack->setCurrentIndex(DownloadPage);
     updateFooterButtons();
 }
@@ -163,13 +181,13 @@ void NexusDownloadModalContent::updateFooterButtons() {
 void NexusDownloadModalContent::onDownloadClicked() {
     QString url = m_urlEdit->text().trimmed();
     if (url.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "Please enter a URL");
+        MessageModal::warning(m_modalManager, tr("Error"), tr("Please enter a URL"));
         return;
     }
 
     auto result = NexusUrlParser::parseUrl(url);
     if (!result.isValid) {
-        MessageModal::warning(m_modalManager, "Invalid URL", result.error);
+        MessageModal::warning(m_modalManager, tr("Invalid URL"), result.error);
         return;
     }
 
@@ -187,29 +205,29 @@ void NexusDownloadModalContent::onDownloadClicked() {
 
 void NexusDownloadModalContent::onAuthenticateClicked() {
     m_authenticateButton->setEnabled(false);
-    m_authStatusLabel->setText("Connecting to authentication server...");
+    m_authStatusLabel->setText(tr("Connecting to authentication server..."));
     m_auth->startAuthentication();
 }
 
 void NexusDownloadModalContent::onAuthStarted(const QString &browserUrl) {
-    m_authStatusLabel->setText(QString("Opening browser for authentication...\n\nIf browser doesn't open, visit:\n%1").arg(browserUrl));
+    m_authStatusLabel->setText(tr("Opening browser for authentication...\n\nIf browser doesn't open, visit:\n%1").arg(browserUrl));
     QDesktopServices::openUrl(QUrl(browserUrl));
 }
 
 void NexusDownloadModalContent::onAuthComplete(const QString &apiKey) {
     m_client->setApiKey(apiKey);
-    m_authStatusLabel->setText("Authentication successful!");
+    m_authStatusLabel->setText(tr("Authentication successful!"));
     startDownloadProcess();
 }
 
 void NexusDownloadModalContent::onAuthFailed(const QString &error) {
-    m_authStatusLabel->setText(QString("Authentication failed: %1").arg(error));
+    m_authStatusLabel->setText(tr("Authentication failed: %1").arg(error));
     m_authenticateButton->setEnabled(true);
 }
 
 void NexusDownloadModalContent::startDownloadProcess() {
     showDownloadPage();
-    m_statusLabel->setText("Fetching mod information...");
+    m_statusLabel->setText(tr("Fetching mod information..."));
     m_client->getModInfo(m_currentModId);
 }
 
@@ -217,7 +235,7 @@ void NexusDownloadModalContent::onModInfoReceived(const QString &author, const Q
     m_author = author;
     m_description = description;
 
-    m_statusLabel->setText("Fetching file list...");
+    m_statusLabel->setText(tr("Fetching file list..."));
     m_client->getModFiles(m_currentModId);
 }
 
@@ -230,7 +248,7 @@ void NexusDownloadModalContent::onModFilesReceived(const QList<NexusFileInfo> &f
     }
 
     if (filtered.isEmpty()) {
-        MessageModal::warning(m_modalManager, "Error", "No files found for this mod");
+        MessageModal::warning(m_modalManager, tr("Error"), tr("No files found for this mod"));
         showInputPage();
         return;
     }
@@ -277,8 +295,8 @@ void NexusDownloadModalContent::onModFilesReceived(const QList<NexusFileInfo> &f
 
     auto *selectionModal = new FileSelectionModalContent(
         items,
-        QString("Select Files - %1").arg(m_author),
-        "Multiple files found. Select one or more (Ctrl+Click or Shift+Click):",
+        tr("Select Files - %1").arg(m_author),
+        tr("Multiple files found. Select one or more (Ctrl+Click or Shift+Click):"),
         true
     );
 
@@ -316,7 +334,7 @@ void NexusDownloadModalContent::onDownloadLinkReceived(const QString &url) {
     QString fileName = QString("nexus_mod_%1_%2.tmp").arg(m_currentModId, m_currentFileId);
     QString savePath = generateTempPath(fileName);
 
-    m_statusLabel->setText("Downloading file...");
+    m_statusLabel->setText(tr("Downloading file..."));
     m_client->downloadFile(QUrl(url), savePath);
 }
 
@@ -328,9 +346,9 @@ void NexusDownloadModalContent::onDownloadProgress(qint64 received, qint64 total
         qint64 receivedMB = received / (1024 * 1024);
         qint64 totalMB = total / (1024 * 1024);
 
-        QString statusText = QString("Downloading: %1 MB / %2 MB").arg(receivedMB).arg(totalMB);
+        QString statusText = tr("Downloading: %1 MB / %2 MB").arg(receivedMB).arg(totalMB);
         if (m_selectedFiles.size() > 1) {
-            statusText += QString(" (File %1 of %2)").arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size());
+            statusText += tr(" (File %1 of %2)").arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size());
         }
         m_statusLabel->setText(statusText);
     }
@@ -348,7 +366,7 @@ void NexusDownloadModalContent::onDownloadFinished(const QString &savePath) {
     if (m_currentDownloadIndex < m_selectedFiles.size()) {
         startNextDownload();
     } else {
-        m_statusLabel->setText("All downloads complete!");
+        m_statusLabel->setText(tr("All downloads complete!"));
         m_progressBar->setValue(100);
         accept();
     }
@@ -370,12 +388,12 @@ void NexusDownloadModalContent::startManualDownloadSequence() {
     QString message;
 
     if (m_selectedFiles.size() > 1) {
-        title = QString("Download File %1 of %2").arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size());
-        message = QString("Downloading: %1\n\nThe browser will open. Please download the file.\n\nOnce complete, click OK to locate it.")
+        title = tr("Download File %1 of %2").arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size());
+        message = tr("Downloading: %1\n\nThe browser will open. Please download the file.\n\nOnce complete, click OK to locate it.")
             .arg(file.name);
     } else {
-        title = "Select Downloaded File";
-        message = "Please download the file from your browser.\n\nOnce the download is complete, click OK to locate the file.";
+        title = tr("Select Downloaded File");
+        message = tr("Please download the file from your browser.\n\nOnce the download is complete, click OK to locate the file.");
     }
 
     QDesktopServices::openUrl(QUrl(modUrl));
@@ -390,17 +408,17 @@ void NexusDownloadModalContent::startManualDownloadSequence() {
     connect(selectModal, &MessageModal::finished, this, [this, file, selectModal]() {
         if (selectModal->clickedButton() == MessageModal::Ok) {
             QString dialogTitle = m_selectedFiles.size() > 1
-                ? QString("Select Downloaded File - %1").arg(file.name)
-                : "Select Downloaded File";
+                ? tr("Select Downloaded File - %1").arg(file.name)
+                : tr("Select Downloaded File");
 
             QString filePath = QFileDialog::getOpenFileName(
                 this,
                 dialogTitle,
                 QStandardPaths::writableLocation(QStandardPaths::DownloadLocation),
-                "Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
-                "Pak Files (*.pak);;"
-                "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
-                "All Files (*.*)"
+                tr("Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+                   "Pak Files (*.pak);;"
+                   "Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;"
+                   "All Files (*.*)")
             );
 
             if (!filePath.isEmpty()) {
@@ -415,7 +433,7 @@ void NexusDownloadModalContent::startManualDownloadSequence() {
                 if (m_selectedFiles.size() > 1) {
                     int progress = ((m_currentDownloadIndex + 1) * 100) / m_selectedFiles.size();
                     m_progressBar->setValue(progress);
-                    m_statusLabel->setText(QString("Downloaded %1 of %2 files")
+                    m_statusLabel->setText(tr("Downloaded %1 of %2 files")
                         .arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size()));
                 }
 
@@ -444,19 +462,19 @@ void NexusDownloadModalContent::startManualDownloadSequence() {
 void NexusDownloadModalContent::onError(const QString &error) {
     if (error == "PREMIUM_REQUIRED") {
         QString message;
-        QString title = "Premium Required";
+        QString title = tr("Premium Required");
 
         if (m_selectedFiles.size() > 1) {
-            message = QString(
+            message = tr(
                 "Direct downloads via API require a Nexus Mods Premium account.\n\n"
                 "Your browser will open for each of the %1 files you selected. "
                 "Please download each file manually.\n\n"
                 "You will be prompted to locate each downloaded file."
             ).arg(m_selectedFiles.size());
         } else {
-            message = "Direct downloads via API require a Nexus Mods Premium account.\n\n"
+            message = tr("Direct downloads via API require a Nexus Mods Premium account.\n\n"
                      "Your browser will open to the download page where you can download the file manually.\n\n"
-                     "The mod will be installed with Nexus metadata for future updates.";
+                     "The mod will be installed with Nexus metadata for future updates.");
         }
 
         auto *modal = new MessageModal(
@@ -482,7 +500,7 @@ void NexusDownloadModalContent::onError(const QString &error) {
 
         m_modalManager->showModal(modal);
     } else {
-        MessageModal::warning(m_modalManager, "Error", error);
+        MessageModal::warning(m_modalManager, tr("Error"), error);
         showInputPage();
     }
 }
@@ -503,10 +521,10 @@ void NexusDownloadModalContent::startNextDownload() {
     m_progressBar->setValue(0);
 
     if (m_selectedFiles.size() > 1) {
-        m_statusLabel->setText(QString("Getting download link for file %1 of %2...")
+        m_statusLabel->setText(tr("Getting download link for file %1 of %2...")
             .arg(m_currentDownloadIndex + 1).arg(m_selectedFiles.size()));
     } else {
-        m_statusLabel->setText("Getting download link...");
+        m_statusLabel->setText(tr("Getting download link..."));
     }
 
     m_client->getDownloadLink(m_currentModId, m_currentFileId);
@@ -518,12 +536,12 @@ QString NexusDownloadModalContent::formatFileSize(qint64 bytes) const {
     const qint64 GB = MB * 1024;
 
     if (bytes >= GB) {
-        return QString("%1 GB").arg(bytes / static_cast<double>(GB), 0, 'f', 2);
+        return tr("%1 GB").arg(bytes / static_cast<double>(GB), 0, 'f', 2);
     } else if (bytes >= MB) {
-        return QString("%1 MB").arg(bytes / static_cast<double>(MB), 0, 'f', 2);
+        return tr("%1 MB").arg(bytes / static_cast<double>(MB), 0, 'f', 2);
     } else if (bytes >= KB) {
-        return QString("%1 KB").arg(bytes / static_cast<double>(KB), 0, 'f', 2);
+        return tr("%1 KB").arg(bytes / static_cast<double>(KB), 0, 'f', 2);
     } else {
-        return QString("%1 bytes").arg(bytes);
+        return tr("%1 bytes").arg(bytes);
     }
 }

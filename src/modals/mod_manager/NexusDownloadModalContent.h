@@ -6,6 +6,7 @@
 #include <QString>
 #include <QList>
 
+class QEvent;
 class NexusModsClient;
 class NexusModsAuth;
 class ModalManager;
@@ -43,8 +44,12 @@ private slots:
     void onDownloadFinished(const QString &savePath);
     void onError(const QString &error);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private:
     void setupUi();
+    void retranslateUi();
     QWidget* createInputPage();
     QWidget* createAuthPage();
     QWidget* createDownloadPage();
@@ -70,6 +75,9 @@ private:
     QProgressBar *m_progressBar;
     QLabel *m_statusLabel;
     QLabel *m_authStatusLabel;
+
+    QLabel *m_inputInstructionLabel;
+    QLabel *m_authInstructionLabel;
 
     QStringList m_selectedFileIds;
     QList<NexusFileInfo> m_selectedFiles;

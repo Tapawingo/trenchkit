@@ -1,5 +1,6 @@
 #include "FileSelectionModalContent.h"
 #include "core/utils/Theme.h"
+#include <QEvent>
 #include <QListWidget>
 #include <QLabel>
 #include <QPushButton>
@@ -14,17 +15,15 @@ FileSelectionModalContent::FileSelectionModalContent(const QStringList &pakFiles
     , m_useFileItems(false)
     , m_showIgnoreButton(false)
 {
-    setTitle("Select .pak File");
+    setTitle(tr("Select .pak File"));
 
     QString headerText;
     if (m_multiSelect) {
-        headerText = QString(
-            "The archive '%1' contains multiple .pak files. Select one or more (Ctrl+Click):"
-        ).arg(archiveName);
+        headerText = tr("The archive '%1' contains multiple .pak files. Select one or more (Ctrl+Click):")
+            .arg(archiveName);
     } else {
-        headerText = QString(
-            "The archive '%1' contains multiple .pak files. Select one:"
-        ).arg(archiveName);
+        headerText = tr("The archive '%1' contains multiple .pak files. Select one:")
+            .arg(archiveName);
     }
 
     setupUi(headerText);
@@ -79,23 +78,22 @@ void FileSelectionModalContent::setupUi(const QString &headerText) {
     applyListStyling();
     bodyLayout()->addWidget(m_fileList);
 
-    // Add ignore button if requested (insert at position 0, before the existing stretch)
     if (m_showIgnoreButton) {
-        m_ignoreButton = new QPushButton("Ignore These Updates", this);
+        m_ignoreButton = new QPushButton(tr("Ignore These Updates"), this);
         m_ignoreButton->setCursor(Qt::PointingHandCursor);
         connect(m_ignoreButton, &QPushButton::clicked, this, &FileSelectionModalContent::ignoreAll);
         footerLayout()->insertWidget(0, m_ignoreButton);
     }
 
-    m_okButton = new QPushButton("OK", this);
+    m_okButton = new QPushButton(tr("OK"), this);
     m_okButton->setCursor(Qt::PointingHandCursor);
     connect(m_okButton, &QPushButton::clicked, this, &FileSelectionModalContent::accept);
     footerLayout()->addWidget(m_okButton);
 
-    auto *cancelButton = new QPushButton("Cancel", this);
-    cancelButton->setCursor(Qt::PointingHandCursor);
-    connect(cancelButton, &QPushButton::clicked, this, &FileSelectionModalContent::reject);
-    footerLayout()->addWidget(cancelButton);
+    m_cancelButton = new QPushButton(tr("Cancel"), this);
+    m_cancelButton->setCursor(Qt::PointingHandCursor);
+    connect(m_cancelButton, &QPushButton::clicked, this, &FileSelectionModalContent::reject);
+    footerLayout()->addWidget(m_cancelButton);
 
     connect(m_fileList, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem *item) {
         Q_UNUSED(item);
@@ -112,6 +110,23 @@ void FileSelectionModalContent::setupUi(const QString &headerText) {
         connect(m_fileList, &QListWidget::currentRowChanged, this, [this](int row) {
             m_okButton->setEnabled(row >= 0);
         });
+    }
+
+    retranslateUi();
+}
+
+void FileSelectionModalContent::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    BaseModalContent::changeEvent(event);
+}
+
+void FileSelectionModalContent::retranslateUi() {
+    m_okButton->setText(tr("OK"));
+    m_cancelButton->setText(tr("Cancel"));
+    if (m_showIgnoreButton && m_ignoreButton) {
+        m_ignoreButton->setText(tr("Ignore These Updates"));
     }
 }
 

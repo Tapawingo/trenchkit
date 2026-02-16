@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPointer>
+#include <QEvent>
 
 class UpdaterService;
 class NexusModsClient;
@@ -34,6 +35,9 @@ public:
     void setItchServices(ItchClient *client, ItchAuth *auth);
     void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 signals:
     void cancelRequested();
     void settingsApplied(bool autoCheck);
@@ -48,6 +52,7 @@ private slots:
 
 private:
     void buildUi();
+    void retranslateUi();
     void applySettings();
     void loadSettings(bool applyToUpdater);
     static bool parseGithubRepo(const QString &text, QString *owner, QString *repo);
@@ -87,6 +92,30 @@ private:
     QPushButton *m_addStartMenuShortcutButton = nullptr;
     QLabel *m_tkprofileStatusLabel = nullptr;
     QPushButton *m_tkprofileAssociateButton = nullptr;
+    QComboBox *m_languageCombo = nullptr;
+    QLabel *m_titleLabel = nullptr;
+    QLabel *m_languageLabel = nullptr;
+    QLabel *m_updaterHeader = nullptr;
+    QLabel *m_currentVersionLabel = nullptr;
+    QLabel *m_sourceLabel = nullptr;
+    QLabel *m_channelLabel = nullptr;
+    QLabel *m_autoCheckLabel = nullptr;
+    QLabel *m_downloadLabel = nullptr;
+    QLabel *m_checkLabel = nullptr;
+    QLabel *m_shortcutsHeader = nullptr;
+    QLabel *m_desktopShortcutLabel = nullptr;
+    QLabel *m_startMenuLabel = nullptr;
+    QLabel *m_nexusHeader = nullptr;
+    QLabel *m_nexusConnectionLabel = nullptr;
+    QLabel *m_nexusAuthLabel = nullptr;
+    QLabel *m_itchHeader = nullptr;
+    QLabel *m_itchConnectionLabel = nullptr;
+    QLabel *m_itchAuthLabel = nullptr;
+    QLabel *m_loggingHeader = nullptr;
+    QLabel *m_logLocationLabel = nullptr;
+    QLabel *m_logActionsLabel = nullptr;
+    QLabel *m_fileAssocHeader = nullptr;
+    QLabel *m_tkprofileLabel = nullptr;
 };
 
 #endif // SETTINGSWIDGET_H

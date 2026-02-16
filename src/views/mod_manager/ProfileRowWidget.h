@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QString>
+#include <QEvent>
 
 class QLabel;
 
@@ -24,14 +25,17 @@ signals:
     void clicked(const QString &profileId);
 
 protected:
+    void changeEvent(QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
     void setupUi(const QString &profileName);
+    void retranslateUi();
     void updateStyling();
 
     QString m_profileId;
+    QString m_profileName;
     bool m_isActive = false;
     bool m_isSelected = false;
 

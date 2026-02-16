@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(grep:*)",
+      "Bash(git diff:*)"
+    ]
+  }
+}

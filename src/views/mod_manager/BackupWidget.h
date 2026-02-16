@@ -3,7 +3,9 @@
 
 #include <QWidget>
 #include <QString>
+#include <QEvent>
 
+class QLabel;
 class QPushButton;
 class ModManager;
 class ModalManager;
@@ -18,6 +20,9 @@ public:
     void setModManager(ModManager *modManager);
     void setModalManager(ModalManager *modalManager) { m_modalManager = modalManager; }
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 signals:
     void errorOccurred(const QString &error);
     void backupCreated(int fileCount);
@@ -29,12 +34,14 @@ private slots:
 
 private:
     void setupUi();
+    void retranslateUi();
     void setupConnections();
     QString getBackupsPath() const;
 
     ModManager *m_modManager = nullptr;
     ModalManager *m_modalManager = nullptr;
 
+    QLabel *m_titleLabel = nullptr;
     QPushButton *m_createBackupButton;
     QPushButton *m_restoreBackupButton;
 };

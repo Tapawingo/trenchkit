@@ -10,6 +10,7 @@
 ProfileRowWidget::ProfileRowWidget(const QString &profileId, const QString &profileName, QWidget *parent)
     : QWidget(parent)
     , m_profileId(profileId)
+    , m_profileName(profileName)
 {
     setAttribute(Qt::WA_StyledBackground, true);
     setCursor(Qt::PointingHandCursor);
@@ -31,7 +32,7 @@ void ProfileRowWidget::setupUi(const QString &profileName) {
     m_iconLabel->setPixmap(iconPixmap.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     m_iconLabel->setFixedSize(20, 20);
 
-    m_nameLabel = new QLabel(profileName, this);
+    m_nameLabel = new QLabel(this);
     m_nameLabel->setObjectName("profileNameLabel");
 
     layout->addWidget(m_iconLabel);
@@ -39,6 +40,7 @@ void ProfileRowWidget::setupUi(const QString &profileName) {
 
     setLayout(layout);
 
+    retranslateUi();
     updateStyling();
 }
 
@@ -48,12 +50,7 @@ void ProfileRowWidget::setActive(bool active) {
         m_nameLabel->setProperty("active", active);
         style()->unpolish(m_nameLabel);
         style()->polish(m_nameLabel);
-
-        if (active) {
-            m_nameLabel->setText(m_nameLabel->text().remove(" (Active)") + " (Active)");
-        } else {
-            m_nameLabel->setText(m_nameLabel->text().remove(" (Active)"));
-        }
+        retranslateUi();
         updateStyling();
     }
 }
@@ -71,6 +68,21 @@ void ProfileRowWidget::updateStyling() {
     style()->polish(this);
 }
 
+void ProfileRowWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void ProfileRowWidget::retranslateUi() {
+    if (m_isActive) {
+        m_nameLabel->setText(m_profileName + QStringLiteral(" ") + tr("(Active)"));
+    } else {
+        m_nameLabel->setText(m_profileName);
+    }
+}
+
 void ProfileRowWidget::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         emit clicked(m_profileId);
@@ -81,10 +93,10 @@ void ProfileRowWidget::mousePressEvent(QMouseEvent *event) {
 void ProfileRowWidget::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
 
-    QAction *exportAction = menu.addAction(QIcon(":/icon_export.png"), "Export Profile");
-    QAction *renameAction = menu.addAction(QIcon(":/icon_edit.png"), "Rename Profile");
+    QAction *exportAction = menu.addAction(QIcon(":/icon_export.png"), tr("Export Profile"));
+    QAction *renameAction = menu.addAction(QIcon(":/icon_edit.png"), tr("Rename Profile"));
     menu.addSeparator();
-    QAction *deleteAction = menu.addAction(QIcon(":/icon_delete.png"), "Delete Profile");
+    QAction *deleteAction = menu.addAction(QIcon(":/icon_delete.png"), tr("Delete Profile"));
 
     QAction *selectedAction = menu.exec(event->globalPos());
 

@@ -7,6 +7,7 @@
 #include <QString>
 #include <QDateTime>
 
+class QEvent;
 class ModManager;
 class NexusModsClient;
 class NexusModsAuth;
@@ -38,6 +39,9 @@ private slots:
     void onFromItchClicked();
     void processNextFile();
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private:
     struct FileToProcess {
         QString filePath;
@@ -52,6 +56,7 @@ private:
     };
 
     void setupUi();
+    void retranslateUi();
     void handleArchiveFile(const QString &archivePath, const QString &nexusModId = QString(), const QString &nexusFileId = QString(),
                            const QString &author = QString(), const QString &description = QString(), const QString &version = QString(),
                            const QString &itchGameId = QString(), const QDateTime &uploadDate = QDateTime(), bool isBatchProcessing = false);
@@ -70,6 +75,7 @@ private:
     QPushButton *m_fromFileButton;
     QPushButton *m_fromNexusButton;
     QPushButton *m_fromItchButton;
+    QPushButton *m_cancelButton;
     QLabel *m_processingLabel = nullptr;
     QProgressBar *m_processingProgress = nullptr;
     QList<FileToProcess> m_filesToProcess;

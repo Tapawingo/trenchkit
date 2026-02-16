@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QList>
 
+class QEvent;
 class QListWidget;
 class QLabel;
 class QPushButton;
@@ -42,13 +43,18 @@ public slots:
 signals:
     void allIgnored();
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private:
     void setupUi(const QString &headerText);
+    void retranslateUi();
     void applyListStyling();
 
     QListWidget *m_fileList;
     QPushButton *m_okButton;
     QPushButton *m_ignoreButton;
+    QPushButton *m_cancelButton;
     QString m_selectedFile;
     QStringList m_selectedFiles;
     QStringList m_selectedIds;

@@ -2,6 +2,7 @@
 #include "MainWindow.h"
 #include "core/utils/UpdateCleanup.h"
 #include "core/utils/Logger.h"
+#include "core/utils/TranslationManager.h"
 #include <QTimer>
 #include <QCoreApplication>
 #ifdef _WIN32
@@ -31,6 +32,8 @@ int main(int argc, char *argv[]) {
     qInfo() << "TrenchKit version:" << TRENCHKIT_VERSION;
     qInfo() << "Qt version:" << QT_VERSION_STR;
     qInfo() << "Log directory:" << Logger::instance().logDirectory();
+
+    TranslationManager::instance().initialize();
 
     // Set application icon (for taskbar, alt-tab, etc.)
     app.setWindowIcon(QIcon(":/icon.png"));

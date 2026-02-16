@@ -43,22 +43,23 @@ void LaunchWidget::setupUi() {
     );
     layout->setSpacing(Theme::Spacing::CONTAINER_SPACING);
 
-    m_launchButton->setText("Play with mods");
     m_launchButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_launchButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
     m_launchButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_launchButton->setCursor(Qt::PointingHandCursor);
 
     QMenu *menu = new QMenu(this);
-    QAction *playWithMods = menu->addAction("Play with mods");
-    QAction *playWithoutMods = menu->addAction("Play without mods");
+    m_playWithModsAction = menu->addAction(QString());
+    m_playWithoutModsAction = menu->addAction(QString());
 
-    connect(playWithMods, &QAction::triggered, this, [this, playWithMods]() {
-        m_launchButton->setText(playWithMods->text());
+    connect(m_playWithModsAction, &QAction::triggered, this, [this]() {
+        m_launchWithMods = true;
+        retranslateUi();
     });
 
-    connect(playWithoutMods, &QAction::triggered, this, [this, playWithoutMods]() {
-        m_launchButton->setText(playWithoutMods->text());
+    connect(m_playWithoutModsAction, &QAction::triggered, this, [this]() {
+        m_launchWithMods = false;
+        retranslateUi();
     });
 
     m_launchButton->setMenu(menu);
@@ -66,11 +67,30 @@ void LaunchWidget::setupUi() {
     layout->addWidget(m_launchButton);
 
     setLayout(layout);
+
+    retranslateUi();
+}
+
+void LaunchWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void LaunchWidget::retranslateUi() {
+    if (m_launchWithMods) {
+        m_launchButton->setText(tr("Play with mods"));
+    } else {
+        m_launchButton->setText(tr("Play without mods"));
+    }
+    m_playWithModsAction->setText(tr("Play with mods"));
+    m_playWithoutModsAction->setText(tr("Play without mods"));
 }
 
 void LaunchWidget::setupConnections() {
     connect(m_launchButton, &QToolButton::clicked, this, [this]() {
-        if (m_launchButton->text() == "Play with mods") {
+        if (m_launchWithMods) {
             onLaunchWithMods();
         } else {
             onLaunchWithoutMods();
@@ -82,12 +102,12 @@ void LaunchWidget::onLaunchWithMods() {
     QString exePath = getFoxholeExecutablePath();
 
     if (exePath.isEmpty()) {
-        emit errorOccurred("Foxhole executable not found. Please check your installation path.");
+        emit errorOccurred(tr("Foxhole executable not found. Please check your installation path."));
         return;
     }
 
     if (!QProcess::startDetached(exePath, QStringList(), m_foxholeInstallPath)) {
-        emit errorOccurred("Failed to launch Foxhole");
+        emit errorOccurred(tr("Failed to launch Foxhole"));
     } else {
         emit gameLaunched(true);
     }
@@ -95,14 +115,14 @@ void LaunchWidget::onLaunchWithMods() {
 
 void LaunchWidget::onLaunchWithoutMods() {
     if (!m_modManager) {
-        emit errorOccurred("Mod manager not initialized");
+        emit errorOccurred(tr("Mod manager not initialized"));
         return;
     }
 
     QString exePath = getFoxholeExecutablePath();
 
     if (exePath.isEmpty()) {
-        emit errorOccurred("Foxhole executable not found. Please check your installation path.");
+        emit errorOccurred(tr("Foxhole executable not found. Please check your installation path."));
         return;
     }
 
@@ -137,7 +157,7 @@ void LaunchWidget::onLaunchWithoutMods() {
         m_gameProcess->start();
 
         if (!m_gameProcess->waitForStarted(5000)) {
-            emit errorOccurred("Failed to launch Foxhole");
+            emit errorOccurred(tr("Failed to launch Foxhole"));
 
             for (const QString &modId : m_modsToRestore) {
                 m_modManager->enableMod(modId);
@@ -157,9 +177,9 @@ void LaunchWidget::onLaunchWithoutMods() {
 
             if (m_modalManager) {
                 m_waitingModal = new MessageModal(
-                    "Waiting for Foxhole",
-                    "Waiting for Foxhole to start...\n\n"
-                    "Cancel to restore mods and stop the launch.",
+                    tr("Waiting for Foxhole"),
+                    tr("Waiting for Foxhole to start...\n\n"
+                    "Cancel to restore mods and stop the launch."),
                     MessageModal::Information,
                     MessageModal::Cancel
                 );
@@ -175,8 +195,8 @@ void LaunchWidget::onLaunchWithoutMods() {
 
     if (!enabledModIds.isEmpty()) {
         auto *modal = new MessageModal(
-            "Launch without mods",
-            QString("This will temporarily disable %1 enabled mod(s).\n\n"
+            tr("Launch without mods"),
+            tr("This will temporarily disable %1 enabled mod(s).\n\n"
                     "They will be automatically restored when the game closes.\n\n"
                     "Continue?").arg(enabledModIds.count()),
             MessageModal::Question,
@@ -292,8 +312,8 @@ void LaunchWidget::restoreDisabledMods() {
 
     emit modsRestored(modCount);
 
-    MessageModal::information(m_modalManager, "Mods Restored",
-        QString("Restored %1 mod(s) that were disabled for vanilla gameplay.")
+    MessageModal::information(m_modalManager, tr("Mods Restored"),
+        tr("Restored %1 mod(s) that were disabled for vanilla gameplay.")
         .arg(modCount));
 
     m_modsToRestore.clear();

@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QEvent>
 #include <QDir>
 #include <QFile>
 #include <QDateTime>
@@ -17,8 +18,8 @@
 
 BackupWidget::BackupWidget(QWidget *parent)
     : QWidget(parent)
-    , m_createBackupButton(new QPushButton("Create Backup", this))
-    , m_restoreBackupButton(new QPushButton("Restore Backup", this))
+    , m_createBackupButton(new QPushButton(this))
+    , m_restoreBackupButton(new QPushButton(this))
 {
     setupUi();
     setupConnections();
@@ -43,9 +44,9 @@ void BackupWidget::setupUi() {
 
     QVBoxLayout *frameLayout = new QVBoxLayout(frame);
 
-    auto *titleLabel = new QLabel("Backup", this);
-    titleLabel->setObjectName("backupTitle");
-    frameLayout->addWidget(titleLabel);
+    m_titleLabel = new QLabel(this);
+    m_titleLabel->setObjectName("backupTitle");
+    frameLayout->addWidget(m_titleLabel);
 
     m_createBackupButton->setCursor(Qt::PointingHandCursor);
     m_restoreBackupButton->setCursor(Qt::PointingHandCursor);
@@ -53,6 +54,21 @@ void BackupWidget::setupUi() {
     frameLayout->addWidget(m_restoreBackupButton);
 
     setLayout(layout);
+
+    retranslateUi();
+}
+
+void BackupWidget::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void BackupWidget::retranslateUi() {
+    m_titleLabel->setText(tr("Backup"));
+    m_createBackupButton->setText(tr("Create Backup"));
+    m_restoreBackupButton->setText(tr("Restore Backup"));
 }
 
 void BackupWidget::setupConnections() {
@@ -62,7 +78,7 @@ void BackupWidget::setupConnections() {
 
 void BackupWidget::onCreateBackupClicked() {
     if (!m_modManager) {
-        emit errorOccurred("Mod manager not initialized");
+        emit errorOccurred(tr("Mod manager not initialized"));
         return;
     }
 
@@ -80,12 +96,12 @@ void BackupWidget::onCreateBackupClicked() {
     QString destPath = backupDir + "/mods.json";
 
     if (!QFile::exists(sourcePath)) {
-        emit errorOccurred("No mods metadata file to backup");
+        emit errorOccurred(tr("No mods metadata file to backup"));
         return;
     }
 
     if (!QFile::copy(sourcePath, destPath)) {
-        emit errorOccurred("Failed to create backup");
+        emit errorOccurred(tr("Failed to create backup"));
         return;
     }
 
@@ -116,14 +132,14 @@ void BackupWidget::onCreateBackupClicked() {
     }
 
     emit backupCreated(modCount);
-    MessageModal::information(m_modalManager, "Success",
-        QString("Backup created successfully:\n%1\n\nBacked up %2 mod file(s)")
+    MessageModal::information(m_modalManager, tr("Success"),
+        tr("Backup created successfully:\n%1\n\nBacked up %2 mod file(s)")
         .arg(backupDir).arg(copiedFiles));
 }
 
 void BackupWidget::onRestoreBackupClicked() {
     if (!m_modManager) {
-        emit errorOccurred("Mod manager not initialized");
+        emit errorOccurred(tr("Mod manager not initialized"));
         return;
     }
 
@@ -135,14 +151,14 @@ void BackupWidget::onRestoreBackupClicked() {
     QDir backupsDir(backupsPath);
 
     if (!backupsDir.exists()) {
-        emit errorOccurred("No backups found");
+        emit errorOccurred(tr("No backups found"));
         return;
     }
 
     QStringList backups = backupsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time);
 
     if (backups.isEmpty()) {
-        emit errorOccurred("No backups available");
+        emit errorOccurred(tr("No backups available"));
         return;
     }
 
@@ -157,7 +173,7 @@ void BackupWidget::onRestoreBackupClicked() {
             if (doc.isObject()) {
                 QJsonObject info = doc.object();
                 int modCount = info["modCount"].toInt();
-                displayText += QString(" (%1 mods)").arg(modCount);
+                displayText += tr(" (%1 mods)").arg(modCount);
             }
             infoFile.close();
         }
@@ -173,8 +189,8 @@ void BackupWidget::onRestoreBackupClicked() {
         }
 
         auto *confirmModal = new MessageModal(
-            "Confirm Restore",
-            "This will replace your current mod configuration. Continue?",
+            tr("Confirm Restore"),
+            tr("This will replace your current mod configuration. Continue?"),
             MessageModal::Question,
             MessageModal::Yes | MessageModal::No
         );
@@ -192,7 +208,7 @@ void BackupWidget::onRestoreBackupClicked() {
             QFile::remove(destMetadataPath);
 
             if (!QFile::copy(backupMetadataPath, destMetadataPath)) {
-                emit errorOccurred("Failed to restore backup metadata");
+                emit errorOccurred(tr("Failed to restore backup metadata"));
                 return;
             }
 
@@ -212,8 +228,8 @@ void BackupWidget::onRestoreBackupClicked() {
             }
 
             emit backupRestored(selectedBackup);
-            MessageModal::information(m_modalManager, "Success",
-                QString("Backup restored successfully\n\nRestored %1 mod file(s)")
+            MessageModal::information(m_modalManager, tr("Success"),
+                tr("Backup restored successfully\n\nRestored %1 mod file(s)")
                 .arg(restoredFiles));
         });
         m_modalManager->showModal(confirmModal);

@@ -4,6 +4,7 @@
 #include "BaseModalContent.h"
 #include <QString>
 
+class QEvent;
 class QLabel;
 class QProgressBar;
 class QPushButton;
@@ -25,6 +26,9 @@ public:
 
 signals:
     void canceled();
+
+protected:
+    void changeEvent(QEvent *event) override;
 
 private:
     void setupUi(const QString &labelText, const QString &cancelButtonText);
