@@ -12,6 +12,12 @@
         <file alias="icon_settings.png">../extras/icons/icon_settings.png</file>
         <file alias="icon_update.png">../extras/icons/icon_update.png</file>
         <file alias="icon_conflict.png">../extras/icons/icon_conflict.png</file>
+        <file alias="icon_notice_info.png">../extras/icons/icon_notice_info.png</file>
+        <file alias="icon_notice_warning.png">../extras/icons/icon_notice_warning.png</file>
+        <file alias="icon_notice_error.png">../extras/icons/icon_notice_error.png</file>
+        <file alias="icon_notice_question.png">../extras/icons/icon_notice_question.png</file>
+        <file alias="icon_notice_lightbulb.png">../extras/icons/icon_notice_lightbulb.png</file>
+        <file alias="icon_dependency_missing.png">../extras/icons/icon_dependency_missing.png</file>
         <file alias="icon_down.png">../extras/icons/icon_down.png</file>
         <file alias="tex_main.png">../extras/textures/tex_main.png</file>
         <file alias="tex_panel.png">../extras/textures/tex_panel.png</file>

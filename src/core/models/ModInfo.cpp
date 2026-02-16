@@ -39,6 +39,48 @@ QJsonObject ModInfo::toJson() const {
     if (!description.isEmpty()) {
         json["description"] = description;
     }
+    if (!homepageUrl.isEmpty()) {
+        json["homepageUrl"] = homepageUrl;
+    }
+    if (!manifestId.isEmpty()) {
+        json["manifestId"] = manifestId;
+    }
+    if (!manifestAuthors.isEmpty()) {
+        QJsonArray authorsArray;
+        for (const QString &manifestAuthor : manifestAuthors) {
+            authorsArray.append(manifestAuthor);
+        }
+        json["manifestAuthors"] = authorsArray;
+    }
+    if (!manifestDependencies.isEmpty()) {
+        QJsonArray depsArray;
+        for (const auto &dep : manifestDependencies) {
+            QJsonObject depObj;
+            depObj["id"] = dep.id;
+            if (!dep.minVersion.isEmpty()) {
+                depObj["minVersion"] = dep.minVersion;
+            }
+            if (!dep.maxVersion.isEmpty()) {
+                depObj["maxVersion"] = dep.maxVersion;
+            }
+            depObj["required"] = dep.required;
+            depsArray.append(depObj);
+        }
+        json["manifestDependencies"] = depsArray;
+    }
+    if (!manifestTags.isEmpty()) {
+        QJsonArray tagsArray;
+        for (const QString &tag : manifestTags) {
+            tagsArray.append(tag);
+        }
+        json["manifestTags"] = tagsArray;
+    }
+    if (!noticeText.isEmpty()) {
+        json["noticeText"] = noticeText;
+    }
+    if (!noticeIcon.isEmpty()) {
+        json["noticeIcon"] = noticeIcon;
+    }
     if (!ignoredItchUploadIds.isEmpty()) {
         QJsonArray ignoredArray;
         for (const QString &uploadId : ignoredItchUploadIds) {
@@ -87,6 +129,44 @@ ModInfo ModInfo::fromJson(const QJsonObject &json) {
     }
     if (json.contains("description")) {
         mod.description = json["description"].toString();
+    }
+    if (json.contains("homepageUrl")) {
+        mod.homepageUrl = json["homepageUrl"].toString();
+    }
+    if (json.contains("manifestId")) {
+        mod.manifestId = json["manifestId"].toString();
+    }
+    if (json.contains("manifestAuthors")) {
+        QJsonArray authorsArray = json["manifestAuthors"].toArray();
+        for (const QJsonValue &value : authorsArray) {
+            mod.manifestAuthors.append(value.toString());
+        }
+    }
+    if (json.contains("manifestDependencies")) {
+        QJsonArray depsArray = json["manifestDependencies"].toArray();
+        for (const QJsonValue &value : depsArray) {
+            QJsonObject depObj = value.toObject();
+            ModInfo::Dependency dep;
+            dep.id = depObj["id"].toString();
+            dep.minVersion = depObj["minVersion"].toString();
+            dep.maxVersion = depObj["maxVersion"].toString();
+            dep.required = depObj.contains("required") ? depObj["required"].toBool(true) : true;
+            if (!dep.id.isEmpty()) {
+                mod.manifestDependencies.append(dep);
+            }
+        }
+    }
+    if (json.contains("manifestTags")) {
+        QJsonArray tagsArray = json["manifestTags"].toArray();
+        for (const QJsonValue &value : tagsArray) {
+            mod.manifestTags.append(value.toString());
+        }
+    }
+    if (json.contains("noticeText")) {
+        mod.noticeText = json["noticeText"].toString();
+    }
+    if (json.contains("noticeIcon")) {
+        mod.noticeIcon = json["noticeIcon"].toString();
     }
     if (json.contains("ignoredItchUploadIds")) {
         QJsonArray ignoredArray = json["ignoredItchUploadIds"].toArray();

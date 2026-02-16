@@ -38,6 +38,7 @@
 #include <QMenu>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QVersionNumber>
 #include <functional>
 #include <memory>
 
@@ -201,6 +202,13 @@ void ModListWidget::refreshModList() {
     m_modList->clear();
 
     QList<ModInfo> mods = m_modManager->getMods();
+    QHash<QString, ModInfo> manifestIndex;
+    manifestIndex.reserve(mods.size());
+    for (const ModInfo &mod : mods) {
+        if (!mod.manifestId.isEmpty()) {
+            manifestIndex.insert(mod.manifestId.trimmed().toLower(), mod);
+        }
+    }
     int enabledCount = 0;
     for (const ModInfo &mod : mods) {
         if (mod.enabled) {
@@ -305,6 +313,67 @@ void ModListWidget::refreshModList() {
         if (m_conflictDetector) {
             ConflictInfo conflictInfo = m_conflictDetector->getConflictInfo(mod.id);
             modRow->setConflictInfo(conflictInfo);
+        }
+
+        modRow->setNotice(mod.noticeText, mod.noticeIcon);
+        {
+            QStringList missingDeps;
+            QStringList versionIssues;
+
+            for (const auto &dep : mod.manifestDependencies) {
+                if (!dep.required) {
+                    continue;
+                }
+                const QString depId = dep.id.trimmed();
+                if (depId.isEmpty()) {
+                    continue;
+                }
+                const QString depKey = depId.toLower();
+                if (!manifestIndex.contains(depKey)) {
+                    missingDeps.append(depId);
+                    continue;
+                }
+
+                const ModInfo depMod = manifestIndex.value(depKey);
+                if (!dep.minVersion.isEmpty() || !dep.maxVersion.isEmpty()) {
+                    QVersionNumber depVersion = QVersionNumber::fromString(depMod.version);
+                    QVersionNumber minVersion = QVersionNumber::fromString(dep.minVersion);
+                    QVersionNumber maxVersion = QVersionNumber::fromString(dep.maxVersion);
+
+                    bool minOk = true;
+                    bool maxOk = true;
+
+                    if (!dep.minVersion.isEmpty() && !minVersion.isNull() && !depVersion.isNull()) {
+                        minOk = QVersionNumber::compare(depVersion, minVersion) >= 0;
+                    }
+                    if (!dep.maxVersion.isEmpty() && !maxVersion.isNull() && !depVersion.isNull()) {
+                        maxOk = QVersionNumber::compare(depVersion, maxVersion) <= 0;
+                    }
+
+                    if (!minOk || !maxOk) {
+                        QString requirement = depId;
+                        if (!dep.minVersion.isEmpty()) {
+                            requirement += QString(" >= %1").arg(dep.minVersion);
+                        }
+                        if (!dep.maxVersion.isEmpty()) {
+                            requirement += QString(" <= %1").arg(dep.maxVersion);
+                        }
+                        if (!depMod.version.isEmpty()) {
+                            requirement += QString(" (have %1)").arg(depMod.version);
+                        }
+                        versionIssues.append(requirement);
+                    }
+                }
+            }
+
+            QStringList lines;
+            if (!missingDeps.isEmpty()) {
+                lines.append(tr("Missing dependencies: %1").arg(missingDeps.join(", ")));
+            }
+            if (!versionIssues.isEmpty()) {
+                lines.append(tr("Dependency version mismatch: %1").arg(versionIssues.join(", ")));
+            }
+            modRow->setDependencyStatus(lines.join("\n"));
         }
 
         if (hasSavedSelection) {

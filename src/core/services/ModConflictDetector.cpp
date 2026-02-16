@@ -152,6 +152,17 @@ ModConflictDetector::ScanResult ModConflictDetector::detectConflictsWorker(const
         }
 
         if (!filePaths.isEmpty()) {
+            filePaths.erase(std::remove_if(filePaths.begin(), filePaths.end(),
+                [](const QString &path) {
+                    QString normalized = path;
+                    normalized.replace('\\', '/');
+                    normalized = normalized.toLower();
+                    return normalized.endsWith(QStringLiteral("mod/manifest.xml"));
+                }),
+                filePaths.end());
+        }
+
+        if (!filePaths.isEmpty()) {
             ModFileCache cache;
             cache.modId = mod.id;
             cache.modName = mod.name;

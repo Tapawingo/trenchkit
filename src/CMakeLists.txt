@@ -93,6 +93,8 @@ qt_add_executable(TrenchKit
   core/utils/NexusUrlParser.cpp
   core/utils/ItchUrlParser.h
   core/utils/ItchUrlParser.cpp
+  core/utils/ModManifestReader.h
+  core/utils/ModManifestReader.cpp
   core/utils/PakFileReader.h
   core/utils/PakFileReader.cpp
   core/utils/TranslationManager.h
