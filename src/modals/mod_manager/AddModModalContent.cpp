@@ -10,6 +10,7 @@
 #include "core/api/ItchClient.h"
 #include "core/api/ItchAuth.h"
 #include "core/utils/ArchiveExtractor.h"
+#include "core/utils/PakFileReader.h"
 #include "core/utils/Theme.h"
 #include <QEvent>
 #include <QPushButton>
@@ -120,13 +121,7 @@ void AddModModalContent::onFromFileClicked() {
 }
 
 bool AddModModalContent::isArchiveFile(const QString &filePath) const {
-    QString lower = filePath.toLower();
-    return lower.endsWith(".zip") ||
-           lower.endsWith(".rar") ||
-           lower.endsWith(".7z") ||
-           lower.endsWith(".tar.gz") ||
-           lower.endsWith(".tar.bz2") ||
-           lower.endsWith(".tar.xz");
+    return ArchiveExtractor::isArchiveFile(filePath);
 }
 
 void AddModModalContent::handleArchiveFile(const QString &archivePath, const QString &nexusModId, const QString &nexusFileId,
@@ -221,15 +216,40 @@ void AddModModalContent::handlePakFile(const QString &pakPath, const QString &ne
                                        const QString &author, const QString &description, const QString &version,
                                        const QString &itchGameId, const QString &itchUrl,
                                        const QString &customModName, const QDateTime &uploadDate) {
+    if (ArchiveExtractor::isArchiveFile(pakPath)) {
+        handleArchiveFile(pakPath, nexusModId, nexusFileId, nexusUrl, author, description, version,
+                          itchGameId, itchUrl, uploadDate, false);
+        return;
+    }
+
+    QString normalizedPath = pakPath;
+    if (!pakPath.endsWith(".pak", Qt::CaseInsensitive)) {
+        auto parseResult = PakFileReader::extractFilePaths(pakPath);
+        if (!parseResult.success) {
+            MessageModal::warning(m_modalManager, tr("Error"),
+                                  tr("Downloaded file is not a valid .pak or supported archive."));
+            return;
+        }
+
+        QFileInfo fileInfo(pakPath);
+        QString newPath = fileInfo.path() + "/" + fileInfo.completeBaseName() + ".pak";
+        if (QFile::exists(newPath)) {
+            QFile::remove(newPath);
+        }
+        if (QFile::rename(pakPath, newPath)) {
+            normalizedPath = newPath;
+        }
+    }
+
     QString modName;
     if (!customModName.isEmpty()) {
         modName = customModName;
     } else {
-        QFileInfo fileInfo(pakPath);
+        QFileInfo fileInfo(normalizedPath);
         modName = fileInfo.baseName();
     }
 
-    if (!m_modManager->addMod(pakPath, modName, nexusModId, nexusFileId, nexusUrl, author, description, version,
+    if (!m_modManager->addMod(normalizedPath, modName, nexusModId, nexusFileId, nexusUrl, author, description, version,
                               itchGameId, itchUrl, uploadDate)) {
         MessageModal::warning(m_modalManager, tr("Error"), tr("Failed to add mod: %1").arg(modName));
     } else {

@@ -43,7 +43,75 @@ ArchiveExtractor::ArchiveFormat ArchiveExtractor::detectFormat(const QString &fi
         return ArchiveFormat::SevenZip;
     }
 
+    ArchiveFormat signatureFormat = detectFormatBySignature(filePath);
+    if (signatureFormat != ArchiveFormat::Unknown) {
+        qDebug() << "ArchiveExtractor: Detected format by signature";
+        return signatureFormat;
+    }
+
     qDebug() << "ArchiveExtractor: Unknown format";
+    return ArchiveFormat::Unknown;
+}
+
+ArchiveExtractor::ArchiveFormat ArchiveExtractor::detectFormatBySignature(const QString &filePath) const {
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return ArchiveFormat::Unknown;
+    }
+
+    QByteArray header = file.read(8);
+    if (header.size() >= 4) {
+        if (header.startsWith("PK\x03\x04") || header.startsWith("PK\x05\x06")
+            || header.startsWith("PK\x07\x08")) {
+            return ArchiveFormat::Zip;
+        }
+    }
+
+    if (header.size() >= 7) {
+        const QByteArray rar4("Rar!\x1A\x07\x00", 7);
+        if (header.startsWith(rar4)) {
+            return ArchiveFormat::Rar;
+        }
+    }
+
+    if (header.size() >= 8) {
+        const QByteArray rar5("Rar!\x1A\x07\x01\x00", 8);
+        if (header.startsWith(rar5)) {
+            return ArchiveFormat::Rar;
+        }
+    }
+
+    if (header.size() >= 6) {
+        const QByteArray sevenZip("\x37\x7A\xBC\xAF\x27\x1C", 6);
+        if (header.startsWith(sevenZip)) {
+            return ArchiveFormat::SevenZip;
+        }
+    }
+
+    if (header.size() >= 2) {
+        if (static_cast<unsigned char>(header[0]) == 0x1F
+            && static_cast<unsigned char>(header[1]) == 0x8B) {
+            return ArchiveFormat::TarGz;
+        }
+        if (header[0] == 'B' && header[1] == 'Z') {
+            return ArchiveFormat::TarBz2;
+        }
+    }
+
+    if (header.size() >= 6) {
+        const QByteArray xz("\xFD\x37\x7A\x58\x5A\x00", 6);
+        if (header.startsWith(xz)) {
+            return ArchiveFormat::TarXz;
+        }
+    }
+
+    if (file.size() > 262 && file.seek(257)) {
+        QByteArray tarMagic = file.read(5);
+        if (tarMagic == "ustar") {
+            return ArchiveFormat::TarGz;
+        }
+    }
+
     return ArchiveFormat::Unknown;
 }
 
@@ -170,6 +238,11 @@ ArchiveExtractor::ExtractResult ArchiveExtractor::extractPakFiles(
         qDebug() << "ArchiveExtractor: Using libarchive for extraction";
         return extractWithLibarchive(archivePath);
     }
+}
+
+bool ArchiveExtractor::isArchiveFile(const QString &filePath) {
+    ArchiveExtractor extractor;
+    return extractor.detectFormat(filePath) != ArchiveFormat::Unknown;
 }
 
 ArchiveExtractor::ExtractResult ArchiveExtractor::extractWithZip(const QString &zipPath) {
