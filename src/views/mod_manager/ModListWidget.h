@@ -10,6 +10,7 @@
 #include <QTimer>
 #include <QRegularExpression>
 #include <QCheckBox>
+#include <QStringList>
 
 class NexusModsClient;
 class NexusModsAuth;
@@ -24,6 +25,8 @@ class QShortcut;
 struct ModUpdateInfo;
 struct ItchUpdateInfo;
 struct ConflictInfo;
+struct NexusFileInfo;
+struct ItchUploadInfo;
 
 class ModListWidget : public QWidget {
     Q_OBJECT
@@ -80,12 +83,23 @@ private slots:
     void onConflictDetailsRequested(const QString &modId);
     void onRegisterWithNexusRequested(const QString &modId);
     void onRegisterWithItchRequested(const QString &modId);
+    void onContextMenuRequested(const QPoint &pos);
 
 private:
     void setupUi();
     void retranslateUi();
     QString getSelectedModId() const;
+    QStringList getSelectedModIds() const;
     int getSelectedRow() const;
+    int getSelectedCount() const;
+    void showSelectionContextMenu(const QPoint &globalPos);
+    void startNexusRegistrationQueue(const QStringList &modIds);
+    void startItchRegistrationQueue(const QStringList &modIds);
+    void applyNexusRegistration(const QString &modId, const QList<NexusFileInfo> &files,
+                                const QString &nexusModId, const QString &author,
+                                const QString &description);
+    void applyItchRegistration(const QString &modId, const QList<ItchUploadInfo> &uploads,
+                               const QString &itchGameId, const QString &author);
     QString extractVersionFromFilename(const QString &filename) const;
     void handlePakFile(const QString &pakPath);
     void handleArchiveFile(const QString &archivePath);

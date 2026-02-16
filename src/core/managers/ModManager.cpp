@@ -7,6 +7,7 @@
 #include <QStandardPaths>
 #include <QDebug>
 #include <QRegularExpression>
+#include <QSet>
 
 ModManager::ModManager(QObject *parent)
     : QObject(parent)
@@ -323,6 +324,54 @@ bool ModManager::setAllModsEnabled(bool enabled) {
         QMutexLocker locker(&m_modsMutex);
         for (const ModInfo &mod : m_mods) {
             if (mod.enabled != enabled) {
+                modsToProcess.append(mod);
+            }
+        }
+    }
+
+    if (modsToProcess.isEmpty()) {
+        return true;
+    }
+
+    bool anyFailed = false;
+    for (const ModInfo &mod : modsToProcess) {
+        bool ok = enabled ? copyModToPaks(mod) : removeModFromPaks(mod);
+        if (!ok) {
+            emit errorOccurred(tr("Failed to %1 mod: %2")
+                .arg(enabled ? tr("enable") : tr("disable"), mod.name));
+            anyFailed = true;
+            continue;
+        }
+
+        QMutexLocker locker(&m_modsMutex);
+        auto it = std::find_if(m_mods.begin(), m_mods.end(),
+                               [&mod](const ModInfo &item) { return item.id == mod.id; });
+        if (it != m_mods.end()) {
+            it->enabled = enabled;
+        }
+    }
+
+    if (enabled) {
+        renumberEnabledMods();
+    }
+
+    saveMods();
+    emit modsChanged();
+
+    return !anyFailed;
+}
+
+bool ModManager::setModsEnabled(const QStringList &modIds, bool enabled) {
+    if (modIds.isEmpty()) {
+        return true;
+    }
+
+    QSet<QString> idSet(modIds.begin(), modIds.end());
+    QList<ModInfo> modsToProcess;
+    {
+        QMutexLocker locker(&m_modsMutex);
+        for (const ModInfo &mod : m_mods) {
+            if (idSet.contains(mod.id) && mod.enabled != enabled) {
                 modsToProcess.append(mod);
             }
         }

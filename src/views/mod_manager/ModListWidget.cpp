@@ -18,7 +18,9 @@
 #include "core/models/ModUpdateInfo.h"
 #include "core/services/ItchModUpdateService.h"
 #include "core/models/ItchUpdateInfo.h"
+#include "core/models/NexusFileInfo.h"
 #include "core/services/ModConflictDetector.h"
+#include "common/modals/BaseModalContent.h"
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QHBoxLayout>
@@ -32,6 +34,10 @@
 #include <QKeyEvent>
 #include <QCheckBox>
 #include <QSignalBlocker>
+#include <QSet>
+#include <QMenu>
+#include <functional>
+#include <memory>
 
 ModListWidget::ModListWidget(QWidget *parent)
     : QWidget(parent)
@@ -149,21 +155,26 @@ void ModListWidget::setupUi() {
 
     connect(m_modList, &QListWidget::itemSelectionChanged,
             this, [this]() {
-        int selectedRow = getSelectedRow();
         int totalMods = m_modList->count();
+        int selectedCount = getSelectedCount();
+        int selectedRow = selectedCount == 1 ? getSelectedRow() : -1;
 
         for (int i = 0; i < totalMods; ++i) {
             QListWidgetItem *item = m_modList->item(i);
             if (item) {
                 auto *rowWidget = qobject_cast<ModRowWidget*>(m_modList->itemWidget(item));
                 if (rowWidget) {
-                    rowWidget->setSelected(i == selectedRow);
+                    rowWidget->setSelected(item->isSelected());
                 }
             }
         }
 
         emit modSelectionChanged(selectedRow, totalMods);
     });
+
+    m_modList->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_modList, &QListWidget::customContextMenuRequested,
+            this, &ModListWidget::onContextMenuRequested);
 
     connect(m_searchEdit, &QLineEdit::textChanged, this, [this](const QString &text) {
         m_filterText = text.trimmed();
@@ -182,6 +193,9 @@ void ModListWidget::refreshModList() {
 
     int currentRow = getSelectedRow();
     int scrollPosition = m_modList->verticalScrollBar()->value();
+    QStringList selectedIds = getSelectedModIds();
+    QSet<QString> selectedIdSet(selectedIds.begin(), selectedIds.end());
+    bool hasSavedSelection = !selectedIdSet.isEmpty();
     m_modList->clear();
 
     QList<ModInfo> mods = m_modManager->getMods();
@@ -251,6 +265,20 @@ void ModListWidget::refreshModList() {
                 this, &ModListWidget::onRegisterWithNexusRequested);
         connect(modRow, &ModRowWidget::registerWithItchRequested,
                 this, &ModListWidget::onRegisterWithItchRequested);
+        connect(modRow, &ModRowWidget::contextMenuRequested,
+                this, [this](const QPoint &globalPos) {
+            if (!m_modList) {
+                return;
+            }
+            QPoint localPos = m_modList->viewport()->mapFromGlobal(globalPos);
+            QListWidgetItem *item = m_modList->itemAt(localPos);
+            if (item && !item->isSelected()) {
+                m_modList->clearSelection();
+                item->setSelected(true);
+                m_modList->setCurrentItem(item);
+            }
+            showSelectionContextMenu(globalPos);
+        });
 
         auto *item = new QListWidgetItem(m_modList);
         QSize rowSize = modRow->sizeHint();
@@ -277,10 +305,18 @@ void ModListWidget::refreshModList() {
             modRow->setConflictInfo(conflictInfo);
         }
 
-        modRow->setSelected(i == currentRow);
+        if (hasSavedSelection) {
+            bool isSelected = selectedIdSet.contains(mod.id);
+            modRow->setSelected(isSelected);
+            if (isSelected) {
+                item->setSelected(true);
+            }
+        } else {
+            modRow->setSelected(i == currentRow);
+        }
     }
 
-    if (currentRow >= 0 && currentRow < m_modList->count()) {
+    if (!hasSavedSelection && currentRow >= 0 && currentRow < m_modList->count()) {
         m_modList->setCurrentRow(currentRow);
     }
 
@@ -394,22 +430,44 @@ void ModListWidget::onRemoveModClicked() {
         return;
     }
 
-    QString modId = getSelectedModId();
-    if (modId.isEmpty()) {
+    QStringList modIds = getSelectedModIds();
+    if (modIds.isEmpty()) {
         return;
     }
 
-    ModInfo mod = m_modManager->getMod(modId);
+    QList<ModInfo> modsToRemove;
+    modsToRemove.reserve(modIds.size());
+    for (const QString &modId : modIds) {
+        ModInfo mod = m_modManager->getMod(modId);
+        if (!mod.id.isEmpty()) {
+            modsToRemove.append(mod);
+        }
+    }
+
+    if (modsToRemove.isEmpty()) {
+        return;
+    }
+
+    QString prompt;
+    if (modsToRemove.size() == 1) {
+        prompt = QString("Are you sure you want to remove '%1'?").arg(modsToRemove.first().name);
+    } else {
+        prompt = QString("Are you sure you want to remove %1 mods?").arg(modsToRemove.size());
+    }
+
     auto *modal = new MessageModal(
         "Remove Mod",
-        QString("Are you sure you want to remove '%1'?").arg(mod.name),
+        prompt,
         MessageModal::Question,
         MessageModal::Yes | MessageModal::No
     );
-    connect(modal, &MessageModal::finished, this, [this, modal, modId, mod]() {
-        if (modal->clickedButton() == MessageModal::Yes) {
+    connect(modal, &MessageModal::finished, this, [this, modal, modsToRemove]() {
+        if (modal->clickedButton() != MessageModal::Yes) {
+            return;
+        }
+        for (const ModInfo &mod : modsToRemove) {
             QString modName = mod.name;
-            if (!m_modManager->removeMod(modId)) {
+            if (!m_modManager->removeMod(mod.id)) {
                 MessageModal::warning(m_modalManager, "Error", "Failed to remove mod");
             } else {
                 emit modRemoved(modName);
@@ -421,6 +479,10 @@ void ModListWidget::onRemoveModClicked() {
 
 void ModListWidget::onMoveUpClicked() {
     if (!m_modManager) {
+        return;
+    }
+
+    if (getSelectedCount() != 1) {
         return;
     }
 
@@ -456,6 +518,10 @@ void ModListWidget::onMoveUpClicked() {
 
 void ModListWidget::onMoveDownClicked() {
     if (!m_modManager) {
+        return;
+    }
+
+    if (getSelectedCount() != 1) {
         return;
     }
 
@@ -498,8 +564,28 @@ QString ModListWidget::getSelectedModId() const {
     return item->data(Qt::UserRole).toString();
 }
 
+QStringList ModListWidget::getSelectedModIds() const {
+    QStringList modIds;
+    if (!m_modList) {
+        return modIds;
+    }
+
+    const QList<QListWidgetItem*> items = m_modList->selectedItems();
+    modIds.reserve(items.size());
+    for (QListWidgetItem *item : items) {
+        if (item) {
+            modIds.append(item->data(Qt::UserRole).toString());
+        }
+    }
+    return modIds;
+}
+
 int ModListWidget::getSelectedRow() const {
     return m_modList->currentRow();
+}
+
+int ModListWidget::getSelectedCount() const {
+    return m_modList ? m_modList->selectedItems().size() : 0;
 }
 
 void ModListWidget::setLoadingState(bool loading, const QString &message) {
@@ -534,6 +620,25 @@ void ModListWidget::updateLoadingAnimation() {
 
     QString dots(m_loadingDots, '.');
     m_loadingLabel->setText(baseText + dots);
+}
+
+void ModListWidget::onContextMenuRequested(const QPoint &pos) {
+    if (!m_modList) {
+        return;
+    }
+
+    QListWidgetItem *item = m_modList->itemAt(pos);
+    if (item && !item->isSelected()) {
+        m_modList->clearSelection();
+        item->setSelected(true);
+        m_modList->setCurrentItem(item);
+    }
+
+    if (getSelectedCount() == 0) {
+        return;
+    }
+
+    showSelectionContextMenu(m_modList->viewport()->mapToGlobal(pos));
 }
 
 void ModListWidget::onItemsReordered() {
@@ -616,6 +721,80 @@ void ModListWidget::updateDragMode() {
 
 bool ModListWidget::isFilterActive() const {
     return !m_filterText.isEmpty();
+}
+
+void ModListWidget::showSelectionContextMenu(const QPoint &globalPos) {
+    if (!m_modManager) {
+        return;
+    }
+
+    QStringList modIds = getSelectedModIds();
+    if (modIds.isEmpty()) {
+        return;
+    }
+
+    int selectedCount = modIds.size();
+    QString singleModId = selectedCount == 1 ? modIds.first() : QString();
+
+    QMenu menu(this);
+
+    QAction *enableSelected = menu.addAction(tr("Enable Selected"));
+    QAction *disableSelected = menu.addAction(tr("Disable Selected"));
+    menu.addSeparator();
+
+    QAction *registerNexus = menu.addAction(tr("Register with Nexus Mods"));
+    QAction *registerItch = menu.addAction(tr("Register with itch.io"));
+    QAction *removeSelected = nullptr;
+
+    if (selectedCount == 1) {
+        menu.addSeparator();
+        QAction *renameAction = menu.addAction(tr("Rename"));
+        QAction *editMetaAction = menu.addAction(tr("Edit Metadata"));
+        menu.addSeparator();
+        QAction *removeAction = menu.addAction(tr("Remove"));
+
+        QAction *selectedAction = menu.exec(globalPos);
+        if (!selectedAction) {
+            return;
+        }
+
+        if (selectedAction == enableSelected) {
+            m_modManager->setModsEnabled(modIds, true);
+        } else if (selectedAction == disableSelected) {
+            m_modManager->setModsEnabled(modIds, false);
+        } else if (selectedAction == registerNexus) {
+            startNexusRegistrationQueue(modIds);
+        } else if (selectedAction == registerItch) {
+            startItchRegistrationQueue(modIds);
+        } else if (selectedAction == renameAction) {
+            onRenameRequested(singleModId);
+        } else if (selectedAction == editMetaAction) {
+            onEditMetaRequested(singleModId);
+        } else if (selectedAction == removeAction) {
+            onRemoveModClicked();
+        }
+        return;
+    }
+
+    menu.addSeparator();
+    removeSelected = menu.addAction(tr("Remove Selected"));
+
+    QAction *selectedAction = menu.exec(globalPos);
+    if (!selectedAction) {
+        return;
+    }
+
+    if (selectedAction == enableSelected) {
+        m_modManager->setModsEnabled(modIds, true);
+    } else if (selectedAction == disableSelected) {
+        m_modManager->setModsEnabled(modIds, false);
+    } else if (selectedAction == registerNexus) {
+        startNexusRegistrationQueue(modIds);
+    } else if (selectedAction == registerItch) {
+        startItchRegistrationQueue(modIds);
+    } else if (selectedAction == removeSelected) {
+        onRemoveModClicked();
+    }
 }
 
 void ModListWidget::onRenameRequested(const QString &modId) {
@@ -1072,6 +1251,139 @@ void ModListWidget::onConflictDetailsRequested(const QString &modId) {
     m_modalManager->showModal(modal);
 }
 
+void ModListWidget::startNexusRegistrationQueue(const QStringList &modIds) {
+    if (!m_modalManager || !m_nexusClient || !m_nexusAuth || !m_modManager) {
+        return;
+    }
+
+    auto index = std::make_shared<int>(0);
+    auto showNext = std::make_shared<std::function<void()>>();
+    *showNext = [this, modIds, index, showNext]() {
+        while (*index < modIds.size()) {
+            QString modId = modIds[*index];
+            ModInfo mod = m_modManager->getMod(modId);
+            if (mod.id.isEmpty()) {
+                (*index)++;
+                continue;
+            }
+
+            auto *modal = new NexusRegistrationModalContent(
+                m_nexusClient, m_nexusAuth, m_modalManager, mod.id, mod.name);
+
+            connect(modal, &NexusRegistrationModalContent::accepted, this, [this, modal, modId]() {
+                applyNexusRegistration(modId, modal->getSelectedFiles(),
+                                       modal->getModId(), modal->getAuthor(),
+                                       modal->getDescription());
+            });
+
+            connect(modal, &BaseModalContent::finished, this, [index, showNext](int result) {
+                if (result == BaseModalContent::Rejected) {
+                    return;
+                }
+                (*index)++;
+                (*showNext)();
+            });
+
+            m_modalManager->showModal(modal);
+            return;
+        }
+    };
+
+    (*showNext)();
+}
+
+void ModListWidget::startItchRegistrationQueue(const QStringList &modIds) {
+    if (!m_modalManager || !m_itchClient || !m_itchAuth || !m_modManager) {
+        return;
+    }
+
+    auto index = std::make_shared<int>(0);
+    auto showNext = std::make_shared<std::function<void()>>();
+    *showNext = [this, modIds, index, showNext]() {
+        while (*index < modIds.size()) {
+            QString modId = modIds[*index];
+            ModInfo mod = m_modManager->getMod(modId);
+            if (mod.id.isEmpty()) {
+                (*index)++;
+                continue;
+            }
+
+            auto *modal = new ItchRegistrationModalContent(
+                m_itchClient, m_itchAuth, m_modalManager, mod.id, mod.name);
+
+            connect(modal, &ItchRegistrationModalContent::accepted, this, [this, modal, modId]() {
+                applyItchRegistration(modId, modal->getSelectedUploads(),
+                                      modal->getGameId(), modal->getAuthor());
+            });
+
+            connect(modal, &BaseModalContent::finished, this, [index, showNext](int result) {
+                if (result == BaseModalContent::Rejected) {
+                    return;
+                }
+                (*index)++;
+                (*showNext)();
+            });
+
+            m_modalManager->showModal(modal);
+            return;
+        }
+    };
+
+    (*showNext)();
+}
+
+void ModListWidget::applyNexusRegistration(const QString &modId, const QList<NexusFileInfo> &files,
+                                           const QString &nexusModId, const QString &author,
+                                           const QString &description) {
+    if (!m_modManager) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    mod.nexusModId = nexusModId;
+    mod.author = author;
+    mod.description = description;
+
+    if (!files.isEmpty()) {
+        mod.nexusFileId = files.first().id;
+        mod.version = files.first().version;
+    }
+
+    if (m_modManager->updateModMetadata(mod)) {
+        refreshModList();
+    }
+}
+
+void ModListWidget::applyItchRegistration(const QString &modId, const QList<ItchUploadInfo> &uploads,
+                                          const QString &itchGameId, const QString &author) {
+    if (!m_modManager) {
+        return;
+    }
+
+    ModInfo mod = m_modManager->getMod(modId);
+    if (mod.id.isEmpty()) {
+        return;
+    }
+
+    mod.itchGameId = itchGameId;
+    mod.author = author;
+
+    if (!uploads.isEmpty()) {
+        QString version = extractVersionFromFilename(uploads.first().filename);
+        if (!version.isEmpty()) {
+            mod.version = version;
+        }
+    }
+
+    if (m_modManager->updateModMetadata(mod)) {
+        refreshModList();
+    }
+}
+
 void ModListWidget::onRegisterWithNexusRequested(const QString &modId) {
     if (!m_modalManager || !m_nexusClient || !m_nexusAuth) {
         return;
@@ -1086,24 +1398,9 @@ void ModListWidget::onRegisterWithNexusRequested(const QString &modId) {
         m_nexusClient, m_nexusAuth, m_modalManager, modId, mod.name);
 
     connect(modal, &NexusRegistrationModalContent::accepted, this, [this, modal, modId]() {
-        ModInfo mod = m_modManager->getMod(modId);
-        if (mod.id.isEmpty()) {
-            return;
-        }
-
-        mod.nexusModId = modal->getModId();
-        mod.author = modal->getAuthor();
-        mod.description = modal->getDescription();
-
-        QList<NexusFileInfo> files = modal->getSelectedFiles();
-        if (!files.isEmpty()) {
-            mod.nexusFileId = files.first().id;
-            mod.version = files.first().version;
-        }
-
-        if (m_modManager->updateModMetadata(mod)) {
-            refreshModList();
-        }
+        applyNexusRegistration(modId, modal->getSelectedFiles(),
+                               modal->getModId(), modal->getAuthor(),
+                               modal->getDescription());
     });
 
     m_modalManager->showModal(modal);
@@ -1123,25 +1420,8 @@ void ModListWidget::onRegisterWithItchRequested(const QString &modId) {
         m_itchClient, m_itchAuth, m_modalManager, modId, mod.name);
 
     connect(modal, &ItchRegistrationModalContent::accepted, this, [this, modal, modId]() {
-        ModInfo mod = m_modManager->getMod(modId);
-        if (mod.id.isEmpty()) {
-            return;
-        }
-
-        mod.itchGameId = modal->getGameId();
-        mod.author = modal->getAuthor();
-
-        QList<ItchUploadInfo> uploads = modal->getSelectedUploads();
-        if (!uploads.isEmpty()) {
-            QString version = extractVersionFromFilename(uploads.first().filename);
-            if (!version.isEmpty()) {
-                mod.version = version;
-            }
-        }
-
-        if (m_modManager->updateModMetadata(mod)) {
-            refreshModList();
-        }
+        applyItchRegistration(modId, modal->getSelectedUploads(),
+                              modal->getGameId(), modal->getAuthor());
     });
 
     m_modalManager->showModal(modal);

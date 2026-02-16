@@ -5,7 +5,6 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QStyle>
-#include <QMenu>
 #include <QContextMenuEvent>
 #include <QEvent>
 #include <QFontMetrics>
@@ -141,29 +140,7 @@ void ModRowWidget::retranslateUi() {
 }
 
 void ModRowWidget::contextMenuEvent(QContextMenuEvent *event) {
-    QMenu menu(this);
-
-    QAction *renameAction = menu.addAction(tr("Rename"));
-    QAction *editMetaAction = menu.addAction(tr("Edit Metadata"));
-    menu.addSeparator();
-    QAction *registerNexusAction = menu.addAction(tr("Register with Nexus Mods"));
-    QAction *registerItchAction = menu.addAction(tr("Register with itch.io"));
-    menu.addSeparator();
-    QAction *removeAction = menu.addAction(tr("Remove"));
-
-    QAction *selectedAction = menu.exec(event->globalPos());
-
-    if (selectedAction == renameAction) {
-        emit renameRequested(m_modId);
-    } else if (selectedAction == editMetaAction) {
-        emit editMetaRequested(m_modId);
-    } else if (selectedAction == registerNexusAction) {
-        emit registerWithNexusRequested(m_modId);
-    } else if (selectedAction == registerItchAction) {
-        emit registerWithItchRequested(m_modId);
-    } else if (selectedAction == removeAction) {
-        emit removeRequested(m_modId);
-    }
+    emit contextMenuRequested(event->globalPos());
 }
 
 void ModRowWidget::setUpdateAvailable(bool available, const QString &version) {
