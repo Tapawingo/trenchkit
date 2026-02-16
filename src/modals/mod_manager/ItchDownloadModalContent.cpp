@@ -7,7 +7,7 @@
 #include "core/api/ItchAuth.h"
 #include "core/utils/ItchUrlParser.h"
 #include "core/utils/Theme.h"
-#include <QEvent>
+#include <QPlainTextEdit>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QProgressBar>
@@ -21,6 +21,7 @@
 #include <QUrl>
 #include <QTimer>
 #include <QRegularExpression>
+#include <QEvent>
 
 ItchDownloadModalContent::ItchDownloadModalContent(ItchClient *client,
                                                    ItchAuth *auth,
@@ -33,7 +34,7 @@ ItchDownloadModalContent::ItchDownloadModalContent(ItchClient *client,
 {
     setTitle(tr("Download from itch.io"));
     setupUi();
-    setPreferredSize(QSize(500, 350));
+    setPreferredSize(QSize(500, 400));
 
     connect(m_client, &ItchClient::gameIdReceived, this, &ItchDownloadModalContent::onGameIdReceived);
     connect(m_client, &ItchClient::uploadsReceived, this, &ItchDownloadModalContent::onUploadsReceived);
@@ -67,8 +68,6 @@ void ItchDownloadModalContent::setupUi() {
     footerLayout()->addWidget(m_cancelButton);
 
     showInputPage();
-
-    retranslateUi();
 }
 
 QWidget* ItchDownloadModalContent::createInputPage() {
@@ -76,14 +75,14 @@ QWidget* ItchDownloadModalContent::createInputPage() {
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    m_inputInstructionLabel = new QLabel(tr("Enter itch.io URL:"), page);
+    m_inputInstructionLabel = new QLabel(tr("Enter one or more itch.io URLs:"), page);
     m_inputInstructionLabel->setStyleSheet(QString("QLabel { color: %1; font-size: 13px; }")
                                    .arg(Theme::Colors::TEXT_SECONDARY));
     layout->addWidget(m_inputInstructionLabel);
 
-    m_urlEdit = new QLineEdit(page);
-    m_urlEdit->setPlaceholderText("https://creator.itch.io/game-name");
-    connect(m_urlEdit, &QLineEdit::returnPressed, this, &ItchDownloadModalContent::onDownloadClicked);
+    m_urlEdit = new QPlainTextEdit(page);
+    m_urlEdit->setPlaceholderText(tr("Enter one or more itch.io URLs (one per line)..."));
+    m_urlEdit->setFixedHeight(80);
     layout->addWidget(m_urlEdit);
 
     layout->addStretch();
@@ -146,29 +145,6 @@ QWidget* ItchDownloadModalContent::createDownloadPage() {
     return page;
 }
 
-void ItchDownloadModalContent::changeEvent(QEvent *event) {
-    if (event->type() == QEvent::LanguageChange) {
-        retranslateUi();
-    }
-    BaseModalContent::changeEvent(event);
-}
-
-void ItchDownloadModalContent::retranslateUi() {
-    setTitle(tr("Download from itch.io"));
-    m_downloadButton->setText(tr("Download"));
-    m_submitApiKeyButton->setText(tr("Submit"));
-    m_cancelButton->setText(tr("Cancel"));
-    m_inputInstructionLabel->setText(tr("Enter itch.io URL:"));
-    m_authTitleLabel->setText(tr("<b>API Key Required</b>"));
-    m_authInstructionLabel->setText(
-        tr("To download from itch.io, you need an API key.<br><br>"
-           "1. Visit <a href='https://itch.io/user/settings/api-keys'>https://itch.io/user/settings/api-keys</a><br>"
-           "2. Click \"Generate new API key\"<br>"
-           "3. Copy the key and paste it below:")
-    );
-    m_apiKeyEdit->setPlaceholderText(tr("Paste your API key here..."));
-}
-
 void ItchDownloadModalContent::showInputPage() {
     m_stack->setCurrentIndex(InputPage);
     updateFooterButtons();
@@ -195,20 +171,75 @@ void ItchDownloadModalContent::updateFooterButtons() {
 }
 
 void ItchDownloadModalContent::onDownloadClicked() {
-    QString url = m_urlEdit->text().trimmed();
-    if (url.isEmpty()) {
-        MessageModal::warning(m_modalManager, tr("Error"), tr("Please enter a URL"));
+    QString text = m_urlEdit->toPlainText().trimmed();
+    if (text.isEmpty()) {
+        MessageModal::warning(m_modalManager, tr("Error"), tr("Please enter one or more URLs"));
         return;
     }
 
-    auto result = ItchUrlParser::parseUrl(url);
-    if (!result.isValid) {
-        MessageModal::warning(m_modalManager, tr("Invalid URL"), result.error);
+    QStringList lines = text.split('\n', Qt::SkipEmptyParts);
+    QStringList errors;
+    m_pendingGames.clear();
+
+    for (const QString &line : lines) {
+        QString url = line.trimmed();
+        if (url.isEmpty()) {
+            continue;
+        }
+
+        auto result = ItchUrlParser::parseUrl(url);
+        if (!result.isValid) {
+            errors.append(QString("%1: %2").arg(url, result.error));
+        } else {
+            m_pendingGames.append({result.creator, result.gameName});
+        }
+    }
+
+    if (m_pendingGames.isEmpty()) {
+        QString errorMsg = errors.isEmpty()
+            ? tr("No valid URLs entered")
+            : tr("No valid URLs found:") + QStringLiteral("\n\n") + errors.join('\n');
+        MessageModal::warning(m_modalManager, tr("Invalid URLs"), errorMsg);
         return;
     }
 
-    m_pendingCreator = result.creator;
-    m_pendingGameName = result.gameName;
+    if (!errors.isEmpty()) {
+        QString errorMsg = tr("The following URLs were skipped:\n\n%1\n\n%2 valid URL(s) will be processed.")
+            .arg(errors.join('\n'))
+            .arg(m_pendingGames.size());
+        auto *modal = new MessageModal(
+            tr("Some URLs Invalid"),
+            errorMsg,
+            MessageModal::Information,
+            MessageModal::Ok | MessageModal::Cancel
+        );
+        connect(modal, &MessageModal::finished, this, [this, modal]() {
+            if (modal->clickedButton() == MessageModal::Ok) {
+                m_currentGameIndex = 0;
+                m_results.clear();
+                m_downloadedPaths.clear();
+
+                m_pendingCreator = m_pendingGames[0].creator;
+                m_pendingGameName = m_pendingGames[0].gameName;
+
+                if (!m_client->hasApiKey()) {
+                    showAuthPage();
+                } else {
+                    startDownloadProcess();
+                }
+            }
+            modal->deleteLater();
+        });
+        m_modalManager->showModal(modal);
+        return;
+    }
+
+    m_currentGameIndex = 0;
+    m_results.clear();
+    m_downloadedPaths.clear();
+
+    m_pendingCreator = m_pendingGames[0].creator;
+    m_pendingGameName = m_pendingGames[0].gameName;
 
     if (!m_client->hasApiKey()) {
         showAuthPage();
@@ -234,7 +265,13 @@ void ItchDownloadModalContent::onApiKeySubmit() {
 
 void ItchDownloadModalContent::startDownloadProcess() {
     showDownloadPage();
-    m_statusLabel->setText(tr("Fetching game information..."));
+
+    if (m_pendingGames.size() > 1) {
+        m_statusLabel->setText(tr("Game %1 of %2: Fetching game information...")
+            .arg(m_currentGameIndex + 1).arg(m_pendingGames.size()));
+    } else {
+        m_statusLabel->setText(tr("Fetching game information..."));
+    }
 
     m_client->getGameId(m_pendingCreator, m_pendingGameName);
 }
@@ -247,15 +284,39 @@ void ItchDownloadModalContent::startNextDownload() {
     const ItchUploadInfo &upload = m_pendingUploads[m_currentDownloadIndex];
     m_currentUploadId = upload.id;
 
-    if (m_pendingUploads.size() > 1) {
-        m_statusLabel->setText(tr("Getting download link for file %1 of %2...")
-            .arg(m_currentDownloadIndex + 1)
-            .arg(m_pendingUploads.size()));
-    } else {
-        m_statusLabel->setText(tr("Getting download link..."));
+    QString statusText;
+    if (m_pendingGames.size() > 1) {
+        statusText = tr("Game %1 of %2 - ").arg(m_currentGameIndex + 1).arg(m_pendingGames.size());
     }
 
+    if (m_pendingUploads.size() > 1) {
+        statusText += tr("Getting download link for file %1 of %2...")
+            .arg(m_currentDownloadIndex + 1)
+            .arg(m_pendingUploads.size());
+    } else {
+        statusText += tr("Getting download link...");
+    }
+
+    m_statusLabel->setText(statusText);
     m_client->getDownloadLink(m_currentUploadId);
+}
+
+void ItchDownloadModalContent::startNextGame() {
+    m_currentGameIndex++;
+
+    if (m_currentGameIndex >= m_pendingGames.size()) {
+        m_statusLabel->setText(tr("All downloads complete!"));
+        m_progressBar->setValue(100);
+        accept();
+        return;
+    }
+
+    m_pendingCreator = m_pendingGames[m_currentGameIndex].creator;
+    m_pendingGameName = m_pendingGames[m_currentGameIndex].gameName;
+    m_pendingUploads.clear();
+    m_currentDownloadIndex = 0;
+
+    startDownloadProcess();
 }
 
 void ItchDownloadModalContent::onGameIdReceived(const QString &gameId, const QString &title, const QString &author) {
@@ -263,7 +324,13 @@ void ItchDownloadModalContent::onGameIdReceived(const QString &gameId, const QSt
     m_gameTitle = title;
     m_author = author;
 
-    m_statusLabel->setText(tr("Fetching file list..."));
+    if (m_pendingGames.size() > 1) {
+        m_statusLabel->setText(tr("Game %1 of %2: Fetching file list...")
+            .arg(m_currentGameIndex + 1).arg(m_pendingGames.size()));
+    } else {
+        m_statusLabel->setText(tr("Fetching file list..."));
+    }
+
     m_client->getGameUploads(gameId);
 }
 
@@ -288,6 +355,10 @@ void ItchDownloadModalContent::onUploadsReceived(const QList<ItchUploadInfo> &up
         return;
     }
 
+    QString selectionTitle = m_pendingGames.size() > 1
+        ? tr("Select Files - Game %1 of %2 - %3").arg(m_currentGameIndex + 1).arg(m_pendingGames.size()).arg(m_gameTitle)
+        : tr("Select Files - %1").arg(m_gameTitle);
+
     QList<FileItem> items;
     for (const ItchUploadInfo &upload : sorted) {
         QString displayText = upload.filename;
@@ -309,7 +380,7 @@ void ItchDownloadModalContent::onUploadsReceived(const QList<ItchUploadInfo> &up
 
     auto *fileModal = new FileSelectionModalContent(
         items,
-        tr("Select Files - %1").arg(m_gameTitle),
+        selectionTitle,
         tr("Multiple files found. Select one or more (Ctrl+Click or Shift+Click):"),
         true
     );
@@ -374,27 +445,38 @@ void ItchDownloadModalContent::onDownloadProgress(qint64 received, qint64 total)
         m_progressBar->setValue(percentage);
 
         QString status;
+        if (m_pendingGames.size() > 1) {
+            status = tr("Game %1 of %2 - ").arg(m_currentGameIndex + 1).arg(m_pendingGames.size());
+        }
+
         if (m_pendingUploads.size() > 1) {
-            status = tr("Downloading file %1 of %2... %3 MB / %4 MB")
+            status += tr("Downloading file %1 of %2... %3 MB / %4 MB")
                 .arg(m_currentDownloadIndex + 1)
                 .arg(m_pendingUploads.size())
                 .arg(received / (1024.0 * 1024.0), 0, 'f', 2)
                 .arg(total / (1024.0 * 1024.0), 0, 'f', 2);
         } else {
-            status = tr("Downloading... %1 MB / %2 MB")
+            status += tr("Downloading... %1 MB / %2 MB")
                 .arg(received / (1024.0 * 1024.0), 0, 'f', 2)
                 .arg(total / (1024.0 * 1024.0), 0, 'f', 2);
         }
         m_statusLabel->setText(status);
     } else {
         m_progressBar->setRange(0, 0);
-        if (m_pendingUploads.size() > 1) {
-            m_statusLabel->setText(tr("Downloading file %1 of %2...")
-                .arg(m_currentDownloadIndex + 1)
-                .arg(m_pendingUploads.size()));
-        } else {
-            m_statusLabel->setText(tr("Downloading..."));
+
+        QString status;
+        if (m_pendingGames.size() > 1) {
+            status = tr("Game %1 of %2 - ").arg(m_currentGameIndex + 1).arg(m_pendingGames.size());
         }
+
+        if (m_pendingUploads.size() > 1) {
+            status += tr("Downloading file %1 of %2...")
+                .arg(m_currentDownloadIndex + 1)
+                .arg(m_pendingUploads.size());
+        } else {
+            status += tr("Downloading...");
+        }
+        m_statusLabel->setText(status);
     }
 }
 
@@ -403,20 +485,23 @@ void ItchDownloadModalContent::onDownloadFinished(const QString &savePath) {
     m_downloadedPaths.append(savePath);
     emit downloadComplete(savePath);
 
+    if (m_currentDownloadIndex < m_pendingUploads.size()) {
+        m_results.append({
+            savePath,
+            m_currentGameId,
+            m_gameTitle,
+            m_author,
+            m_pendingUploads[m_currentDownloadIndex]
+        });
+    }
+
     m_currentDownloadIndex++;
 
     if (m_currentDownloadIndex < m_pendingUploads.size()) {
         m_progressBar->setValue(0);
         startNextDownload();
     } else {
-        if (m_pendingUploads.size() > 1) {
-            m_statusLabel->setText(tr("All downloads complete! (%1 files)")
-                .arg(m_pendingUploads.size()));
-        } else {
-            m_statusLabel->setText(tr("Download complete!"));
-        }
-        m_progressBar->setValue(100);
-        accept();
+        startNextGame();
     }
 }
 
@@ -448,5 +533,29 @@ QString ItchDownloadModalContent::formatFileSize(qint64 bytes) const {
         return tr("%1 KB").arg(bytes / static_cast<double>(KB), 0, 'f', 2);
     } else {
         return tr("%1 bytes").arg(bytes);
+    }
+}
+
+void ItchDownloadModalContent::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    BaseModalContent::changeEvent(event);
+}
+
+void ItchDownloadModalContent::retranslateUi() {
+    setTitle(tr("Download from itch.io"));
+    if (m_downloadButton) m_downloadButton->setText(tr("Download"));
+    if (m_submitApiKeyButton) m_submitApiKeyButton->setText(tr("Submit"));
+    if (m_cancelButton) m_cancelButton->setText(tr("Cancel"));
+    if (m_inputInstructionLabel) m_inputInstructionLabel->setText(tr("Enter one or more itch.io URLs:"));
+    if (m_authTitleLabel) m_authTitleLabel->setText(tr("<b>API Key Required</b>"));
+    if (m_authInstructionLabel) {
+        m_authInstructionLabel->setText(
+            tr("To download from itch.io, you need an API key.<br><br>"
+               "1. Visit <a href='https://itch.io/user/settings/api-keys'>https://itch.io/user/settings/api-keys</a><br>"
+               "2. Click \"Generate new API key\"<br>"
+               "3. Copy the key and paste it below:")
+        );
     }
 }

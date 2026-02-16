@@ -235,58 +235,24 @@ void AddModModalContent::onFromNexusClicked() {
 
     auto *nexusModal = new NexusDownloadModalContent(m_nexusClient, m_nexusAuth, m_modalManager);
     connect(nexusModal, &NexusDownloadModalContent::accepted, this, [this, nexusModal]() {
-        QStringList filePaths = nexusModal->getDownloadedFilePaths();
-        if (filePaths.isEmpty()) {
+        QList<NexusDownloadResult> results = nexusModal->getDownloadResults();
+        if (results.isEmpty()) {
             return;
         }
 
-        QString nexusModId = nexusModal->getModId();
-        QString author = nexusModal->getAuthor();
-        QString description = nexusModal->getDescription();
-        QList<NexusFileInfo> files = nexusModal->getDownloadedFiles();
-
-        if (filePaths.size() > 1) {
-            QList<FileToProcess> filesToProcess;
-            for (int i = 0; i < filePaths.size(); ++i) {
-                FileToProcess fileData;
-                fileData.filePath = filePaths[i];
-                fileData.nexusModId = nexusModId;
-                fileData.author = author;
-                fileData.description = description;
-
-                if (i < files.size()) {
-                    fileData.nexusFileId = files[i].id;
-                    fileData.version = files[i].version;
-                }
-
-                filesToProcess.append(fileData);
-            }
-
-            startProcessingFiles(filesToProcess);
-        } else {
-            for (int i = 0; i < filePaths.size(); ++i) {
-                const QString &filePath = filePaths[i];
-
-                QString nexusFileId;
-                QString version;
-                if (i < files.size()) {
-                    nexusFileId = files[i].id;
-                    version = files[i].version;
-                }
-
-                if (isArchiveFile(filePath)) {
-                    handleArchiveFile(filePath, nexusModId, nexusFileId, author, description, version);
-                } else {
-                    handlePakFile(filePath, nexusModId, nexusFileId, author, description, version);
-                }
-
-                if (filePath.contains("nexus_mod_")) {
-                    QFile::remove(filePath);
-                }
-            }
-
-            accept();
+        QList<FileToProcess> filesToProcess;
+        for (const auto &result : results) {
+            FileToProcess fileData;
+            fileData.filePath = result.filePath;
+            fileData.nexusModId = result.modId;
+            fileData.nexusFileId = result.fileInfo.id;
+            fileData.author = result.author;
+            fileData.description = result.description;
+            fileData.version = result.fileInfo.version;
+            filesToProcess.append(fileData);
         }
+
+        startProcessingFiles(filesToProcess);
     });
     m_modalManager->showModal(nexusModal);
 }
@@ -298,48 +264,37 @@ void AddModModalContent::onFromItchClicked() {
 
     auto *itchModal = new ItchDownloadModalContent(m_itchClient, m_itchAuth, m_modalManager);
     connect(itchModal, &ItchDownloadModalContent::accepted, this, [this, itchModal]() {
-        QStringList filePaths = itchModal->getDownloadedFilePaths();
-        if (filePaths.isEmpty()) {
+        QList<ItchDownloadResult> results = itchModal->getDownloadResults();
+        if (results.isEmpty()) {
             return;
         }
 
-        QString itchGameId = itchModal->getGameId();
-        QString author = itchModal->getAuthor();
-        QString gameTitle = itchModal->getGameTitle();
-        QList<ItchUploadInfo> uploads = itchModal->getDownloadedUploads();
+        QList<FileToProcess> filesToProcess;
+        for (const auto &result : results) {
+            FileToProcess fileData;
+            fileData.filePath = result.filePath;
+            fileData.itchGameId = result.gameId;
+            fileData.author = result.author;
+            fileData.description = result.gameTitle;
 
-        for (int i = 0; i < filePaths.size(); ++i) {
-            const QString &filePath = filePaths[i];
-            QFileInfo fileInfo(filePath);
+            QDateTime uploadDate = result.uploadInfo.updatedAt.isValid()
+                ? result.uploadInfo.updatedAt : result.uploadInfo.createdAt;
+            fileData.uploadDate = uploadDate;
+
+            QFileInfo fileInfo(result.filePath);
             QString fileName = fileInfo.fileName();
-            QString modName;
-
             if (fileName.startsWith("itch_game_")) {
                 int secondUnderscore = fileName.indexOf('_', 10);
                 int thirdUnderscore = fileName.indexOf('_', secondUnderscore + 1);
                 if (thirdUnderscore != -1) {
-                    modName = fileName.mid(thirdUnderscore + 1);
-                    modName = QFileInfo(modName).baseName();
+                    fileData.customModName = QFileInfo(fileName.mid(thirdUnderscore + 1)).baseName();
                 }
             }
 
-            QDateTime uploadDate;
-            if (i < uploads.size()) {
-                uploadDate = uploads[i].updatedAt.isValid() ? uploads[i].updatedAt : uploads[i].createdAt;
-            }
-
-            if (isArchiveFile(filePath)) {
-                handleArchiveFile(filePath, "", "", author, gameTitle, "", itchGameId, uploadDate);
-            } else {
-                handlePakFile(filePath, "", "", author, gameTitle, "", itchGameId, modName, uploadDate);
-            }
-
-            if (filePath.contains("itch_game_")) {
-                QFile::remove(filePath);
-            }
+            filesToProcess.append(fileData);
         }
 
-        accept();
+        startProcessingFiles(filesToProcess);
     });
     m_modalManager->showModal(itchModal);
 }

@@ -10,11 +10,19 @@ class QEvent;
 class NexusModsClient;
 class NexusModsAuth;
 class ModalManager;
-class QLineEdit;
+class QPlainTextEdit;
 class QPushButton;
 class QProgressBar;
 class QLabel;
 class QStackedWidget;
+
+struct NexusDownloadResult {
+    QString filePath;
+    QString modId;
+    NexusFileInfo fileInfo;
+    QString author;
+    QString description;
+};
 
 class NexusDownloadModalContent : public BaseModalContent {
     Q_OBJECT
@@ -30,6 +38,7 @@ public:
     QString getModId() const { return m_currentModId; }
     QString getAuthor() const { return m_author; }
     QString getDescription() const { return m_description; }
+    QList<NexusDownloadResult> getDownloadResults() const { return m_results; }
 
 private slots:
     void onDownloadClicked();
@@ -48,6 +57,11 @@ protected:
     void changeEvent(QEvent *event) override;
 
 private:
+    struct PendingMod {
+        QString modId;
+        QString fileId;
+    };
+
     void setupUi();
     void retranslateUi();
     QWidget* createInputPage();
@@ -58,6 +72,7 @@ private:
     void showDownloadPage();
     void startDownloadProcess();
     void startNextDownload();
+    void startNextMod();
     void startManualDownloadSequence();
     QString generateTempPath(const QString &fileName) const;
     void updateFooterButtons();
@@ -68,7 +83,7 @@ private:
     ModalManager *m_modalManager;
 
     QStackedWidget *m_stack;
-    QLineEdit *m_urlEdit;
+    QPlainTextEdit *m_urlEdit;
     QPushButton *m_downloadButton;
     QPushButton *m_authenticateButton;
     QPushButton *m_cancelButton;
@@ -84,6 +99,10 @@ private:
     QStringList m_downloadedFilePaths;
     QList<NexusFileInfo> m_downloadedFiles;
     int m_currentDownloadIndex;
+
+    QList<PendingMod> m_pendingMods;
+    int m_currentModIndex = 0;
+    QList<NexusDownloadResult> m_results;
 
     QString m_currentModId;
     QString m_currentFileId;

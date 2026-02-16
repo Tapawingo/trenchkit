@@ -11,11 +11,20 @@ class QEvent;
 class ItchClient;
 class ItchAuth;
 class ModalManager;
+class QPlainTextEdit;
 class QLineEdit;
 class QPushButton;
 class QProgressBar;
 class QLabel;
 class QStackedWidget;
+
+struct ItchDownloadResult {
+    QString filePath;
+    QString gameId;
+    QString gameTitle;
+    QString author;
+    ItchUploadInfo uploadInfo;
+};
 
 class ItchDownloadModalContent : public BaseModalContent {
     Q_OBJECT
@@ -32,6 +41,7 @@ public:
     QString getGameTitle() const { return m_gameTitle; }
     QString getAuthor() const { return m_author; }
     QList<ItchUploadInfo> getDownloadedUploads() const { return m_pendingUploads; }
+    QList<ItchDownloadResult> getDownloadResults() const { return m_results; }
 
 signals:
     void downloadComplete(QString filePath);
@@ -50,6 +60,11 @@ protected:
     void changeEvent(QEvent *event) override;
 
 private:
+    struct PendingGame {
+        QString creator;
+        QString gameName;
+    };
+
     void setupUi();
     void retranslateUi();
     QWidget* createInputPage();
@@ -60,6 +75,7 @@ private:
     void showDownloadPage();
     void startDownloadProcess();
     void startNextDownload();
+    void startNextGame();
     QString generateTempPath(const QString &fileName) const;
     void updateFooterButtons();
     QString formatFileSize(qint64 bytes) const;
@@ -69,7 +85,7 @@ private:
     ModalManager *m_modalManager;
 
     QStackedWidget *m_stack;
-    QLineEdit *m_urlEdit;
+    QPlainTextEdit *m_urlEdit;
     QLineEdit *m_apiKeyEdit;
     QPushButton *m_downloadButton;
     QPushButton *m_submitApiKeyButton;
@@ -88,6 +104,10 @@ private:
     QString m_author;
     QString m_pendingCreator;
     QString m_pendingGameName;
+
+    QList<PendingGame> m_pendingGames;
+    int m_currentGameIndex = 0;
+    QList<ItchDownloadResult> m_results;
 
     QList<ItchUploadInfo> m_pendingUploads;
     int m_currentDownloadIndex = 0;

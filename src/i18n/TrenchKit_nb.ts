@@ -57,7 +57,7 @@
     <message>
         <location filename="../modals/mod_manager/AddModModalContent.cpp" line="40"/>
         <location filename="../modals/mod_manager/AddModModalContent.cpp" line="93"/>
-        <location filename="../modals/mod_manager/AddModModalContent.cpp" line="380"/>
+        <location filename="../modals/mod_manager/AddModModalContent.cpp" line="335"/>
         <source>Add Mod</source>
         <translation>Legg til mod</translation>
     </message>
@@ -113,12 +113,12 @@
         <translation>Kunne ikke legge til mod: %1</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/AddModModalContent.cpp" line="351"/>
+        <location filename="../modals/mod_manager/AddModModalContent.cpp" line="306"/>
         <source>Processing Files</source>
         <translation>Behandler filer</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/AddModModalContent.cpp" line="393"/>
+        <location filename="../modals/mod_manager/AddModModalContent.cpp" line="348"/>
         <source>Processing file %1 of %2...</source>
         <translation>Behandler fil %1 av %2...</translation>
     </message>
@@ -421,190 +421,259 @@ Velg hvordan du vil fortsette:</translation>
 <context>
     <name>ItchDownloadModalContent</name>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="34"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="157"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="35"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="547"/>
         <source>Download from itch.io</source>
         <translation>Last ned fra itch.io</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="54"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="158"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="55"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="548"/>
         <source>Download</source>
         <translation>Last ned</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="59"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="159"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="60"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="549"/>
         <source>Submit</source>
         <translation>Send inn</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="64"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="160"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="65"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="550"/>
         <source>Cancel</source>
         <translation>Avbryt</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="79"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="161"/>
         <source>Enter itch.io URL:</source>
-        <translation>Skriv inn itch.io-URL:</translation>
+        <translation type="vanished">Skriv inn itch.io-URL:</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="99"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="162"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="98"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="552"/>
         <source>&lt;b&gt;API Key Required&lt;/b&gt;</source>
         <translation>&lt;b&gt;API-nøkkel kreves&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="109"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="164"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="108"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="555"/>
         <source>To download from itch.io, you need an API key.&lt;br&gt;&lt;br&gt;1. Visit &lt;a href=&apos;https://itch.io/user/settings/api-keys&apos;&gt;https://itch.io/user/settings/api-keys&lt;/a&gt;&lt;br&gt;2. Click &quot;Generate new API key&quot;&lt;br&gt;3. Copy the key and paste it below:</source>
         <translation>For å laste ned fra itch.io trenger du en API-nøkkel.&lt;br&gt;&lt;br&gt;1. Besøk &lt;a href=&apos;https://itch.io/user/settings/api-keys&apos;&gt;https://itch.io/user/settings/api-keys&lt;/a&gt;&lt;br&gt;2. Klikk &quot;Generate new API key&quot;&lt;br&gt;3. Kopier nøkkelen og lim den inn nedenfor:</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="119"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="169"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="118"/>
         <source>Paste your API key here...</source>
         <translation>Lim inn API-nøkkelen din her...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="134"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="184"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="133"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="160"/>
         <source>Preparing download...</source>
         <translation>Forbereder nedlasting...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="200"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="224"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="320"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="351"/>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="424"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="176"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="255"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="391"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="422"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="509"/>
         <source>Error</source>
         <translation>Feil</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="200"/>
         <source>Please enter a URL</source>
-        <translation>Vennligst skriv inn en URL</translation>
+        <translation type="vanished">Vennligst skriv inn en URL</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="206"/>
         <source>Invalid URL</source>
-        <translation>Ugyldig URL</translation>
+        <translation type="vanished">Ugyldig URL</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="224"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="78"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="551"/>
+        <source>Enter one or more itch.io URLs:</source>
+        <translation>Skriv inn en eller flere itch.io-URLer:</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="84"/>
+        <source>Enter one or more itch.io URLs (one per line)...</source>
+        <translation>Skriv inn en eller flere itch.io-URLer (en per linje)...</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="176"/>
+        <source>Please enter one or more URLs</source>
+        <translation>Vennligst skriv inn en eller flere URLer</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="200"/>
+        <source>No valid URLs entered</source>
+        <translation>Ingen gyldige URLer angitt</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="201"/>
+        <source>No valid URLs found:</source>
+        <translation>Ingen gyldige URLer funnet:</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="202"/>
+        <source>Invalid URLs</source>
+        <translation>Ugyldige URLer</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="207"/>
+        <source>The following URLs were skipped:
+
+%1
+
+%2 gyldige URL(er) vil bli behandlet.</source>
+        <translation>Følgende URLer ble hoppet over:
+
+%1
+
+%2 gyldige URL(er) vil bli behandlet.</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="211"/>
+        <source>Some URLs Invalid</source>
+        <translation>Noen URLer er ugyldige</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="255"/>
         <source>Please enter an API key</source>
         <translation>Vennligst skriv inn en API-nøkkel</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="230"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="261"/>
         <source>API key saved. Starting download...</source>
         <translation>API-nøkkel lagret. Starter nedlasting...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="237"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="270"/>
+        <source>Game %1 of %2: Fetching game information...</source>
+        <translation>Spill %1 av %2: Henter spillinformasjon...</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="273"/>
         <source>Fetching game information...</source>
         <translation>Henter spillinformasjon...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="251"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="289"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="449"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="469"/>
+        <source>Game %1 of %2 - </source>
+        <translation>Spill %1 av %2 - </translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="293"/>
         <source>Getting download link for file %1 of %2...</source>
         <translation>Henter nedlastingslenke for fil %1 av %2...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="255"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="297"/>
         <source>Getting download link...</source>
         <translation>Henter nedlastingslenke...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="266"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="308"/>
+        <source>All downloads complete!</source>
+        <translation>Alle nedlastinger fullført!</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="328"/>
+        <source>Game %1 of %2: Fetching file list...</source>
+        <translation>Spill %1 av %2: Henter filliste...</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="331"/>
         <source>Fetching file list...</source>
         <translation>Henter filliste...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="272"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="339"/>
         <source>No Files</source>
         <translation>Ingen filer</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="272"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="339"/>
         <source>No files available for this game.</source>
         <translation>Ingen filer tilgjengelig for dette spillet.</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="312"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="359"/>
+        <source>Select Files - Game %1 of %2 - %3</source>
+        <translation>Velg filer - Spill %1 av %2 - %3</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="360"/>
         <source>Select Files - %1</source>
         <translation>Velg filer - %1</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="313"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="384"/>
         <source>Multiple files found. Select one or more (Ctrl+Click or Shift+Click):</source>
         <translation>Flere filer funnet. Velg en eller flere (Ctrl+klikk eller Shift+klikk):</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="320"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="391"/>
         <source>No files selected.</source>
         <translation>Ingen filer valgt.</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="351"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="422"/>
         <source>Failed to get download link.</source>
         <translation>Kunne ikke hente nedlastingslenke.</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="367"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="438"/>
         <source>Downloading file...</source>
         <translation>Laster ned fil...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="378"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="453"/>
         <source>Downloading file %1 of %2... %3 MB / %4 MB</source>
         <translation>Laster ned fil %1 av %2... %3 MB / %4 MB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="384"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="459"/>
         <source>Downloading... %1 MB / %2 MB</source>
         <translation>Laster ned... %1 MB / %2 MB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="392"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="473"/>
         <source>Downloading file %1 of %2...</source>
         <translation>Laster ned fil %1 av %2...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="396"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="477"/>
         <source>Downloading...</source>
         <translation>Laster ned...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="413"/>
         <source>All downloads complete! (%1 files)</source>
-        <translation>Alle nedlastinger fullført! (%1 filer)</translation>
+        <translation type="vanished">Alle nedlastinger fullført! (%1 filer)</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="416"/>
         <source>Download complete!</source>
-        <translation>Nedlasting fullført!</translation>
+        <translation type="vanished">Nedlasting fullført!</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="444"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="529"/>
         <source>%1 GB</source>
         <translation>%1 GB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="446"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="531"/>
         <source>%1 MB</source>
         <translation>%1 MB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="448"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="533"/>
         <source>%1 KB</source>
         <translation>%1 KB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="450"/>
+        <location filename="../modals/mod_manager/ItchDownloadModalContent.cpp" line="535"/>
         <source>%1 bytes</source>
         <translation>%1 byte</translation>
     </message>
@@ -1480,75 +1549,122 @@ Når nedlastingen er fullført, klikk OK for å finne filen.</translation>
     <name>NexusDownloadModalContent</name>
     <message>
         <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="34"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="147"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="662"/>
         <source>Download from Nexus Mods</source>
         <translation>Last ned fra Nexus Mods</translation>
     </message>
     <message>
         <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="58"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="148"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="663"/>
         <source>Download</source>
         <translation>Last ned</translation>
     </message>
     <message>
         <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="63"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="149"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="664"/>
         <source>Authenticate</source>
         <translation>Autentiser</translation>
     </message>
     <message>
         <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="68"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="150"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="665"/>
         <source>Cancel</source>
         <translation>Avbryt</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="83"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="151"/>
         <source>Enter Nexus Mods URL for a Foxhole mod:</source>
-        <translation>Skriv inn Nexus Mods-URL for en Foxhole-mod:</translation>
+        <translation type="vanished">Skriv inn Nexus Mods-URL for en Foxhole-mod:</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="103"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="101"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="667"/>
         <source>Authentication required to access Nexus Mods API.</source>
         <translation>Autentisering kreves for å få tilgang til Nexus Mods API.</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="108"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="160"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="106"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="143"/>
         <source>Click Authenticate to begin...</source>
         <translation>Klikk Autentiser for å begynne...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="124"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="168"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="122"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="151"/>
         <source>Preparing download...</source>
         <translation>Forbereder nedlasting...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="184"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="251"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="503"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="167"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="303"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="602"/>
         <source>Error</source>
         <translation>Feil</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="184"/>
         <source>Please enter a URL</source>
-        <translation>Vennligst skriv inn en URL</translation>
+        <translation type="vanished">Vennligst skriv inn en URL</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="190"/>
         <source>Invalid URL</source>
-        <translation>Ugyldig URL</translation>
+        <translation type="vanished">Ugyldig URL</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="208"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="81"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="666"/>
+        <source>Enter one or more Nexus Mods URLs for Foxhole mods:</source>
+        <translation>Skriv inn en eller flere Nexus Mods-URLer for Foxhole-modder:</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="87"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="668"/>
+        <source>Enter one or more Nexus Mods URLs (one per line)...</source>
+        <translation>Skriv inn en eller flere Nexus Mods-URLer (en per linje)...</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="167"/>
+        <source>Please enter one or more URLs</source>
+        <translation>Vennligst skriv inn en eller flere URLer</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="191"/>
+        <source>No valid URLs entered</source>
+        <translation>Ingen gyldige URLer angitt</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="192"/>
+        <source>No valid URLs found:</source>
+        <translation>Ingen gyldige URLer funnet:</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="193"/>
+        <source>Invalid URLs</source>
+        <translation>Ugyldige URLer</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="198"/>
+        <source>The following URLs were skipped:</source>
+        <translation>Følgende URLer ble hoppet over:</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="200"/>
+        <source>%n valid URL(s) will be processed.</source>
+        <translation>
+            <numerusform>%n gyldig URL vil bli behandlet.</numerusform>
+            <numerusform>%n gyldige URLer vil bli behandlet.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="202"/>
+        <source>Some URLs Invalid</source>
+        <translation>Noen URLer er ugyldige</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="247"/>
         <source>Connecting to authentication server...</source>
         <translation>Kobler til autentiseringsserver...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="213"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="252"/>
         <source>Opening browser for authentication...
 
 If browser doesn&apos;t open, visit:
@@ -1559,67 +1675,88 @@ Hvis nettleseren ikke åpnes, besøk:
 %1</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="219"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="258"/>
         <source>Authentication successful!</source>
         <translation>Autentisering vellykket!</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="224"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="263"/>
         <source>Authentication failed: %1</source>
         <translation>Autentisering mislyktes: %1</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="230"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="271"/>
+        <source>Mod %1 of %2: Fetching mod information...</source>
+        <translation>Mod %1 av %2: Henter mod-informasjon...</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="274"/>
         <source>Fetching mod information...</source>
         <translation>Henter mod-informasjon...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="238"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="285"/>
+        <source>Mod %1 of %2: Fetching file list...</source>
+        <translation>Mod %1 av %2: Henter filliste...</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="288"/>
         <source>Fetching file list...</source>
         <translation>Henter filliste...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="251"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="303"/>
         <source>No files found for this mod</source>
         <translation>Ingen filer funnet for denne modden</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="298"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="349"/>
+        <source>Select Files - Mod %1 of %2 - %3</source>
+        <translation>Velg filer - Mod %1 av %2 - %3</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="350"/>
         <source>Select Files - %1</source>
         <translation>Velg filer - %1</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="299"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="355"/>
         <source>Multiple files found. Select one or more (Ctrl+Click or Shift+Click):</source>
         <translation>Flere filer funnet. Velg en eller flere (Ctrl+klikk eller Shift+klikk):</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="337"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="393"/>
         <source>Downloading file...</source>
         <translation>Laster ned fil...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="349"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="407"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="624"/>
+        <source>Mod %1 of %2 - </source>
+        <translation>Mod %1 av %2 - </translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="410"/>
         <source>Downloading: %1 MB / %2 MB</source>
         <translation>Laster ned: %1 MB / %2 MB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="351"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="413"/>
         <source> (File %1 of %2)</source>
         <translation> (Fil %1 av %2)</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="369"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="447"/>
         <source>All downloads complete!</source>
         <translation>Alle nedlastinger fullført!</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="391"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="478"/>
         <source>Download File %1 of %2</source>
         <translation>Last ned fil %1 av %2</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="392"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="479"/>
         <source>Downloading: %1
 
 The browser will open. Please download the file.
@@ -1632,13 +1769,13 @@ Nettleseren vil åpnes. Vennligst last ned filen.
 Når den er ferdig, klikk OK for å finne den.</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="395"/>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="412"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="482"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="503"/>
         <source>Select Downloaded File</source>
         <translation>Velg nedlastet fil</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="396"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="483"/>
         <source>Please download the file from your browser.
 
 Once the download is complete, click OK to locate the file.</source>
@@ -1647,27 +1784,51 @@ Once the download is complete, click OK to locate the file.</source>
 Når nedlastingen er fullført, klikk OK for å finne filen.</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="411"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="487"/>
+        <source>Mod %1 of %2 - %3</source>
+        <translation>Mod %1 av %2 - %3</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="502"/>
         <source>Select Downloaded File - %1</source>
         <translation>Velg nedlastet fil - %1</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="418"/>
-        <source>Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;Pak Files (*.pak);;Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;All Files (*.*)</source>
-        <translation>Mod-filer (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;Pak-filer (*.pak);;Arkivfiler (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;Alle filer (*.*)</translation>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="509"/>
+        <source>Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;</source>
+        <translation>Mod-filer (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="436"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="510"/>
+        <source>Pak Files (*.pak);;</source>
+        <translation>Pak-filer (*.pak);;</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="511"/>
+        <source>Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;</source>
+        <translation>Arkivfiler (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="512"/>
+        <source>All Files (*.*)</source>
+        <translation>Alle filer (*.*)</translation>
+    </message>
+    <message>
+        <source>Mod Files (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;Pak Files (*.pak);;Archive Files (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;All Files (*.*)</source>
+        <translation type="vanished">Mod-filer (*.pak *.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;Pak-filer (*.pak);;Arkivfiler (*.zip *.rar *.7z *.tar.gz *.tar.bz2 *.tar.xz);;Alle filer (*.*)</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="535"/>
         <source>Downloaded %1 of %2 files</source>
         <translation>Lastet ned %1 av %2 filer</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="465"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="564"/>
         <source>Premium Required</source>
         <translation>Premium kreves</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="468"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="567"/>
         <source>Direct downloads via API require a Nexus Mods Premium account.
 
 Your browser will open for each of the %1 files you selected. Please download each file manually.
@@ -1680,7 +1841,7 @@ Nettleseren din vil åpnes for hver av de %1 filene du valgte. Vennligst last ne
 Du vil bli bedt om å finne hver nedlastet fil.</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="475"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="574"/>
         <source>Direct downloads via API require a Nexus Mods Premium account.
 
 Your browser will open to the download page where you can download the file manually.
@@ -1693,32 +1854,32 @@ Nettleseren din vil åpne nedlastingssiden der du kan laste ned filen manuelt.
 Modden vil bli installert med Nexus-metadata for fremtidige oppdateringer.</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="524"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="628"/>
         <source>Getting download link for file %1 of %2...</source>
         <translation>Henter nedlastingslenke for fil %1 av %2...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="527"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="631"/>
         <source>Getting download link...</source>
         <translation>Henter nedlastingslenke...</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="539"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="644"/>
         <source>%1 GB</source>
         <translation>%1 GB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="541"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="646"/>
         <source>%1 MB</source>
         <translation>%1 MB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="543"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="648"/>
         <source>%1 KB</source>
         <translation>%1 KB</translation>
     </message>
     <message>
-        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="545"/>
+        <location filename="../modals/mod_manager/NexusDownloadModalContent.cpp" line="650"/>
         <source>%1 bytes</source>
         <translation>%1 byte</translation>
     </message>
