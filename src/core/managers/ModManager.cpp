@@ -642,6 +642,13 @@ bool ModManager::copyModToPaks(const ModInfo &mod) {
     QString numberedName = generateNumberedFileName(mod.priority, mod.fileName);
     QString destPath = paksPath + "/" + numberedName;
 
+    if (mod.fileName != numberedName) {
+        QString originalPath = paksPath + "/" + mod.fileName;
+        if (QFile::exists(originalPath)) {
+            QFile::remove(originalPath);
+        }
+    }
+
     if (!QFile::copy(sourcePath, destPath)) {
         return false;
     }
@@ -762,9 +769,18 @@ void ModManager::renumberEnabledMods() {
             continue;
         }
 
-        QString oldPath = paksPath + "/" + mod.numberedFileName;
-        if (QFile::exists(oldPath)) {
-            QFile::remove(oldPath);
+        if (!mod.fileName.isEmpty() && mod.fileName != newNumberedName) {
+            QString originalPath = paksPath + "/" + mod.fileName;
+            if (QFile::exists(originalPath)) {
+                QFile::remove(originalPath);
+            }
+        }
+
+        if (!mod.numberedFileName.isEmpty()) {
+            QString oldPath = paksPath + "/" + mod.numberedFileName;
+            if (QFile::exists(oldPath)) {
+                QFile::remove(oldPath);
+            }
         }
 
         if (QFile::exists(sourcePath)) {
@@ -924,7 +940,6 @@ void ModManager::detectUnregisteredMods() {
 
 void ModManager::syncEnabledModsWithPaks() {
     // This ensures all enabled mods are properly numbered in the paks folder
-    updateNumberedFileNames();
     renumberEnabledMods();
     saveMods();
 }
