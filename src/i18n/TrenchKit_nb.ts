@@ -113,6 +113,11 @@
         <translation>Kunne ikke legge til mod: %1</translation>
     </message>
     <message>
+        <location filename="../modals/mod_manager/AddModModalContent.cpp" line="210"/>
+        <source>Downloaded file is not a valid .pak or supported archive.</source>
+        <translation>Nedlastet fil er ikke en gyldig .pak eller støttet arkiv.</translation>
+    </message>
+    <message>
         <location filename="../modals/mod_manager/AddModModalContent.cpp" line="306"/>
         <source>Processing Files</source>
         <translation>Behandler filer</translation>
@@ -1171,10 +1176,66 @@ Fortsette?</translation>
         <translation>Sjekker...</translation>
     </message>
     <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="103"/>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="352"/>
+        <source>Enable or disable all mods</source>
+        <translation>Aktiver eller deaktiver alle modder</translation>
+    </message>
+    <message>
         <location filename="../views/mod_manager/ModListWidget.cpp" line="702"/>
         <location filename="../views/mod_manager/ModListWidget.cpp" line="729"/>
         <source>Check for Updates (%1)</source>
         <translation>Se etter oppdateringer (%1)</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="760"/>
+        <source>Enable Selected</source>
+        <translation>Aktiver valgte</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="761"/>
+        <source>Disable Selected</source>
+        <translation>Deaktiver valgte</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="777"/>
+        <source>Open Nexus Mods Page</source>
+        <translation>Åpne Nexus Mods-siden</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="780"/>
+        <source>Open itch.io Page</source>
+        <translation>Åpne itch.io-siden</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="816"/>
+        <source>Remove Selected</source>
+        <translation>Fjern valgte</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="785"/>
+        <source>Rename</source>
+        <translation>Gi nytt navn</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="786"/>
+        <source>Edit Metadata</source>
+        <translation>Rediger metadata</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="789"/>
+        <source>Register with Nexus Mods</source>
+        <translation>Registrer med Nexus Mods</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="790"/>
+        <source>Register with itch.io</source>
+        <translation>Registrer med itch.io</translation>
+    </message>
+    <message>
+        <location filename="../views/mod_manager/ModListWidget.cpp" line="793"/>
+        <source>Remove</source>
+        <translation>Fjern</translation>
     </message>
 </context>
 <context>
@@ -1294,6 +1355,16 @@ Fortsette?</translation>
     </message>
     <message>
         <location filename="../modals/mod_manager/ModMetadataModalContent.cpp" line="63"/>
+        <source>https://www.nexusmods.com/foxhole/mods/12345</source>
+        <translation>https://www.nexusmods.com/foxhole/mods/12345</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ModMetadataModalContent.cpp" line="64"/>
+        <source>Nexusmods URL:</source>
+        <translation>Nexusmods-URL:</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ModMetadataModalContent.cpp" line="63"/>
         <source>e.g., 1276966</source>
         <translation>f.eks. 1276966</translation>
     </message>
@@ -1301,6 +1372,16 @@ Fortsette?</translation>
         <location filename="../modals/mod_manager/ModMetadataModalContent.cpp" line="64"/>
         <source>Itch.io Game ID:</source>
         <translation>Itch.io Spill-ID:</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ModMetadataModalContent.cpp" line="68"/>
+        <source>https://creator.itch.io/game-name</source>
+        <translation>https://creator.itch.io/game-name</translation>
+    </message>
+    <message>
+        <location filename="../modals/mod_manager/ModMetadataModalContent.cpp" line="69"/>
+        <source>Itch.io URL:</source>
+        <translation>Itch.io-URL:</translation>
     </message>
     <message>
         <location filename="../modals/mod_manager/ModMetadataModalContent.cpp" line="68"/>
