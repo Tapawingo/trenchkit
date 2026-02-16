@@ -38,6 +38,14 @@
 
 ## Usage Guide
 
+### Load Order
+
+When multiple mods are enabled, their **load order** determines which mod "wins" when two mods modify the same game file. TrenchKit assigns each enabled mod a numbered filename (e.g. `001_modname.pak`, `002_othermod.pak`) that controls the order Foxhole loads them.
+
+**Key concept:** Mods loaded *later* overwrite mods loaded *earlier*. This means the mod at the **bottom** of the list has the **highest priority**. Its files take precedence over everything above it.
+
+To change load order, **drag and drop** mods in the list to reorder them. You can also use the **Mod Conflict** button to see which mods share files and may need reordering.
+
 ### Installing Mods from NexusMods or Itch.io
 
 1. Click the **"Add Mod"** button
