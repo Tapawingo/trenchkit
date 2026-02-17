@@ -87,6 +87,43 @@ if(WIN32)
   endif()
 endif()
 
+qt_add_executable(tests_mod_manifest
+  TestModManifest.cpp
+  ${CMAKE_SOURCE_DIR}/src/core/utils/PakFileReader.h
+  ${CMAKE_SOURCE_DIR}/src/core/utils/PakFileReader.cpp
+  ${CMAKE_SOURCE_DIR}/src/core/utils/ModManifestReader.h
+  ${CMAKE_SOURCE_DIR}/src/core/utils/ModManifestReader.cpp
+)
+
+target_include_directories(tests_mod_manifest
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+target_link_libraries(tests_mod_manifest
+  PRIVATE
+    Qt6::Test
+)
+
+add_test(NAME tests_mod_manifest COMMAND tests_mod_manifest)
+
+if(WIN32)
+  set(QT_MANIFEST_TEST_DLLS "")
+  foreach(QT_DLL_NAME Qt6Core.dll Qt6Test.dll)
+    if(EXISTS "${QT_BIN_DIR}/${QT_DLL_NAME}")
+      list(APPEND QT_MANIFEST_TEST_DLLS "${QT_BIN_DIR}/${QT_DLL_NAME}")
+    endif()
+  endforeach()
+  if(QT_MANIFEST_TEST_DLLS)
+    add_custom_command(TARGET tests_mod_manifest POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${QT_MANIFEST_TEST_DLLS}
+        $<TARGET_FILE_DIR:tests_mod_manifest>
+      COMMENT "Copying Qt DLLs for tests_mod_manifest"
+    )
+  endif()
+endif()
+
 add_test(
   NAME ui_smoke
   COMMAND $<TARGET_FILE:TrenchKit> --smoke-test

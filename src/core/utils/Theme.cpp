@@ -285,6 +285,24 @@ QString Theme::getStyleSheet() {
             background: rgba(232, 17, 35, 0.1);
             border-radius: 4px;
         }
+        QPushButton#modNoticeButton {
+            background: transparent;
+            border: none;
+            padding: 4px;
+        }
+        QPushButton#modNoticeButton:hover {
+            background: rgba(61, 64, 46, 0.6);
+            border-radius: 4px;
+        }
+        QPushButton#modDependencyButton {
+            background: transparent;
+            border: none;
+            padding: 4px;
+        }
+        QPushButton#modDependencyButton:hover {
+            background: rgba(61, 64, 46, 0.6);
+            border-radius: 4px;
+        }
         #conflictTooltipLabel {
             color: #e1d0ab;
             font-size: 12px;

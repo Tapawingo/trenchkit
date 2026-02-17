@@ -52,6 +52,12 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
     m_dateLabel = new QLabel(this);
     m_dateLabel->setObjectName("modDateLabel");
+    QString subtitle = tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    const QString author = mod.author.trimmed();
+    if (!author.isEmpty()) {
+        subtitle = tr("by %1 · Installed: %2").arg(author, mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    }
+    m_dateLabel->setText(subtitle);
 
     leftSection->addWidget(m_dateLabel);
 
@@ -84,6 +90,9 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     m_dependencyButton->setCursor(Qt::PointingHandCursor);
     m_dependencyButton->setFlat(true);
     m_dependencyButton->setFocusPolicy(Qt::NoFocus);
+    m_dependencyTooltip = new ConflictTooltip(this);
+    m_dependencyTooltip->hide();
+    m_dependencyButton->installEventFilter(this);
 
     mainLayout->addWidget(m_dependencyButton);
 
@@ -94,6 +103,9 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
     m_noticeButton->setCursor(Qt::PointingHandCursor);
     m_noticeButton->setFlat(true);
     m_noticeButton->setFocusPolicy(Qt::NoFocus);
+    m_noticeTooltip = new ConflictTooltip(this);
+    m_noticeTooltip->hide();
+    m_noticeButton->installEventFilter(this);
 
     mainLayout->addWidget(m_noticeButton);
 
@@ -126,7 +138,12 @@ void ModRowWidget::updateModInfo(const ModInfo &mod) {
     m_fullModName = mod.name;
     m_nameLabel->setToolTip(mod.name);
     m_nameLabel->setText(mod.name);
-    m_dateLabel->setText(tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm")));
+    QString subtitle = tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    const QString author = mod.author.trimmed();
+    if (!author.isEmpty()) {
+        subtitle = tr("by %1 · Installed: %2").arg(author, mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    }
+    m_dateLabel->setText(subtitle);
     setNotice(mod.noticeText, mod.noticeIcon);
 }
 
@@ -218,16 +235,28 @@ void ModRowWidget::resizeEvent(QResizeEvent *event) {
 }
 
 bool ModRowWidget::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == m_conflictButton) {
+    if (watched == m_conflictButton || watched == m_noticeButton || watched == m_dependencyButton) {
+        auto *tooltip = m_conflictTooltip;
+        auto *button = m_conflictButton;
+        const QString *tooltipText = &m_conflictTooltipText;
+
+        if (watched == m_noticeButton) {
+            tooltip = m_noticeTooltip;
+            button = m_noticeButton;
+            tooltipText = &m_noticeText;
+        } else if (watched == m_dependencyButton) {
+            tooltip = m_dependencyTooltip;
+            button = m_dependencyButton;
+            tooltipText = &m_dependencyText;
+        }
+
         switch (event->type()) {
             case QEvent::Enter:
             case QEvent::ToolTip: {
-                if (m_conflictTooltip && m_conflictButton->isVisible()
-                    && !m_conflictTooltipText.isEmpty()) {
-                    m_conflictTooltip->setText(m_conflictTooltipText);
-                    QPoint pos = m_conflictButton->mapToGlobal(
-                        QPoint(m_conflictButton->width() + 8, 0));
-                    m_conflictTooltip->showAt(pos);
+                if (tooltip && button && button->isVisible() && !tooltipText->isEmpty()) {
+                    tooltip->setText(*tooltipText);
+                    QPoint pos = button->mapToGlobal(QPoint(button->width() + 8, 0));
+                    tooltip->showAt(pos);
                 }
                 return event->type() == QEvent::ToolTip;
             }
@@ -235,8 +264,8 @@ bool ModRowWidget::eventFilter(QObject *watched, QEvent *event) {
             case QEvent::Hide:
             case QEvent::MouseButtonPress:
             case QEvent::FocusOut:
-                if (m_conflictTooltip) {
-                    m_conflictTooltip->hide();
+                if (tooltip) {
+                    tooltip->hide();
                 }
                 break;
             default:
@@ -292,6 +321,9 @@ void ModRowWidget::setNotice(const QString &text, const QString &iconType) {
 
     m_noticeText = text.trimmed();
     if (m_noticeText.isEmpty()) {
+        if (m_noticeTooltip) {
+            m_noticeTooltip->hide();
+        }
         if (m_noticeButton->isVisible()) {
             m_noticeButton->setVisible(false);
             QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
@@ -303,7 +335,10 @@ void ModRowWidget::setNotice(const QString &text, const QString &iconType) {
     if (!iconPath.isEmpty()) {
         m_noticeButton->setIcon(QIcon(iconPath));
     }
-    m_noticeButton->setToolTip(m_noticeText);
+    m_noticeButton->setToolTip(QString());
+    if (m_noticeTooltip && m_noticeTooltip->isVisible()) {
+        m_noticeTooltip->setText(m_noticeText);
+    }
 
     if (!m_noticeButton->isVisible()) {
         m_noticeButton->setVisible(true);
@@ -339,6 +374,9 @@ void ModRowWidget::setDependencyStatus(const QString &text) {
 
     m_dependencyText = text.trimmed();
     if (m_dependencyText.isEmpty()) {
+        if (m_dependencyTooltip) {
+            m_dependencyTooltip->hide();
+        }
         if (m_dependencyButton->isVisible()) {
             m_dependencyButton->setVisible(false);
             QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
@@ -346,7 +384,10 @@ void ModRowWidget::setDependencyStatus(const QString &text) {
         return;
     }
 
-    m_dependencyButton->setToolTip(m_dependencyText);
+    m_dependencyButton->setToolTip(QString());
+    if (m_dependencyTooltip && m_dependencyTooltip->isVisible()) {
+        m_dependencyTooltip->setText(m_dependencyText);
+    }
     if (!m_dependencyButton->isVisible()) {
         m_dependencyButton->setVisible(true);
         QTimer::singleShot(0, this, &ModRowWidget::updateNameEliding);
