@@ -63,7 +63,7 @@ All fields are optional unless marked **required**.
 Notes:
 - `Author` can appear multiple times.
 - `Notice` supports `icon`: `info | warning | error | question | lightbulb`.
-- `Dependencies` are read and stored, but not enforced yet.
+- `Dependencies` are read and used in the manager to display missing dependencies and required load order.
 
 ### Minimal Example
 
