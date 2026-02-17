@@ -1,6 +1,6 @@
 #include "PakFileReader.h"
-#include <QDebug>
 #include <QDataStream>
+#include <QtEndian>
 
 PakFileReader::ParseResult PakFileReader::extractFilePaths(const QString &pakFilePath) {
     ParseResult result;
@@ -157,13 +157,6 @@ bool PakFileReader::extractFile(const QString &pakFilePath,
         return false;
     }
 
-    if (matchedEntry.compressionMethod != 0) {
-        if (error) {
-            *error = "Manifest is compressed in pak";
-        }
-        return false;
-    }
-
     if (matchedEntry.uncompressedSize == 0 || matchedEntry.compressedSize == 0) {
         if (error) {
             *error = "Manifest entry has invalid size";
@@ -171,7 +164,7 @@ bool PakFileReader::extractFile(const QString &pakFilePath,
         return false;
     }
 
-    static const quint64 kMaxManifestSize = 512 * 1024;
+    static constexpr quint64 kMaxManifestSize = 512 * 1024;
     if (matchedEntry.uncompressedSize > kMaxManifestSize) {
         if (error) {
             *error = "Manifest is too large";
@@ -179,15 +172,97 @@ bool PakFileReader::extractFile(const QString &pakFilePath,
         return false;
     }
 
-    if (!file.seek(static_cast<qint64>(matchedEntry.offset))) {
+    // Each entry in the data section starts with an embedded record header.
+    // The header mirrors the index entry fields (for the uncompressed state).
+    // offset(8) + compressedSize(8) + uncompressedSize(8) + method(4) + sha1(20)
+    quint64 headerSize = 8 + 8 + 8 + 4 + 20;
+    if (footer.version <= 1) {
+        headerSize += 8; // timestamp
+    }
+    if (footer.version >= 3) {
+        headerSize += 1; // encrypted flag
+        headerSize += 4; // compression block size
+    }
+
+    if (matchedEntry.compressionMethod != 0) {
+        if (matchedEntry.compressionMethod != 1) {
+            if (error) {
+                *error = QString("Unsupported compression method: %1").arg(matchedEntry.compressionMethod);
+            }
+            return false;
+        }
+
+        if (matchedEntry.compressionBlocks.isEmpty() || matchedEntry.compressionBlockSize == 0) {
+            if (error) {
+                *error = "Compressed entry has no block info";
+            }
+            return false;
+        }
+
+        QByteArray decompressed;
+        decompressed.reserve(static_cast<int>(matchedEntry.uncompressedSize));
+        quint64 remaining = matchedEntry.uncompressedSize;
+
+        for (const auto &[blockStart, blockEnd] : matchedEntry.compressionBlocks) {
+            auto blockCompressedSize = static_cast<qint64>(blockEnd - blockStart);
+
+            if (!file.seek(static_cast<qint64>(blockStart))) {
+                if (error) {
+                    *error = "Failed to seek to compression block";
+                }
+                return false;
+            }
+
+            QByteArray compressed = file.read(blockCompressedSize);
+            if (compressed.size() != blockCompressedSize) {
+                if (error) {
+                    *error = "Failed to read compression block";
+                }
+                return false;
+            }
+
+            auto expectedBlockSize = static_cast<quint32>(
+                qMin(remaining, static_cast<quint64>(matchedEntry.compressionBlockSize)));
+
+            QByteArray prefixed;
+            prefixed.reserve(4 + compressed.size());
+            quint32 beSz = qToBigEndian(expectedBlockSize);
+            prefixed.append(reinterpret_cast<const char *>(&beSz), 4);
+            prefixed.append(compressed);
+
+            QByteArray blockData = qUncompress(prefixed);
+            if (blockData.isEmpty()) {
+                if (error) {
+                    *error = "Failed to decompress zlib block";
+                }
+                return false;
+            }
+
+            decompressed.append(blockData);
+            remaining -= static_cast<quint64>(blockData.size());
+        }
+
+        if (static_cast<quint64>(decompressed.size()) != matchedEntry.uncompressedSize) {
+            if (error) {
+                *error = "Decompressed size mismatch";
+            }
+            return false;
+        }
+
+        *data = decompressed;
+        return true;
+    }
+
+    if (!file.seek(static_cast<qint64>(matchedEntry.offset + headerSize))) {
         if (error) {
             *error = "Failed to seek to manifest data";
         }
         return false;
     }
 
-    QByteArray buffer = file.read(static_cast<qint64>(matchedEntry.uncompressedSize));
-    if (buffer.size() != static_cast<int>(matchedEntry.uncompressedSize)) {
+    auto dataSize = static_cast<qint64>(matchedEntry.uncompressedSize);
+    QByteArray buffer = file.read(dataSize);
+    if (buffer.size() != dataSize) {
         if (error) {
             *error = "Failed to read manifest data";
         }
