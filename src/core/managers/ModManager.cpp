@@ -102,7 +102,7 @@ bool ModManager::addMod(const QString &pakFilePath, const QString &modName,
             mod.manifestDependencies.append(modDep);
         }
 
-        if (modName.isEmpty() && !manifest.name.isEmpty()) {
+        if (!manifest.name.isEmpty()) {
             mod.name = manifest.name;
         }
         if (mod.author.isEmpty() && !manifest.authors.isEmpty()) {
@@ -220,6 +220,13 @@ bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
         }
     }
 
+    ModManifest manifest;
+    QString manifestError;
+    const bool hasManifest = ModManifestReader::readFromPak(newPakPath, &manifest, &manifestError);
+    if (!hasManifest && !manifestError.isEmpty()) {
+        qDebug() << "Manifest not loaded for" << newPakPath << ":" << manifestError;
+    }
+
     QString oldPath = m_modsStoragePath + "/" + fileName;
     if (QFile::exists(oldPath)) {
         if (!QFile::remove(oldPath)) {
@@ -253,6 +260,9 @@ bool ModManager::replaceMod(const QString &modId, const QString &newPakPath,
             it->nexusFileId = newFileId;
             it->uploadDate = uploadDate;
             it->installDate = QDateTime::currentDateTime();
+            if (hasManifest && !manifest.name.isEmpty()) {
+                it->name = manifest.name;
+            }
 
             if (wasEnabled) {
                 it->priority = savedPriority;

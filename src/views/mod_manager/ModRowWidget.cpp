@@ -52,7 +52,12 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
     m_dateLabel = new QLabel(this);
     m_dateLabel->setObjectName("modDateLabel");
-    m_dateLabel->setText(tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm")));
+    QString subtitle = tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    const QString author = mod.author.trimmed();
+    if (!author.isEmpty()) {
+        subtitle = tr("by %1 · Installed: %2").arg(author, mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    }
+    m_dateLabel->setText(subtitle);
 
     leftSection->addWidget(m_dateLabel);
 
@@ -133,7 +138,12 @@ void ModRowWidget::updateModInfo(const ModInfo &mod) {
     m_fullModName = mod.name;
     m_nameLabel->setToolTip(mod.name);
     m_nameLabel->setText(mod.name);
-    m_dateLabel->setText(tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm")));
+    QString subtitle = tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    const QString author = mod.author.trimmed();
+    if (!author.isEmpty()) {
+        subtitle = tr("by %1 · Installed: %2").arg(author, mod.installDate.toString("yyyy-MM-dd hh:mm"));
+    }
+    m_dateLabel->setText(subtitle);
     setNotice(mod.noticeText, mod.noticeIcon);
 }
 
