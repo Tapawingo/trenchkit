@@ -65,6 +65,8 @@ private:
     QPushButton *m_dependencyButton;
     QPushButton *m_noticeButton;
     ConflictTooltip *m_conflictTooltip = nullptr;
+    ConflictTooltip *m_dependencyTooltip = nullptr;
+    ConflictTooltip *m_noticeTooltip = nullptr;
     QString m_conflictTooltipText;
     QString m_dependencyText;
     QString m_noticeText;

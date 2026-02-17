@@ -319,6 +319,8 @@ void ModListWidget::refreshModList() {
         {
             QStringList missingDeps;
             QStringList versionIssues;
+            QStringList dependencyDisabledIssues;
+            QStringList loadOrderIssues;
 
             for (const auto &dep : mod.manifestDependencies) {
                 if (!dep.required) {
@@ -364,6 +366,21 @@ void ModListWidget::refreshModList() {
                         versionIssues.append(requirement);
                     }
                 }
+
+                if (mod.enabled) {
+                    if (!depMod.enabled) {
+                        dependencyDisabledIssues.append(depId);
+                    }
+
+                    if (depMod.priority >= mod.priority) {
+                        loadOrderIssues.append(
+                            tr("%1 (dependency: %2, this mod: %3)")
+                                .arg(depId,
+                                     QString::number(depMod.priority),
+                                     QString::number(mod.priority))
+                        );
+                    }
+                }
             }
 
             QStringList lines;
@@ -372,6 +389,13 @@ void ModListWidget::refreshModList() {
             }
             if (!versionIssues.isEmpty()) {
                 lines.append(tr("Dependency version mismatch: %1").arg(versionIssues.join(", ")));
+            }
+            if (!dependencyDisabledIssues.isEmpty()) {
+                lines.append(tr("Required dependencies disabled: %1").arg(dependencyDisabledIssues.join(", ")));
+            }
+            if (!loadOrderIssues.isEmpty()) {
+                lines.append(tr("Dependency load order incorrect (must load before this mod): %1")
+                                 .arg(loadOrderIssues.join(", ")));
             }
             modRow->setDependencyStatus(lines.join("\n"));
         }
