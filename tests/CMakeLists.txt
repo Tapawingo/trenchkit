@@ -100,11 +100,6 @@ target_include_directories(tests_mod_manifest
     ${CMAKE_SOURCE_DIR}/src
 )
 
-target_compile_definitions(tests_mod_manifest
-  PRIVATE
-    TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/extras/mods"
-)
-
 target_link_libraries(tests_mod_manifest
   PRIVATE
     Qt6::Test
