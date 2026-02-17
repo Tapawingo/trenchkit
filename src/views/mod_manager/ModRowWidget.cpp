@@ -52,6 +52,7 @@ void ModRowWidget::setupUi(const ModInfo &mod) {
 
     m_dateLabel = new QLabel(this);
     m_dateLabel->setObjectName("modDateLabel");
+    m_dateLabel->setText(tr("Installed: %1").arg(mod.installDate.toString("yyyy-MM-dd hh:mm")));
 
     leftSection->addWidget(m_dateLabel);
 
