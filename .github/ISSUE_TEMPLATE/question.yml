@@ -1,0 +1,34 @@
+name: Question
+description: Ask a question about TrenchKit
+title: "Question - "
+labels: ["type: question"]
+assignees: []
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you want to know?
+      description: Ask your question here.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of TrenchKit is this about?
+      options:
+        - Mod install
+        - Mod updates
+        - Profiles
+        - Backups
+        - Conflicts
+        - Launcher
+        - Settings / UI
+        - Auth (Nexus / Itch)
+        - Updater (self-update)
+        - Translations
+        - Mod development
+        - Other
+    validations:
+      required: false

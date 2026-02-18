@@ -1,15 +1,9 @@
-name: 🐞 Bug Report
+name: Bug Report
 description: Report a problem or unexpected behavior in TrenchKit
 title: "Bug - "
-labels: ["bug"]
+labels: ["type: bug"]
 assignees: []
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for taking the time to report a bug!
-        Please fill out the sections below so the issue can be reproduced and fixed more easily.
-
   - type: textarea
     id: description
     attributes:
@@ -40,12 +34,32 @@ body:
     validations:
       required: false
 
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of TrenchKit is affected?
+      options:
+        - Mod install
+        - Mod updates
+        - Profiles
+        - Backups
+        - Conflicts
+        - Launcher
+        - Settings / UI
+        - Auth (Nexus / Itch)
+        - Updater (self-update)
+        - Translations
+        - Other
+    validations:
+      required: true
+
   - type: input
     id: version
     attributes:
       label: TrenchKit version
-      description: Version number or commit hash (shown in About dialog)
-      placeholder: "e.g. v0.1.0"
+      description: Version number shown in Settings
+      placeholder: "e.g. 1.1.5"
     validations:
       required: true
 

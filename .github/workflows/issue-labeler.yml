@@ -1,0 +1,63 @@
+name: Issue Labeler
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply area label from issue form
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+
+            const areaMap = {
+              'Mod install': 'area: mod install',
+              'Mod updates': 'area: updates',
+              'Profiles': 'area: profiles',
+              'Backups': 'area: backups',
+              'Conflicts': 'area: conflicts',
+              'Launcher': 'area: launcher',
+              'Settings / UI': 'area: ui-ux',
+              'Auth (Nexus / Itch)': 'area: auth',
+              'Updater (self-update)': 'area: updater',
+              'Translations': 'area: translations',
+              'Mod development': 'area: mod dev',
+            };
+
+            const platformMap = {
+              'Windows': 'os: windows',
+              'Linux': 'os: linux',
+              'macOS': 'os: macos',
+            };
+
+            const labels = [];
+
+            for (const [value, label] of Object.entries(areaMap)) {
+              if (body.includes(value)) {
+                labels.push(label);
+                break;
+              }
+            }
+
+            for (const [value, label] of Object.entries(platformMap)) {
+              if (body.includes(value)) {
+                labels.push(label);
+                break;
+              }
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labels,
+              });
+            }

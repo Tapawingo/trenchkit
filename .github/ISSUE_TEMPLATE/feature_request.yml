@@ -1,15 +1,9 @@
-name: ✨ Feature Request
+name: Feature Request
 description: Suggest an idea or improvement for TrenchKit
 title: "Feature - "
-labels: ["enhancement"]
+labels: ["type: feature"]
 assignees: []
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for helping improve TrenchKit!
-        Feature requests are welcome — especially if they improve mod safety, usability, or transparency.
-
   - type: textarea
     id: problem
     attributes:
@@ -36,19 +30,25 @@ body:
     validations:
       required: false
 
-  - type: textarea
-    id: scope
+  - type: dropdown
+    id: area
     attributes:
-      label: Scope / impact
-      description: |
-        Does this affect:
-        - Mod installation
-        - Update checking
+      label: Area
+      description: Which part of TrenchKit does this affect?
+      options:
+        - Mod install
+        - Mod updates
         - Profiles
         - Backups
-        - UI / UX
+        - Conflicts
+        - Launcher
+        - Settings / UI
+        - Auth (Nexus / Itch)
+        - Updater (self-update)
+        - Translations
+        - Other
     validations:
-      required: false
+      required: true
 
   - type: dropdown
     id: contribution
