@@ -7,25 +7,21 @@ tag-template: 'v$RESOLVED_VERSION'
 sort-by: title
 sort-direction: ascending
 
+category-template: '## $TITLE'
+
 categories:
-  - title: "## Added"
+  - title: 'Added'
     labels:
       - 'type: feature'
-    exclude-labels:
-      - 'area: translations'
-  - title: "## Fixed"
+  - title: 'Fixed'
     labels:
       - 'type: bug'
-    exclude-labels:
-      - 'area: translations'
-  - title: "## Improved"
+  - title: 'Improved'
     labels:
       - 'type: enhancement'
       - 'type: performance'
       - 'type: refactor'
-    exclude-labels:
-      - 'area: translations'
-  - title: '## Translations'
+  - title: 'Translations'
     labels:
       - 'area: translations'
 
@@ -33,6 +29,7 @@ exclude-labels:
   - 'duplicate'
   - 'invalid'
   - 'status: wont fix'
+  - 'ignore-changelog'
   - 'type: chore'
   - 'type: docs'
 
