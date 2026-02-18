@@ -4,7 +4,7 @@ BUILD_DIR_DEBUG=build/debug
 BUILD_DIR_RELEASE=build/release
 GENERATOR=Ninja
 
-.PHONY: all configure-debug configure-release build-debug build-release test test-debug run-debug run-release clean
+.PHONY: all configure-debug configure-release build-debug build-release test test-debug run-debug run-release translations-template clean
 
 all: build-debug
 
@@ -31,6 +31,9 @@ run-debug: build-debug
 
 run-release: build-release
 	$(BUILD_DIR_RELEASE)/TrenchKit.exe
+
+translations-template: configure-debug
+	cmake --build $(BUILD_DIR_DEBUG) --target update_translation_template
 
 clean:
 	cmake --build $(BUILD_DIR_DEBUG) --target clean || true

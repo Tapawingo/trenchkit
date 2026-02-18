@@ -99,6 +99,8 @@ qt_add_executable(TrenchKit
   core/utils/PakFileReader.cpp
   core/utils/TranslationManager.h
   core/utils/TranslationManager.cpp
+  core/utils/TsTranslator.h
+  core/utils/TsTranslator.cpp
 
   common/modals/ModalManager.h
   common/modals/ModalManager.cpp
@@ -171,7 +173,18 @@ target_include_directories(TrenchKit
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-qt_add_translations(TrenchKit TS_FILE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/i18n)
+qt_add_translations(TrenchKit TS_FILE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/locales)
+
+# Generate translation template for community translators
+# Run: cmake --build build/debug --target update_translation_template
+set(_LUPDATE_EN "${CMAKE_BINARY_DIR}/.lupdate/TrenchKit_en.ts")
+set(_TEMPLATE_OUT "${CMAKE_CURRENT_SOURCE_DIR}/locales/TrenchKit_template.ts")
+add_custom_target(update_translation_template
+  DEPENDS update_translations
+  COMMAND ${CMAKE_COMMAND} -E copy "${_LUPDATE_EN}" "${_TEMPLATE_OUT}"
+  COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_SOURCE_DIR}/locales/strip_template.cmake"
+  COMMENT "Generating translation template from lupdate output"
+)
 
 # Post-build: Copy platform-specific TLS backend
 set(QT_TLS_PLUGIN_DIR "${Qt6_DIR}/../../../plugins/tls")

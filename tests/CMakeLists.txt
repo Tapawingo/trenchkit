@@ -124,6 +124,41 @@ if(WIN32)
   endif()
 endif()
 
+qt_add_executable(tests_ts_translator
+  TestTsTranslator.cpp
+  ${CMAKE_SOURCE_DIR}/src/core/utils/TsTranslator.h
+  ${CMAKE_SOURCE_DIR}/src/core/utils/TsTranslator.cpp
+)
+
+target_include_directories(tests_ts_translator
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+target_link_libraries(tests_ts_translator
+  PRIVATE
+    Qt6::Test
+)
+
+add_test(NAME tests_ts_translator COMMAND tests_ts_translator)
+
+if(WIN32)
+  set(QT_TS_TEST_DLLS "")
+  foreach(QT_DLL_NAME Qt6Core.dll Qt6Test.dll)
+    if(EXISTS "${QT_BIN_DIR}/${QT_DLL_NAME}")
+      list(APPEND QT_TS_TEST_DLLS "${QT_BIN_DIR}/${QT_DLL_NAME}")
+    endif()
+  endforeach()
+  if(QT_TS_TEST_DLLS)
+    add_custom_command(TARGET tests_ts_translator POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${QT_TS_TEST_DLLS}
+        $<TARGET_FILE_DIR:tests_ts_translator>
+      COMMENT "Copying Qt DLLs for tests_ts_translator"
+    )
+  endif()
+endif()
+
 add_test(
   NAME ui_smoke
   COMMAND $<TARGET_FILE:TrenchKit> --smoke-test
