@@ -1,0 +1,50 @@
+branches:
+  - main
+
+name-template: 'Version $RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+sort-by: title
+sort-direction: ascending
+
+categories:
+  - title: "## Added"
+    labels:
+      - 'type: feature'
+  - title: "## Fixed"
+    labels:
+      - 'type: bug'
+  - title: "## Improved"
+    labels:
+      - 'type: enhancement'
+      - 'type: performance'
+      - 'type: refactor'
+  - title: '## Translations'
+    labels:
+      - 'area: translations'
+
+exclude-labels:
+  - 'duplicate'
+  - 'invalid'
+  - 'status: wont fix'
+
+change-template: '- $TITLE (#$NUMBER)'
+
+version-resolver:
+  major:
+    labels:
+      - 'breaking'
+  minor:
+    labels:
+      - 'type: feature'
+  patch:
+    labels:
+      - 'type: bug'
+      - 'type: enhancement'
+      - 'type: performance'
+  default: patch
+
+template: |
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

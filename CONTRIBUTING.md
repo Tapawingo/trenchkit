@@ -76,11 +76,15 @@ cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug \
 - Avoid unnecessary dependencies
 - UI: keep the main window simple and responsive
 
-## Commit messages
-Use clear, descriptive messages, e.g.:
-- `Fix mod list refresh when folder missing`
-- `Add profile save/load`
-- `Improve install path detection`
+## PR titles and commit messages
+PR titles appear directly in the changelog. Use the format `area - verb changes`:
+- `Profiles - Add save/load support`
+- `Mod list - Fix refresh when folder missing`
+- `Installer - Improve path detection`
+
+Verbs: `Add`, `Fix`, `Improve`, `Change`, `Make`, `Remove`
+
+Use the same style for commit messages.
 
 ## Licensing notes
 - Repository code is MIT.

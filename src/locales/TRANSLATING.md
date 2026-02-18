@@ -1,28 +1,44 @@
 # Adding a New Translation
 
-This guide explains how to add a new language translation to TrenchKit. No build tools are required.
+This guide explains how to translate TrenchKit into your language. No build tools or programming experience required.
 
-## Steps
+## Getting started
 
-### 1. Get the template
+### 1. Fork and clone the repository
 
-Copy `TrenchKit_template.ts` from the `src/locales/` directory in this repository. It contains all translatable strings with empty translations ready to fill in.
+1. Click **Fork** on the [TrenchKit GitHub page](https://github.com/Tapawingo/TrenchKit)
+2. Clone your fork:
+   ```sh
+   git clone https://github.com/<your-username>/TrenchKit.git
+   cd TrenchKit
+   ```
+3. Create a branch for your translation:
+   ```sh
+   git checkout -b translations/<code>
+   ```
+   Replace `<code>` with your [ISO 639-1 language code](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `fr`, `de`, `es`, `zh_CN`).
 
-### 2. Rename and set the language
+### 2. Create your translation file
 
-Rename the file to `TrenchKit_<code>.ts` (e.g. `TrenchKit_fr.ts`) using an [ISO 639-1 language code](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes), and change the `language` attribute in the `<TS>` root element:
+Copy the template and rename it to your language code:
+
+```sh
+cp src/locales/TrenchKit_template.ts src/locales/TrenchKit_<code>.ts
+```
+
+Open the file and change the `language` attribute in the `<TS>` root element:
 
 ```xml
 <!-- Before -->
 <TS version="2.1" language="" sourcelanguage="en">
 
-<!-- After -->
+<!-- After (example: French) -->
 <TS version="2.1" language="fr" sourcelanguage="en">
 ```
 
 ### 3. Translate
 
-Open the file in any text editor. Replace existing translations with your own. The `<source>` element is the English text; edit only the `<translation>` element:
+Open the file in any text editor. The `<source>` element is the English text; edit only the `<translation>` element:
 
 ```xml
 <message>
@@ -57,9 +73,17 @@ locales/
 
 Restart TrenchKit, open Settings, and select your language from the dropdown.
 
-### 6. Submit
+### 6. Commit and push
 
-Once you're happy with the translation, open a pull request adding your `.ts` file to `src/locales/`.
+```sh
+git add src/locales/TrenchKit_<code>.ts
+git commit -m "Add <language> translation"
+git push origin translations/<code>
+```
+
+### 7. Open a pull request
+
+Go to your fork on GitHub and click **Compare & pull request**. Target the `main` branch of the original repository.
 
 ## File structure
 
