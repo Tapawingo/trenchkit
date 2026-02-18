@@ -99,6 +99,8 @@ qt_add_executable(TrenchKit
   core/utils/PakFileReader.cpp
   core/utils/TranslationManager.h
   core/utils/TranslationManager.cpp
+  core/utils/TsTranslator.h
+  core/utils/TsTranslator.cpp
 
   common/modals/ModalManager.h
   common/modals/ModalManager.cpp

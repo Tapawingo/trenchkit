@@ -190,7 +190,10 @@ void SettingsWidget::buildUi() {
     m_languageCombo = new QComboBox(m_panel);
     m_languageCombo->addItem(tr("System default"), QStringLiteral("system"));
     m_languageCombo->addItem(QStringLiteral("English"), QStringLiteral("en"));
-    m_languageCombo->addItem(QString::fromUtf8("Norsk Bokm\xc3\xa5l"), QStringLiteral("nb"));
+    const auto languages = TranslationManager::instance().availableLanguages();
+    for (const auto &lang : languages) {
+        m_languageCombo->addItem(lang.displayName, lang.code);
+    }
     m_languageCombo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     containerLayout->addWidget(m_languageCombo, 2, 0, 1, 2);
 

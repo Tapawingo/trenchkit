@@ -77,20 +77,7 @@ Fill in the translation and remove `type="unfinished"`:
 - **Keep file extensions and paths** untranslated (`.pak`, `.zip`, `.tkprofile`, `AppData/...`)
 - **Don't translate** `QStringLiteral()` strings, log messages, object names, or settings keys (these are not in the .ts file)
 
-### 5. Add the language to the UI selector
-
-Open `src/views/settings/SettingsWidget.cpp` and add your language to the combo box in `buildUi()`:
-
-```cpp
-m_languageCombo->addItem(QStringLiteral("English"), QStringLiteral("en"));
-m_languageCombo->addItem(QString::fromUtf8("Norsk Bokmål"), QStringLiteral("nb"));
-// Add your language here, using its native name:
-m_languageCombo->addItem(QStringLiteral("Français"), QStringLiteral("fr"));
-```
-
-Always use the language's **native name** (e.g. "Deutsch", not "German") so speakers can find it regardless of the current UI language.
-
-### 6. Build and verify
+### 5. Build and verify
 
 ```sh
 cmake --build build/debug
@@ -105,13 +92,53 @@ Generating src/TrenchKit_fr.qm
 
 The `.qm` files are automatically embedded as Qt resources at `:/i18n/` and loaded by `TranslationManager` at runtime.
 
-### 7. Test
+### 6. Test
 
 1. Launch TrenchKit
 2. Open Settings
 3. Select your language from the Language dropdown
 4. Click Save
 5. Verify the UI updates to your language
+
+## External translation testing (no build tools required)
+
+If you want to test a translation without building the project:
+
+### 1. Get the template
+
+Copy `TrenchKit_en.ts` from the `src/i18n/` directory in the repository.
+
+### 2. Rename and set the language
+
+Rename the file to `TrenchKit_<code>.ts` (e.g. `TrenchKit_fr.ts`) and change the `language` attribute in the `<TS>` root element:
+
+```xml
+<!-- Before -->
+<TS version="2.1" language="en" sourcelanguage="en">
+
+<!-- After -->
+<TS version="2.1" language="fr" sourcelanguage="en">
+```
+
+### 3. Translate
+
+Edit the XML in any text editor. Fill in `<translation>` elements and remove `type="unfinished"` for completed entries. See "Translation guidelines" above.
+
+### 4. Place the file
+
+Create a `locales/` folder next to the TrenchKit executable and place your `.ts` file there:
+
+```
+TrenchKit.exe
+locales/
+    TrenchKit_fr.ts
+```
+
+### 5. Select the language
+
+Restart TrenchKit, open Settings, and select your language from the dropdown. External `.ts` files are loaded automatically and take priority over the built-in translations.
+
+Entries marked `type="unfinished"` with empty translation text are skipped (the English source text is shown instead), so you can translate incrementally.
 
 ## File structure
 
@@ -130,6 +157,8 @@ src/i18n/
 - `lrelease` compiles `.ts` into binary `.qm` files
 - `.qm` files are embedded as Qt resources via `qt_add_translations()`
 - `TranslationManager` loads the appropriate `.qm` at startup and on language change
+- External `.ts` files in `locales/` are parsed at runtime by `TsTranslator` and take priority over embedded `.qm` files
+- Available languages are discovered automatically from both embedded resources and external files
 - Qt sends `QEvent::LanguageChange` to all widgets, which call `retranslateUi()` to update their text
 
 ## Updating an existing translation
