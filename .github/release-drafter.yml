@@ -23,7 +23,7 @@ categories:
       - 'type: refactor'
   - title: 'Translations'
     labels:
-      - 'area: translations'
+      - 'type: translation'
 
 exclude-labels:
   - 'duplicate'

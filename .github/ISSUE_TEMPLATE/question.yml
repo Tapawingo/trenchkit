@@ -19,6 +19,7 @@ body:
       description: Which part of TrenchKit is this about?
       options:
         - Mod install
+        - Mod list
         - Mod updates
         - Profiles
         - Backups

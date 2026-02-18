@@ -19,6 +19,7 @@ jobs:
 
             const areaMap = {
               'Mod install': 'area: mod install',
+              'Mod list': 'area: mod list',
               'Mod updates': 'area: updates',
               'Profiles': 'area: profiles',
               'Backups': 'area: backups',

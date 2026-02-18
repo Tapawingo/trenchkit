@@ -86,6 +86,20 @@ Verbs: `Add`, `Fix`, `Improve`, `Change`, `Make`, `Remove`
 
 Use the same style for commit messages.
 
+## How the changelog works
+Release notes are generated automatically from merged PRs using [release-drafter](https://github.com/release-drafter/release-drafter). PRs are sorted into sections based on their labels:
+
+| Label | Section |
+|---|---|
+| `type: feature` | Added |
+| `type: bug` | Fixed |
+| `type: enhancement`, `type: performance`, `type: refactor` | Improved |
+| `type: translation` | Translations |
+
+PRs labeled `type: chore`, `type: docs`, or `ignore-changelog` are excluded from the release notes.
+
+Each PR should have exactly one `type:` label. `area:` labels (e.g. `area: translations`, `area: ui-ux`) can be added alongside a `type:` label - they don't affect the changelog.
+
 ## Licensing notes
 - Repository code is MIT.
 - Avoid adding Qt modules that are GPL-only unless the project explicitly opts into GPL terms or uses a commercial Qt license.

@@ -41,6 +41,7 @@ body:
       description: Which part of TrenchKit is affected?
       options:
         - Mod install
+        - Mod list
         - Mod updates
         - Profiles
         - Backups
