@@ -173,7 +173,9 @@ target_include_directories(TrenchKit
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-qt_add_translations(TrenchKit TS_FILE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/locales)
+file(GLOB _TS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/locales/TrenchKit_*.ts")
+list(FILTER _TS_FILES EXCLUDE REGEX "TrenchKit_template\\.ts$")
+qt_add_translations(TrenchKit TS_FILES ${_TS_FILES})
 
 # Generate translation template for community translators
 # Run: cmake --build build/debug --target update_translation_template

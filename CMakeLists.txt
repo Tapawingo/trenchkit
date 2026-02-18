@@ -63,7 +63,7 @@ set_target_properties(archive_static PROPERTIES
   AUTORCC OFF
 )
 
-qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES nb)
+qt_standard_project_setup()
 
 add_subdirectory(updater)
 add_subdirectory(src)
