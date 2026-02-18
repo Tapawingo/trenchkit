@@ -11,14 +11,20 @@ categories:
   - title: "## Added"
     labels:
       - 'type: feature'
+    exclude-labels:
+      - 'area: translations'
   - title: "## Fixed"
     labels:
       - 'type: bug'
+    exclude-labels:
+      - 'area: translations'
   - title: "## Improved"
     labels:
       - 'type: enhancement'
       - 'type: performance'
       - 'type: refactor'
+    exclude-labels:
+      - 'area: translations'
   - title: '## Translations'
     labels:
       - 'area: translations'
@@ -27,6 +33,8 @@ exclude-labels:
   - 'duplicate'
   - 'invalid'
   - 'status: wont fix'
+  - 'type: chore'
+  - 'type: docs'
 
 change-template: '- $TITLE (#$NUMBER)'
 
