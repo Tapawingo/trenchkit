@@ -27,45 +27,22 @@ Hey mod makers! This guide explains how TrenchKit detects and handles mod update
 - **Don't** backdate uploads on itch.io - dates are used for update detection
 - **Nexus**: Don't skip the version field - it's required for updates
 
-## Mod Manifest (Optional)
+## Mod Manifest
 
-TrenchKit can read an optional manifest inside your `.pak` to provide richer metadata (name, author, dependencies, and a custom notice shown in the mod row).
+Adding a small XML manifest to your `.pak` unlocks several features in TrenchKit:
 
-**Location inside the pak:** `Mod/Manifest.xml`
+- **Display name** — your mod shows its real name instead of a cleaned-up filename
+- **Author attribution** — shown in the mod row, supports multiple authors
+- **Notices** — show a warning, info, or error icon with a tooltip directly in the mod list (e.g. "Requires the latest game update")
+- **Dependency management** — TrenchKit warns users about missing dependencies, version mismatches, disabled dependencies, and incorrect load order
+- **Tags** — categorize your mod for future filtering/search support
+- **Links** — link to your homepage, Nexus, or itch.io page
 
-### Supported Fields
+All it takes is a single XML file inside your pak.
 
-All fields are optional unless marked **required**.
+### Quick start
 
-```xml
-<ModManifest version="1">
-  <Id>myName.mycoolmod</Id>                     <!-- required: stable unique id -->
-  <Name>My Cool Mod</Name>                      <!-- required: display name -->
-  <Version>1.2.0</Version>                      <!-- optional -->
-  <Author>Example Studio</Author>               <!-- repeatable -->
-  <Description>Short summary...</Description>   <!-- optional -->
-  <Homepage>https://example.com</Homepage>      <!-- optional -->
-  <Nexus>https://www.nexusmods.com/.../</Nexus> <!-- optional -->
-  <Itch>https://example.itch.io/... </Itch>     <!-- optional -->
-
-  <Notice icon="warning">Requires the latest game update.</Notice> <!-- optional -->
-
-  <Dependencies>                                <!-- optional -->
-    <Dependency id="com.other.mod" minVersion="1.0.0" maxVersion="2.0.0" required="true" /> <!-- optional -->
-  </Dependencies>
-
-  <Tags>                                        <!-- optional -->
-    <Tag>Textures</Tag>                         <!-- optional -->
-  </Tags>
-</ModManifest>
-```
-
-Notes:
-- `Author` can appear multiple times.
-- `Notice` supports `icon`: `info | warning | error | question | lightbulb`.
-- `Dependencies` are read and used in the manager to display missing dependencies and required load order.
-
-### Minimal Example
+Place this file at `Mod/Manifest.xml` inside your pak:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -73,36 +50,76 @@ Notes:
   <Id>myName.mycoolmod</Id>
   <Name>My Cool Mod</Name>
   <Version>1.2.0</Version>
-  <Author>Example Studio</Author>
+  <Author>YourName</Author>
   <Description>Replaces textures with HD versions.</Description>
-  <Homepage>https://example.com/mycoolmod</Homepage>
-  <Notice icon="warning">May break with the next game update.</Notice>
 </ModManifest>
 ```
 
-### Notice Icons
+That's it. TrenchKit picks it up automatically when the mod is installed.
 
-The `<Notice>` element supports an `icon` attribute:
+### Full schema
 
+```xml
+<ModManifest version="1">
+  <Id>myName.mycoolmod</Id>                     <!-- required: stable unique id -->
+  <Name>My Cool Mod</Name>                      <!-- required: display name -->
+  <Version>1.2.0</Version>
+  <Author>First Author</Author>                 <!-- repeatable -->
+  <Author>Second Author</Author>
+  <Description>Short summary...</Description>
+  <Homepage>https://example.com</Homepage>
+  <Nexus>https://www.nexusmods.com/.../</Nexus>
+  <Itch>https://example.itch.io/...</Itch>
+
+  <Notice icon="warning">Requires the latest game update.</Notice>
+
+  <Dependencies>
+    <Dependency id="otherAuthor.othermod" minVersion="1.0.0" maxVersion="2.0.0" required="true" />
+  </Dependencies>
+
+  <Tags>
+    <Tag>Textures</Tag>
+  </Tags>
+</ModManifest>
 ```
-info | warning | error | question | lightbulb
+
+### Field reference
+
+| Field | Required | Notes |
+|---|---|---|
+| `Id` | Yes | Stable unique identifier (e.g. `yourName.modName`). Used for dependency resolution. |
+| `Name` | Yes | Display name shown in the mod list. |
+| `Version` | No | Semantic version (e.g. `1.2.0`). |
+| `Author` | No | Can appear multiple times for multiple authors. |
+| `Description` | No | Short summary of the mod. |
+| `Homepage` | No | Link to your mod's website. |
+| `Nexus` | No | Link to the Nexus Mods page. |
+| `Itch` | No | Link to the itch.io page. |
+| `Notice` | No | Message shown as a tooltip icon in the mod row. Supports `icon` attribute: `info`, `warning`, `error`, `question`, `lightbulb`. |
+| `Dependencies` | No | List of `Dependency` entries. Each has `id` (required), `minVersion`, `maxVersion`, and `required` (default: `true`). |
+| `Tags` | No | List of `Tag` entries for categorization. |
+
+### How dependencies work in TrenchKit
+
+When your manifest declares dependencies, TrenchKit checks them in real-time and warns users about:
+
+- **Missing dependencies** — the required mod isn't installed
+- **Version mismatches** — the installed version is outside the min/max range
+- **Disabled dependencies** — the dependency is installed but not enabled
+- **Load order issues** — the dependency must load before your mod but is ordered after it
+
+These warnings appear as an icon with a tooltip on the mod row, so users can fix issues before launching the game.
+
+### Packaging the manifest
+
+Place your manifest at `War/Mod/Manifest.xml` in your content directory before packing.
+
+**With u4pak:**
+```sh
+u4pak.py pack War-WindowsNoEditor_MyMod.pak War
 ```
 
-### Important: The Manifest Must Be Uncompressed
-
-Foxhole mods are typically baked in UE4 with compression for assets (this is fine and required). This does **not** affect the manifest.
-
-However, TrenchKit currently only reads **uncompressed files inside the pak**. If `Mod/Manifest.xml` is compressed, TrenchKit will ignore it.
-
-**UE4 + u4pak:**
-
-1) Place your manifest at: `War/Mod/Manifest.xml` before packing with **u4pak**.
-2) Build your pak as usual (e.g., `u4pak.py pack War-WindowsNoEditor_MyMod.pak War`).
-
-**Uncompressed requirement (important):**
-- Make sure your packaging step stores `Mod/Manifest.xml` **uncompressed**.
-- The tutorial doesn’t mention compression settings, so verify with your packer/inspector whether `Manifest.xml` is stored or compressed.
-- If your packer compresses everything by default and you can’t mark a single file as “store/uncompressed,” use a packer that supports per-file compression control for the manifest.
+**Important:** The manifest must be stored **uncompressed** inside the pak. TrenchKit cannot read compressed entries. If your packer compresses everything by default, make sure `Mod/Manifest.xml` is excluded from compression.
 
 ## Platform-Specific Guides
 
