@@ -84,6 +84,14 @@ void InstallPathWidget::changeEvent(QEvent *event) {
 void InstallPathWidget::retranslateUi() {
     m_titleLabel->setText(tr("Foxhole Installation"));
     m_pathLineEdit->setPlaceholderText(tr("Select Foxhole installation folder..."));
+
+    if (!m_currentPath.isEmpty()) {
+        if (m_isValid) {
+            m_statusLabel->setText(tr("\xe2\x9c\x93 Valid Foxhole installation"));
+        } else {
+            m_statusLabel->setText(tr("\xe2\x9c\x97 Invalid Foxhole installation"));
+        }
+    }
 }
 
 void InstallPathWidget::setupConnections() {
