@@ -23,5 +23,5 @@ The title appears directly in the changelog, so keep it clear and concise.
 
 ## Checklist
 
-- [ ] I have read and understood the [contribution guidelines](../CONTRIBUTING.md)
+- [ ] I have read and understood the [contribution guidelines](https://github.com/Tapawingo/TrenchKit/blob/main/CONTRIBUTING.md)
 - [ ] PR title follows the format: `area - Add|Fix|Improve|Change|Make|Remove {changes}`
